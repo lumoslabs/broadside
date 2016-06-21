@@ -5,9 +5,7 @@ rvm:
 cache: bundler
 script:
   - bundle exec rspec
-branches:
-  except:
-    - /^production_release_\d+$/
-    - /^staging_release_\d+$/
 notifications:
   email: false
+git:
+  submodules: false

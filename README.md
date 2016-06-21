@@ -1,4 +1,4 @@
-# Broadside
+# Broadside [![Build Status](https://travis-ci.org/lumoslabs/broadside.svg?branch=master)](https://travis-ci.org/lumoslabs/broadside)
 A command-line tool for deploying applications on AWS EC2 Container Service (ECS)
 
 This tool is primarily intended for use with ruby applications.
