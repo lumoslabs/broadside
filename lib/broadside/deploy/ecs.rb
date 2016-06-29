@@ -137,8 +137,7 @@ module Broadside
 
     # removes latest n task definitions
     def deregister_tasks(count)
-      task_definition_ids = ecs_client.list_task_definitions({family_prefix: family}).task_definition_arns
-      task_definition_ids.last(count).each do |td_id|
+      get_task_def_ids.last(count).each do |td_id|
         ecs_client.deregister_task_definition({task_definition: td_id})
         debug "Deregistered #{td_id}"
       end
@@ -258,7 +257,7 @@ module Broadside
     def get_running_instance_ips(task_ids = nil)
       task_arns = nil
       if task_ids.nil?
-        task_arns = ecs_client.list_tasks({cluster: config.ecs.cluster, family: family}).task_arns
+        task_arns = get_tasks
         if task_arns.empty?
           exception "No running tasks found for '#{family}' on cluster '#{config.ecs.cluster}' !"
         end
@@ -284,9 +283,36 @@ module Broadside
       ecs_client.describe_task_definition({task_definition: get_latest_task_def_id}).task_definition.to_h
     end
 
+    def get_tasks
+      # used for pagination if > 100 tasks
+      next_token = nil
+      tasks = []
+      loop do
+        resp = ecs_client.list_tasks({cluster: config.ecs.cluster, family: family, next_token: next_token})
+        next_token = resp.next_token
+        tasks += resp.task_arns
+        break if next_token.nil?
+      end
+
+      tasks
+    end
+
+    def get_task_def_ids
+      # used for pagination if > 100 task_definition ids
+      next_token = nil
+      task_def_ids = []
+      loop do
+        resp = ecs_client.list_task_definitions({family_prefix: family, next_token: next_token})
+        next_token = resp.next_token
+        task_def_ids += resp.task_definition_arns
+        break if next_token.nil?
+      end
+
+      task_def_ids
+    end
+
     def get_latest_task_def_id
-      task_defs = ecs_client.list_task_definitions({family_prefix: family})
-      task_defs.task_definition_arns.last
+      get_task_def_ids.last
     end
 
     def create_new_task_revision
