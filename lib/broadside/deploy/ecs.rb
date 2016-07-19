@@ -148,10 +148,11 @@ module Broadside
       debug "Creating a new task definition..."
       new_task_def = create_new_task_revision
 
-      #TODO instead of first, use select to cover task defs w multiple containers
-      new_task_def[:container_definitions].first[:environment] = @deploy_config.env_vars
-      new_task_def[:container_definitions].first[:image] = image_tag
-      new_task_def[:container_definitions].first[:command] = @deploy_config.command
+      container_def = new_task_def[:container_definitions].select { |c| c[:name] == family }.first
+      container_def[:environment] = @deploy_config.env_vars
+      container_def[:image] = image_tag
+      container_def[:command] = @deploy_config.command
+
       new_task_def_id = ecs_client.register_task_definition(new_task_def).task_definition.task_definition_arn
       debug "Successfully created #{new_task_def_id}"
     end
@@ -251,7 +252,8 @@ module Broadside
 
     def get_task_exit_code(task_id)
       task = ecs_client.describe_tasks({cluster: config.ecs.cluster, tasks: [task_id]}).tasks.first
-      task.containers.first.exit_code
+      container = task.containers.select { |c| c.name == family }.first
+      container.exit_code
     end
 
     def get_running_instance_ips(task_ids = nil)
