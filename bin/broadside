@@ -101,7 +101,7 @@ command :deploy do |d|
   d.desc 'Tail the logs inside the running container.'
   d.command :logtail do |subcmd|
     subcmd.desc '0-based instance index'
-    subcmd.default_value '0'
+    subcmd.default_value 0
     subcmd.arg_name 'INSTANCE'
     subcmd.flag [:n, :instance], type: Fixnum
 
@@ -111,7 +111,7 @@ command :deploy do |d|
   d.desc 'Establish a secure shell on the instance running the container.'
   d.command :ssh do |subcmd|
     subcmd.desc '0-based instance index'
-    subcmd.default_value '0'
+    subcmd.default_value 0
     subcmd.arg_name 'INSTANCE'
     subcmd.flag [:n, :instance], type: Fixnum
 
@@ -121,7 +121,7 @@ command :deploy do |d|
   d.desc 'Establish a shell inside the running container.'
   d.command :bash do |subcmd|
     subcmd.desc '0-based instance index'
-    subcmd.default_value '0'
+    subcmd.default_value 0
     subcmd.arg_name 'INSTANCE'
     subcmd.flag [:n, :instance], type: Fixnum
 
