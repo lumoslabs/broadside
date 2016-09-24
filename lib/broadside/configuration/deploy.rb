@@ -22,7 +22,9 @@ module Broadside
         :env_vars,
         :command,
         :instance,
-        :predeploy_commands
+        :predeploy_commands,
+        :service_config,
+        :task_definition_config
       )
 
       TARGET_ATTRIBUTE_VALIDATIONS = {
@@ -45,6 +47,8 @@ module Broadside
         @command = nil
         @predeploy_commands = DEFAULT_PREDEPLOY_COMMANDS
         @instance = 0
+        @service_config = nil
+        @task_definition_config = nil
       end
 
       # Validates format of deploy targets
@@ -86,6 +90,8 @@ module Broadside
         @scale ||= @targets[@target][:scale]
         @command = @targets[@target][:command]
         @predeploy_commands = @targets[@target][:predeploy_commands] if @targets[@target][:predeploy_commands]
+        @service_config = @targets[@target][:service]
+        @task_definition_config = @targets[@target][:task_definition_config]
       end
 
       private
