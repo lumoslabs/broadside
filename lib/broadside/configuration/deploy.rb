@@ -31,7 +31,9 @@ module Broadside
         scale: ->(target_attribute) { validate_types([Fixnum], target_attribute) },
         env_file: ->(target_attribute) { validate_types([String], target_attribute) },
         command: ->(target_attribute) { validate_types([Array, NilClass], target_attribute) },
-        predeploy_commands: ->(target_attribute) { validate_predeploy(target_attribute) }
+        predeploy_commands: ->(target_attribute) { validate_predeploy(target_attribute) },
+        service_config: ->(target_attribute) { validate_types([Hash, NilClass], target_attribute) },
+        task_definition_config: ->(target_attribute) { validate_types([Hash, NilClass], target_attribute) }
       }
 
       def initialize
@@ -106,14 +108,12 @@ module Broadside
 
       def self.validate_predeploy(target_attribute)
         return nil if target_attribute.nil?
-
         return 'predeploy_commands must be an array' unless target_attribute.is_a?(Array)
 
-        target_attribute.each do |command|
-          return "predeploy_command '#{command}' must be an array" unless command.is_a?(Array)
+        messages = target_attribute.select { |cmd| !cmd.is_a?(Array) }.map do |command|
+          "predeploy_command '#{command}' must be an array" unless command.is_a?(Array)
         end
-
-        nil
+        messages.empty? ? nil : messages
       end
     end
   end
