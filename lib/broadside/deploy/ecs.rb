@@ -21,13 +21,6 @@ module Broadside
 
     def deploy
       super do
-        unless service_exists?
-          exception "Service doesn't exist and cannot be created" unless @service_config
-
-          info "Service #{family} doesn't exist, creating..."
-          create_service(family, @service_config)
-        end
-
         begin
           update_service
         rescue SignalException::Interrupt
@@ -42,6 +35,23 @@ module Broadside
           error 'Deployment did not finish successfully.'
           abort
         end
+      end
+    end
+
+    def bootstrap
+      unless service_exists?
+        exception "Service doesn't exist and cannot be created" unless @service_config
+
+        info "Service #{family} doesn't exist, creating..."
+        create_service(family, @service_config)
+      end
+
+      unless get_latest_task_def_id
+        # TODO right now this creates a useless first revision and then update_task_revision will create a 2nd one
+        exception "No first task definition and cannot create one" unless @task_definition_config
+
+        info "Creating an initial task definition from the config..."
+        create_task_definition(family, @task_definition_config)
       end
     end
 
@@ -65,7 +75,7 @@ module Broadside
 
     def run
       super do
-        update_task
+        update_task_revision
 
         begin
           run_command(@deploy_config.command)
@@ -78,7 +88,7 @@ module Broadside
     # runs before deploy commands using the latest task definition
     def run_predeploy
       super do
-        update_task
+        update_task_revision
 
         begin
           @deploy_config.predeploy_commands.each do |command|
@@ -145,15 +155,7 @@ module Broadside
     end
 
     # creates a new task revision using current directory's env vars and provided tag
-    def update_task
-      unless get_latest_task_def_id
-        # TODO right now this creates a useless first revision then immediately a second for actual use
-        exception "No first task definition and cannot create one" unless @task_definition_config
-
-        info "Creating an initial task definition from the config..."
-        create_task_definition(family, @task_definition_config)
-      end
-
+    def update_task_revision
       new_task_def = create_new_task_revision
 
       new_task_def[:container_definitions].select { |c| c[:name] == family }.first.tap do |container_def|
@@ -202,7 +204,7 @@ module Broadside
     def update_service
       td = get_latest_task_def_id
       debug "Updating #{family} with scale=#{@deploy_config.scale} using task #{td}..."
-      resp =  ecs_client.update_service({
+      resp = ecs_client.update_service({
         cluster: config.ecs.cluster,
         service: family,
         task_definition: get_latest_task_def_id,

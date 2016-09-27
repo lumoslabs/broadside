@@ -3,16 +3,7 @@ require 'spec_helper'
 describe Broadside::EcsDeploy do
   include_context 'full configuration'
 
-  let(:valid_options) do
-    {
-#      tag: 'NEW_TEST_TAG',
-      target: :TEST_TARGET,
-#      scale: 100,
- #     rollback: 100,
-  #    instance: 100,
-   #   cmd: ['echo', 'TEST']
-    }
-  end
+  let(:valid_options) { { target: :TEST_TARGET } }
 
   let(:service_config) do
     {
@@ -37,10 +28,16 @@ describe Broadside::EcsDeploy do
     }
   end
 
-  let(:ecs_stub) { Aws::ECS::Client.new(region: config.aws.region, credentials: config.aws.credentials, stub_responses: true) }
+  let(:ecs_stub) { Aws::ECS::Client.new(region: Broadside.config.aws.region, credentials: Broadside.config.aws.credentials, stub_responses: true) }
   let(:deploy) { described_class.new(valid_options) }
+
+  before(:each) { deploy.instance_variable_set(:@ecs_client, ecs_stub) }
 
   it 'should instantiate an object' do
     expect { deploy }.to_not raise_error
+  end
+
+  it 'can bootstrap' do
+    expect { deploy.bootstrap }.to raise_error(/Service doesn't exist and cannot be created/)
   end
 end
