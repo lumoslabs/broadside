@@ -14,6 +14,7 @@ describe Broadside::EcsDeploy do
       }
   end
 
+  # TODO should be tested in a real config at the task_definition: key
   let(:task_definition_config) do
     {
       container_definitions: [
@@ -50,6 +51,12 @@ describe Broadside::EcsDeploy do
       deploy.deploy_config.task_definition_config = task_definition_config
 
       expect { deploy.bootstrap }.to_not raise_error
+    end
+  end
+
+  context 'deploy' do
+    it 'fails without an existing service' do
+      expect { deploy.deploy }.to raise_error(/Service TEST_APP_TEST_TARGET does not exist/)
     end
   end
 end

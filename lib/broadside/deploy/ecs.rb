@@ -23,18 +23,19 @@ module Broadside
     def deploy
       super do
         begin
+          exception "Service #{family} does not exist!" unless service_exists?
           update_service
         rescue SignalException::Interrupt
           error 'Caught interrupt signal, rolling back...'
           rollback(1)
           error 'Deployment did not finish successfully.'
-          abort
+          raise
         rescue StandardError => e
           error e.inspect, "\n", e.backtrace.join("\n")
           error 'Deploy failed! Rolling back...'
           rollback(1)
           error 'Deployment did not finish successfully.'
-          abort
+          raise
         end
       end
     end
