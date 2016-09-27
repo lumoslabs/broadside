@@ -37,7 +37,14 @@ describe Broadside::EcsDeploy do
     expect { deploy }.to_not raise_error
   end
 
-  it 'can bootstrap' do
-    expect { deploy.bootstrap }.to raise_error(/Service doesn't exist and cannot be created/)
+  context 'bootstrap' do
+    it 'fails without service_config' do
+      expect { deploy.bootstrap }.to raise_error(/Service doesn't exist and cannot be created/)
+    end
+
+    it 'fails without task_definition_config' do
+      deploy.service_config = service_config
+      expect { deploy.bootstrap }.to raise_error(/X doesn't exist and cannot be created/)
+    end
   end
 end
