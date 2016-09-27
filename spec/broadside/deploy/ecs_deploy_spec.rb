@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Broadside::EcsDeploy do
-  include_context 'ecs configuration'
+  include_context 'full configuration'
 
   let(:valid_options) do
     {
