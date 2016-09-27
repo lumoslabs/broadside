@@ -8,6 +8,7 @@ module Broadside
       @deploy_config = Broadside.config.deploy.dup
       @deploy_config.tag = opts[:tag]           || @deploy_config.tag
       @deploy_config.target = opts[:target]     || @deploy_config.target
+#      @deploy_config.target = opts[:targets]     || @deploy_config.targets
       @deploy_config.verify(:target, :targets)
       @deploy_config.load_target!
 
