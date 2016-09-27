@@ -23,6 +23,7 @@ module Broadside
     def deploy
       super do
         begin
+
           exception "Service #{family} does not exist!" unless service_exists?
           update_service
         rescue SignalException::Interrupt
@@ -211,6 +212,7 @@ module Broadside
         task_definition: get_latest_task_def_id,
         desired_count: @deploy_config.scale
       })
+
       if resp.successful?
         begin
           ecs_client.wait_until(:services_stable, {cluster: config.ecs.cluster, services: [family]}) do |w|
@@ -360,7 +362,8 @@ module Broadside
     end
 
     def service_exists?
-      ecs_client.describe_services({ cluster: config.ecs.cluster, services: [family] }).failures.any?
+      services = ecs_client.describe_services({ cluster: config.ecs.cluster, services: [family] })
+      services.failures.empty? && !services.services.empty?
     end
 
     def ecs_client

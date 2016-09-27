@@ -58,5 +58,27 @@ describe Broadside::EcsDeploy do
     it 'fails without an existing service' do
       expect { deploy.deploy }.to raise_error(/Service TEST_APP_TEST_TARGET does not exist/)
     end
+
+    context 'with an existing service' do
+      let :existing_service do
+        {
+          service_arn: "arn:aws:ecs:us-east-1:447374670232:service/events_test_ecs_script_2",
+          service_name: "events_test_ecs_script_2",
+          cluster_arn: "arn:aws:ecs:us-east-1:447374670232:cluster/c-large"
+        }
+      end
+
+      let(:stub_response) { { services: [existing_service], failures: [] } }
+
+      before(:each) do
+        ecs_stub.stub_responses(:describe_services, stub_response)
+      end
+
+      it 'does not fail on service issues' do
+        pending 'need to figure out how to stub a waiter'
+
+        expect { deploy.deploy }.to_not raise_error
+      end
+    end
   end
 end
