@@ -6,6 +6,14 @@ require 'shellwords'
 
 module Broadside
   class EcsDeploy < Deploy
+
+    DEFAULT_DESIRED_COUNT = 0
+    DEFAULT_CONTAINER_DEFINITION = {
+      cpu: 1,
+      essential: true,
+      memory: 1000
+    }
+
     def initialize(opts)
       super(opts)
       config.ecs.verify(:cluster, :poll_frequency)
@@ -142,11 +150,20 @@ module Broadside
         exception "No first task definition and cannot create one" unless @task_definition_config
 
         info "Creating an initial task definition from the config..."
-        create_task_definition(family)
+        create_task_definition(family, @task_definition_config)
+      end
+
+      # TODO right now this creates a useless first revision then immediately a second for actual use
+      new_task_def = create_new_task_revision
+
+      new_task_def[:container_definitions].select { |c| c[:name] == family }.first.tap do |container_def|
+        container_def[:environment] = @deploy_config.env_vars
+        container_def[:image] = image_tag
+        container_def[:command] = @deploy_config.command
       end
 
       debug "Creating a new task definition..."
-      new_task_def_id = ecs_client.register_task_definition(create_new_task_revision).task_definition.task_definition_arn
+      new_task_def_id = ecs_client.register_task_definition(new_task_def).task_definition.task_definition_arn
       debug "Successfully created #{new_task_def_id}"
     end
 
@@ -154,7 +171,7 @@ module Broadside
       ecs_client.create_service(
         {
           cluster: config.ecs.cluster,
-          desired_count: 0,
+          desired_count: DEFAULT_DESIRED_COUNT,
           service_name: name,
           task_definition: name
         }.deep_merge(options)
@@ -164,13 +181,14 @@ module Broadside
     def create_task_definition(name, options = {})
       raise ArgumentError, 'No :image provided!' unless options[:container_definitions].try(:first).try(:[], [:image])
 
-      ecs.register_task_definition(
+      ecs_client.register_task_definition(
         {
           container_definitions: [
             {
               name: name,
               command: @command,
               cpu: 1,
+              environment: @deploy_config.env_vars,
               essential: true,
               memory: 1000,
             }
@@ -339,7 +357,7 @@ module Broadside
     end
 
     def service_exists?
-      !ecs_client.describe_services({ cluster: config.ecs.cluster, services: [family] }).failures.empty?
+      ecs_client.describe_services({ cluster: config.ecs.cluster, services: [family] }).failures.any?
     end
 
     def ecs_client
@@ -357,7 +375,7 @@ module Broadside
     end
 
     def all_results(method, key, args = {})
-      page = ecs.send(method, args)
+      page = ecs.public_send(method, args)
       results = page.send(key)
 
       while page.next_token
