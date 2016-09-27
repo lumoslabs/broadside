@@ -1,3 +1,4 @@
+require 'active_support/core_ext/hash'
 require 'aws-sdk'
 require 'open3'
 require 'pp'
@@ -40,18 +41,18 @@ module Broadside
 
     def bootstrap
       unless service_exists?
-        exception "Service doesn't exist and cannot be created" unless @service_config
+        exception "Service doesn't exist and cannot be created" unless @deploy_config.service_config
 
         info "Service #{family} doesn't exist, creating..."
-        create_service(family, @service_config)
+        create_service(family, @deploy_config.service_config)
       end
 
       unless get_latest_task_def_id
         # TODO right now this creates a useless first revision and then update_task_revision will create a 2nd one
-        exception "No first task definition and cannot create one" unless @task_definition_config
+        exception "No first task definition and cannot create one" unless @deploy_config.task_definition_config
 
         info "Creating an initial task definition from the config..."
-        create_task_definition(family, @task_definition_config)
+        create_task_definition(family, @deploy_config.task_definition_config)
       end
     end
 
@@ -181,8 +182,6 @@ module Broadside
     end
 
     def create_task_definition(name, options = {})
-      raise ArgumentError, 'No :image provided!' unless options[:container_definitions].try(:first).try(:[], [:image])
-
       ecs_client.register_task_definition(
         {
           container_definitions: [
@@ -192,6 +191,7 @@ module Broadside
               cpu: 1,
               environment: @deploy_config.env_vars,
               essential: true,
+              image: image_tag,
               memory: 1000,
             }
           ],
@@ -377,7 +377,7 @@ module Broadside
     end
 
     def all_results(method, key, args = {})
-      page = ecs.public_send(method, args)
+      page = ecs_client.public_send(method, args)
       results = page.send(key)
 
       while page.next_token

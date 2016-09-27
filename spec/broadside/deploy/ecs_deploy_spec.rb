@@ -5,26 +5,23 @@ describe Broadside::EcsDeploy do
 
   let(:valid_options) { { target: :TEST_TARGET } }
 
+  # TODO should be tested in a real config at the service: key
   let(:service_config) do
-    {
-      service: {
+      {
         deployment_configuration: {
           minimum_healthy_percent: 0.5,
         }
       }
-    }
   end
 
   let(:task_definition_config) do
     {
-      task_definition: {
-        container_definitions: [
-          {
-            cpu: 1,
-            memory: 2000,
-          }
-        ]
-      }
+      container_definitions: [
+        {
+          cpu: 1,
+          memory: 2000,
+        }
+      ]
     }
   end
 
@@ -43,8 +40,16 @@ describe Broadside::EcsDeploy do
     end
 
     it 'fails without task_definition_config' do
-      deploy.service_config = service_config
-      expect { deploy.bootstrap }.to raise_error(/X doesn't exist and cannot be created/)
+      deploy.deploy_config.service_config = service_config
+
+      expect { deploy.bootstrap }.to raise_error(/No first task definition and cannot create one/)
+    end
+
+    it 'succeeds' do
+      deploy.deploy_config.service_config = service_config
+      deploy.deploy_config.task_definition_config = task_definition_config
+
+      expect { deploy.bootstrap }.to_not raise_error
     end
   end
 end
