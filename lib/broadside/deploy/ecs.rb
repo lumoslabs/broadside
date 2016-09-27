@@ -23,7 +23,7 @@ module Broadside
     def deploy
       super do
         begin
-
+          update_task_revision
           exception "Service #{family} does not exist!" unless service_exists?
           update_service
         rescue SignalException::Interrupt
