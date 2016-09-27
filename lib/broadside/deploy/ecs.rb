@@ -23,8 +23,8 @@ module Broadside
     def deploy
       super do
         begin
-          update_task_revision
           exception "Service #{family} does not exist!" unless service_exists?
+          update_task_revision
           update_service
         rescue SignalException::Interrupt
           error 'Caught interrupt signal, rolling back...'
@@ -187,15 +187,12 @@ module Broadside
       ecs_client.register_task_definition(
         {
           container_definitions: [
-            {
+            DEFAULT_CONTAINER_DEFINITION.merge(
               name: name,
               command: @command,
-              cpu: 1,
               environment: @deploy_config.env_vars,
-              essential: true,
               image: image_tag,
-              memory: 1000,
-            }
+            )
           ],
           family: name
         }.deep_merge(options)
