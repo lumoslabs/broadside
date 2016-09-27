@@ -147,13 +147,13 @@ module Broadside
     # creates a new task revision using current directory's env vars and provided tag
     def update_task
       unless get_latest_task_def_id
+        # TODO right now this creates a useless first revision then immediately a second for actual use
         exception "No first task definition and cannot create one" unless @task_definition_config
 
         info "Creating an initial task definition from the config..."
         create_task_definition(family, @task_definition_config)
       end
 
-      # TODO right now this creates a useless first revision then immediately a second for actual use
       new_task_def = create_new_task_revision
 
       new_task_def[:container_definitions].select { |c| c[:name] == family }.first.tap do |container_def|
