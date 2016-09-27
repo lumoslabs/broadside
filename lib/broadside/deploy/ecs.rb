@@ -22,9 +22,10 @@ module Broadside
 
     def deploy
       super do
+        exception "Service #{family} does not exist!" unless service_exists?
+        update_task_revision
+
         begin
-          exception "Service #{family} does not exist!" unless service_exists?
-          update_task_revision
           update_service
         rescue SignalException::Interrupt
           error 'Caught interrupt signal, rolling back...'
