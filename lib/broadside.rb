@@ -7,7 +7,7 @@ require 'broadside/configuration/base'
 require 'broadside/configuration/deploy_config'
 require 'broadside/configuration/ecs_config'
 require 'broadside/deploy'
-require 'broadside/deploy/ecs'
+require 'broadside/deploy/ecs_deploy'
 require 'broadside/version'
 
 module Broadside
