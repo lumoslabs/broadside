@@ -50,7 +50,7 @@ module Broadside
         create_service(family, @deploy_config.service_config)
       end
 
-      unless get_latest_task_def_id
+      unless get_latest_task_definition_id
         # TODO right now this creates a useless first revision and then update_task_revision will create a 2nd one
         raise ArgumentError, "No first task definition and cannot create one" unless @deploy_config.task_definition_config
 
@@ -62,7 +62,7 @@ module Broadside
     def rollback(count = @deploy_config.rollback)
       super do
         begin
-          deregister_tasks(count)
+          deregister_last_n_tasks_definitions(count)
           update_service
         rescue StandardError => e
           error 'Rollback failed to complete!'
@@ -84,7 +84,7 @@ module Broadside
         begin
           run_command(@deploy_config.command)
         ensure
-          deregister_tasks(1)
+          deregister_last_n_tasks_definitions(1)
         end
       end
     end
@@ -99,14 +99,14 @@ module Broadside
             run_command(command)
           end
         ensure
-          deregister_tasks(1)
+          deregister_last_n_tasks_definitions(1)
         end
       end
     end
 
     def status
       super do
-        td = get_latest_task_def
+        td = get_latest_task_definition
         ips = get_running_instance_ips
         info "\n---------------",
           "\nDeployed task definition information:\n",
@@ -151,10 +151,10 @@ module Broadside
     private
 
     # removes latest n task definitions
-    def deregister_tasks(count)
-      get_task_definition_arns.last(count).each do |td_id|
-        ecs_client.deregister_task_definition({task_definition: td_id})
-        debug "Deregistered #{td_id}"
+    def deregister_last_n_tasks_definitions(count)
+      get_task_definition_arns.last(count).each do |arn|
+        ecs_client.deregister_task_definition({ task_definition: arn })
+        debug "Deregistered #{arn}"
       end
     end
 
@@ -202,45 +202,39 @@ module Broadside
 
     # reloads the service using the latest task definition
     def update_service
-      td = get_latest_task_def_id
-      debug "Updating #{family} with scale=#{@deploy_config.scale} using task #{td}..."
-      resp = ecs_client.update_service({
+      task_definition_id = get_latest_task_definition_id
+      debug "Updating #{family} with scale=#{@deploy_config.scale} using task #{task_definition_id}..."
+
+      update_service_response = ecs_client.update_service(
         cluster: config.ecs.cluster,
         service: family,
-        task_definition: get_latest_task_def_id,
+        task_definition: task_definition_id,
         desired_count: @deploy_config.scale
-      })
+      )
 
-      if resp.successful?
-        begin
-          ecs_client.wait_until(:services_stable, {cluster: config.ecs.cluster, services: [family]}) do |w|
-            w.max_attempts = @deploy_config.timeout.nil? ? @deploy_config.timeout : @deploy_config.timeout / config.ecs.poll_frequency
-            w.delay = config.ecs.poll_frequency
-            seen_event = nil
-            w.before_wait do |attempt, response|
-              debug "(#{attempt}/#{w.max_attempts}) Polling ECS for events..."
-              # skip first event since it doesn't apply to current request
-              if response.services[0].events.first &&
-                  response.services[0].events.first.id != seen_event &&
-                  attempt > 1
-                seen_event = response.services[0].events.first.id
-                debug(response.services[0].events.first.message)
-              end
-            end
+      exception 'Failed to update service during deploy.' unless update_service_response.successful?
+
+      ecs_client.wait_until(:services_stable, {cluster: config.ecs.cluster, services: [family]}) do |w|
+        w.max_attempts = @deploy_config.timeout.nil? ? @deploy_config.timeout : @deploy_config.timeout / config.ecs.poll_frequency
+        w.delay = config.ecs.poll_frequency
+        seen_event = nil
+
+        w.before_wait do |attempt, response|
+          debug "(#{attempt}/#{w.max_attempts}) Polling ECS for events..."
+          # skip first event since it doesn't apply to current request
+          if response.services[0].events.first && response.services[0].events.first.id != seen_event && attempt > 1
+            seen_event = response.services[0].events.first.id
+            debug(response.services[0].events.first.message)
           end
-        rescue Aws::Waiters::Errors::TooManyAttemptsError
-          exception 'Deploy did not finish in the expected amount of time.'
         end
-      else
-        exception 'Failed to update service during deploy.'
       end
     end
 
     def run_command(command)
       command_name = command.join(' ')
-      resp = ecs_client.run_task({
+      run_task_response = ecs_client.run_task(
         cluster: config.ecs.cluster,
-        task_definition: get_latest_task_def_id,
+        task_definition: get_latest_task_definition_id,
         overrides: {
           container_overrides: [
             {
@@ -251,28 +245,27 @@ module Broadside
         },
         count: 1,
         started_by: "before_deploy:#{command_name}"[0...36]
-      })
+      )
 
-      if resp.successful?
-        task_id = resp.tasks[0].task_arn
-        debug "Launched #{command_name} task #{task_id}"
-        debug "Waiting for #{command_name} to complete..."
-        ecs_client.wait_until(:tasks_stopped, {cluster: config.ecs.cluster, tasks: [task_id]}) do |w|
-          w.max_attempts = nil
-          w.delay = config.ecs.poll_frequency
-          w.before_attempt do |attempt|
-            debug "Attempt #{attempt}: waiting for #{command_name} to complete..."
-          end
+      exception "Failed to run #{command_name} task." unless run_task_response.successful?
+
+      task_id = run_task_response.tasks[0].task_arn
+      debug "Launched #{command_name} task #{task_id}, waiting for completion..."
+
+      ecs_client.wait_until(:tasks_stopped, {cluster: config.ecs.cluster, tasks: [task_id]}) do |w|
+        w.max_attempts = nil
+        w.delay = config.ecs.poll_frequency
+        w.before_attempt do |attempt|
+          debug "Attempt #{attempt}: waiting for #{command_name} to complete..."
         end
-        debug 'Task finished running, getting logs...'
-        info "#{command_name} task container logs:\n#{get_container_logs(task_id)}"
-        if (code = get_task_exit_code(task_id)) == 0
-          debug "#{command_name} task #{task_id} exited with status code 0"
-        else
-          exception "#{command_name} task #{task_id} exited with a non-zero status code #{code}!"
-        end
+      end
+
+      debug 'Task finished running, getting logs...'
+      info "#{command_name} task container logs:\n#{get_container_logs(task_id)}"
+      if (code = get_task_exit_code(task_id)) == 0
+        debug "#{command_name} task #{task_id} exited with status code 0"
       else
-        raise "Failed to run #{command_name} task."
+        exception "#{command_name} task #{task_id} exited with a non-zero status code #{code}!"
       end
     end
 
@@ -296,7 +289,7 @@ module Broadside
     end
 
     def get_task_exit_code(task_id)
-      task = ecs_client.describe_tasks({cluster: config.ecs.cluster, tasks: [task_id]}).tasks.first
+      task = ecs_client.describe_tasks({ cluster: config.ecs.cluster, tasks: [task_id] }).tasks.first
       container = task.containers.select { |c| c.name == family }.first
       container.exit_code
     end
@@ -316,18 +309,22 @@ module Broadside
 
       tasks = ecs_client.describe_tasks({cluster: config.ecs.cluster, tasks: task_arns}).tasks
       container_instance_arns = tasks.map { |t| t.container_instance_arn }
-      container_instances = ecs_client.describe_container_instances({
+      container_instances = ecs_client.describe_container_instances(
         cluster: config.ecs.cluster, container_instances: container_instance_arns
-      }).container_instances
+      ).container_instances
       ec2_instance_ids = container_instances.map { |ci| ci.ec2_instance_id }
-      reservations = ec2_client.describe_instances({instance_ids: ec2_instance_ids}).reservations
+      reservations = ec2_client.describe_instances({ instance_ids: ec2_instance_ids }).reservations
       instances = reservations.map { |r| r.instances }.flatten
 
       instances.map { |i| i.private_ip_address }
     end
 
-    def get_latest_task_def
-      ecs_client.describe_task_definition({task_definition: get_latest_task_def_id}).task_definition.to_h
+    def get_latest_task_definition
+      ecs_client.describe_task_definition({ task_definition: get_latest_task_definition_id }).task_definition.to_h
+    end
+
+    def get_latest_task_definition_id
+      get_task_definition_arns.last
     end
 
     def get_task_arns
@@ -346,12 +343,8 @@ module Broadside
       all_results(:list_services, :service_arns, { cluster: config.ecs.cluster })
     end
 
-    def get_latest_task_def_id
-      get_task_definition_arns.last
-    end
-
     def create_new_task_revision
-      task_def = get_latest_task_def
+      task_def = get_latest_task_definition
       task_def.delete(:task_definition_arn)
       task_def.delete(:requires_attributes)
       task_def.delete(:revision)

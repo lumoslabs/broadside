@@ -62,8 +62,8 @@ describe Broadside::EcsDeploy do
     context 'with an existing service' do
       let :existing_service do
         {
-          service_arn: "arn:aws:ecs:us-east-1:447374670232:service/events_test_ecs_script_2",
-          service_name: "events_test_ecs_script_2",
+          service_arn: "arn:aws:ecs:us-east-1:447374670232:service/#{task_name}",
+          service_name: task_name,
           cluster_arn: "arn:aws:ecs:us-east-1:447374670232:cluster/c-large"
         }
       end
