@@ -1,5 +1,7 @@
 require 'spec_helper'
 
+# Hitting the stubbed Aws::ECS::Client object will validate the request format
+
 describe Broadside::EcsManager do
   let(:service_name) { 'service' }
   let(:cluster) { 'cluster' }
@@ -30,5 +32,9 @@ describe Broadside::EcsManager do
   it 'get_task_definition_arns' do
     expect { described_class.get_task_definition_arns(name) }.to_not raise_error
     expect { described_class.get_latest_task_definition_arn(name) }.to_not raise_error
+  end
+
+  it 'get_latest_task_definition' do
+    expect(described_class.get_latest_task_definition(name)).to be_nil
   end
 end

@@ -50,6 +50,7 @@ module Broadside
       end
 
       def get_latest_task_definition(name)
+        return nil unless get_latest_task_definition_arn(name)
         ecs.describe_task_definition(task_definition: get_latest_task_definition_arn(name)).task_definition.to_h
       end
 

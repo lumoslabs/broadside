@@ -92,9 +92,7 @@ module Broadside
         update_task_revision
 
         begin
-          @deploy_config.predeploy_commands.each do |command|
-            run_command(command)
-          end
+          @deploy_config.predeploy_commands.each { |command| run_command(command) }
         ensure
           EcsManager.deregister_last_n_tasks_definitions(family, 1)
         end
@@ -152,16 +150,16 @@ module Broadside
 
     # creates a new task revision using current directory's env vars and provided tag
     def update_task_revision
-      new_task_def = create_new_task_revision
+      revision = create_new_task_revision
 
-      new_task_def[:container_definitions].select { |c| c[:name] == family }.first.tap do |container_def|
+      revision[:container_definitions].select { |c| c[:name] == family }.first.tap do |container_def|
         container_def[:environment] = @deploy_config.env_vars
         container_def[:image] = image_tag
         container_def[:command] = @deploy_config.command
       end
 
       debug "Creating a new task definition..."
-      arn = EcsManager.ecs.register_task_definition(new_task_def).task_definition.task_definition_arn
+      arn = EcsManager.ecs.register_task_definition(revision).task_definition.task_definition_arn
       debug "Successfully created #{arn}"
     end
 
@@ -217,6 +215,8 @@ module Broadside
       end
 
       info "#{command_name} task container logs:\n#{get_container_logs(task_arn)}"
+
+      # TODO: it should check ALL the task exit codes from all the runs
       if (code = EcsManager.get_task_exit_code(config.ecs.cluster, task_arn, family)) == 0
         debug "#{command_name} task #{task_arn} exited with status code 0"
       else
