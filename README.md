@@ -29,16 +29,36 @@ Broadside.configure do |config|
       scale: 15,
       command: ['bundle', 'exec', 'rake', 'resque:work'],
       env_file: '../.env.production'
-    }
+    },
     staging_web: {
       scale: 1,
       command: ['bundle', 'exec', 'puma'],
       env_file: '../.env.staging'
-    }
+    },
     staging_worker: {
       scale: 1,
       command: ['bundle', 'exec', 'rake', 'resque:work'],
       env_file: '../.env.staging'
+    },
+    # Example with a task_definition and service configuration which you use to bootstrap a service and
+    # initial task definition
+    game_save_as_json_blob_stream: {
+      scale: 1,
+      command: ['java', '-cp', '*:.', 'com.lumoslabs.events.kstream.streams.GameSaveAsJsonBlob'],
+      env_file: '.env.production',
+      service: {
+        deployment_configuration: {
+          minimum_healthy_percent: 0.5,
+        }
+      },
+      task_definition: {
+        container_definitions: [
+          {
+            cpu: 1,
+            memory: 2000,
+          }
+        ]
+      }
     }
   }
 end
