@@ -35,7 +35,7 @@ describe Broadside::EcsDeploy do
   end
   let(:deploy) { described_class.new(valid_options) }
 
-  before(:each) { deploy.instance_variable_set(:@ecs_client, ecs_stub) }
+  before(:each) { Broadside::EcsManager.instance_variable_set(:@ecs_client, ecs_stub) }
 
   it 'should instantiate an object' do
     expect { deploy }.to_not raise_error

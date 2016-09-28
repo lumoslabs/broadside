@@ -7,14 +7,6 @@ require 'shellwords'
 
 module Broadside
   class EcsDeploy < Deploy
-
-    DEFAULT_DESIRED_COUNT = 0
-    DEFAULT_CONTAINER_DEFINITION = {
-      cpu: 1,
-      essential: true,
-      memory: 1000
-    }
-
     def initialize(opts)
       super(opts)
       config.ecs.verify(:cluster, :poll_frequency)
@@ -22,7 +14,7 @@ module Broadside
 
     def deploy
       super do
-        exception "Service #{family} does not exist!" unless service_exists?
+        exception "Service #{family} does not exist!" unless EcsManager.service_exists?(config.ecs.cluster, family)
         update_task_revision
 
         begin
@@ -48,14 +40,21 @@ module Broadside
         raise ArgumentError, "No first task definition and cannot create one" unless @deploy_config.task_definition_config
 
         info "Creating an initial task definition for '#{family}' from the config..."
-        create_task_definition(family, @deploy_config.task_definition_config)
+
+        EcsManager.create_task_definition(
+          family,
+          @deploy_config.command,
+          @deploy_config.env_vars,
+          image_tag,
+          @deploy_config.task_definition_config
+        )
       end
 
-      unless service_exists?
+      unless EcsManager.service_exists?(config.ecs.cluster, family)
         raise ArgumentError, "Service doesn't exist and cannot be created" unless @deploy_config.service_config
 
         info "Service '#{family}' doesn't exist, creating..."
-        create_service(family, @deploy_config.service_config)
+        EcsManager.create_service(config.ecs.cluster, family, @deploy_config.service_config)
       end
     end
 
@@ -152,8 +151,8 @@ module Broadside
 
     # removes latest n task definitions
     def deregister_last_n_tasks_definitions(count)
-      get_task_definition_arns.last(count).each do |arn|
-        ecs_client.deregister_task_definition(task_definition: arn)
+      EcsManager.get_task_definition_arns(family).last(count).each do |arn|
+        EcsManger.ecs.deregister_task_definition(task_definition: arn)
         debug "Deregistered #{arn}"
       end
     end
@@ -169,33 +168,8 @@ module Broadside
       end
 
       debug "Creating a new task definition..."
-      arn = ecs_client.register_task_definition(new_task_def).task_definition.task_definition_arn
+      arn = EcsManger.ecs.register_task_definition(new_task_def).task_definition.task_definition_arn
       debug "Successfully created #{arn}"
-    end
-
-    def create_service(name, options = {})
-      ecs_client.create_service(
-        {
-          cluster: config.ecs.cluster,
-          desired_count: DEFAULT_DESIRED_COUNT,
-          service_name: name,
-          task_definition: name
-        }.deep_merge(options)
-      )
-    end
-
-    def create_task_definition(name, options = {})
-      # Deep merge doesn't work with arrays, so build the hash and merge later
-      container_definitions = DEFAULT_CONTAINER_DEFINITION.merge(
-        name: name,
-        command: @deploy_config.command,
-        environment: @deploy_config.env_vars,
-        image: image_tag,
-      ).merge(options[:container_definitions].first || {})
-
-      ecs_client.register_task_definition(
-        { family: name }.deep_merge(options).merge(container_definitions: [container_definitions])
-      )
     end
 
     # reloads the service using the latest task definition
@@ -203,7 +177,7 @@ module Broadside
       task_definition_arn = get_latest_task_definition_arn
       debug "Updating #{family} with scale=#{@deploy_config.scale} using task #{task_definition_arn}..."
 
-      update_service_response = ecs_client.update_service(
+      update_service_response = EcsManager.ecs.update_service(
         cluster: config.ecs.cluster,
         service: family,
         task_definition: task_definition_arn,
@@ -212,7 +186,7 @@ module Broadside
 
       exception 'Failed to update service during deploy.' unless update_service_response.successful?
 
-      ecs_client.wait_until(:services_stable, { cluster: config.ecs.cluster, services: [family] }) do |w|
+      EcsManager.ecs.wait_until(:services_stable, { cluster: config.ecs.cluster, services: [family] }) do |w|
         w.max_attempts = @deploy_config.timeout ? @deploy_config.timeout / config.ecs.poll_frequency : nil
         w.delay = config.ecs.poll_frequency
         seen_event = nil
@@ -230,7 +204,7 @@ module Broadside
 
     def run_command(command)
       command_name = command.join(' ')
-      run_task_response = ecs_client.run_task(
+      run_task_response = EcsManager.ecs.run_task(
         cluster: config.ecs.cluster,
         task_definition: get_latest_task_definition_arn,
         overrides: {
@@ -250,7 +224,7 @@ module Broadside
       task_arn = run_task_response.tasks[0].task_arn
       debug "Launched #{command_name} task #{task_arn}, waiting for completion..."
 
-      ecs_client.wait_until(:tasks_stopped, { cluster: config.ecs.cluster, tasks: [task_arn] }) do |w|
+      EcsManager.ecs.wait_until(:tasks_stopped, { cluster: config.ecs.cluster, tasks: [task_arn] }) do |w|
         w.max_attempts = nil
         w.delay = config.ecs.poll_frequency
         w.before_attempt do |attempt|
@@ -260,7 +234,7 @@ module Broadside
 
       debug 'Task finished running, getting logs...'
       info "#{command_name} task container logs:\n#{get_container_logs(task_arn)}"
-      if (code = get_task_exit_code(task_arn)) == 0
+      if (code = get_task_exit_code(task_arn, family)) == 0
         debug "#{command_name} task #{task_arn} exited with status code 0"
       else
         exception "#{command_name} task #{task_arn} exited with a non-zero status code #{code}!"
@@ -286,16 +260,10 @@ module Broadside
       logs
     end
 
-    def get_task_exit_code(task_arn)
-      task = ecs_client.describe_tasks({ cluster: config.ecs.cluster, tasks: [task_arn] }).tasks.first
-      container = task.containers.select { |c| c.name == family }.first
-      container.exit_code
-    end
-
     def get_running_instance_ips(task_ids = nil)
       task_arns = nil
       if task_ids.nil?
-        task_arns = get_task_arns
+        task_arns = EcsManager.get_task_arns(config.ecs.cluster, family)
         if task_arns.empty?
           exception "No running tasks found for '#{family}' on cluster '#{config.ecs.cluster}' !"
         end
@@ -305,9 +273,9 @@ module Broadside
         task_arns = task_ids
       end
 
-      tasks = ecs_client.describe_tasks({cluster: config.ecs.cluster, tasks: task_arns}).tasks
+      tasks = EcsManger.ecs.describe_tasks(cluster: config.ecs.cluster, tasks: task_arns).tasks
       container_instance_arns = tasks.map { |t| t.container_instance_arn }
-      container_instances = ecs_client.describe_container_instances(
+      container_instances = EcsManger.ecs.describe_container_instances(
         cluster: config.ecs.cluster, container_instances: container_instance_arns
       ).container_instances
       ec2_instance_ids = container_instances.map { |ci| ci.ec2_instance_id }
@@ -318,27 +286,11 @@ module Broadside
     end
 
     def get_latest_task_definition
-      ecs_client.describe_task_definition({ task_definition: get_latest_task_definition_arn }).task_definition.to_h
+      EcsManger.ecs.describe_task_definition(task_definition: get_latest_task_definition_arn).task_definition.to_h
     end
 
     def get_latest_task_definition_arn
-      get_task_definition_arns.last
-    end
-
-    def get_task_arns
-      all_results(:list_tasks, :task_arns, { cluster: config.ecs.cluster, family: family })
-    end
-
-    def get_task_definition_arns
-      all_results(:list_task_definitions, :task_definition_arns, { family_prefix: family })
-    end
-
-    def list_task_definition_families
-      all_results(:list_task_definition_families, :families)
-    end
-
-    def list_services
-      all_results(:list_services, :service_arns, { cluster: config.ecs.cluster })
+      EcsManager.get_task_definition_arns(family).last
     end
 
     def create_new_task_revision
@@ -350,35 +302,11 @@ module Broadside
       task_def
     end
 
-    def service_exists?
-      services = ecs_client.describe_services({ cluster: config.ecs.cluster, services: [family] })
-      services.failures.empty? && !services.services.empty?
-    end
-
-    def ecs_client
-      @ecs_client ||= Aws::ECS::Client.new({
-        region: config.aws.region,
-        credentials: config.aws.credentials
-      })
-    end
-
     def ec2_client
       @ec2_client ||= Aws::EC2::Client.new({
         region: config.aws.region,
         credentials: config.aws.credentials
       })
-    end
-
-    def all_results(method, key, args = {})
-      page = ecs_client.public_send(method, args)
-      results = page.send(key)
-
-      while page.next_token
-        page = ecs.send(method, args.merge(next_token: page.next_token))
-        results += page.send(key)
-      end
-
-      results
     end
   end
 end
