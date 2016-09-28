@@ -92,7 +92,7 @@ module Broadside
     end
 
     def gen_ssh_cmd(ip, options = { tty: false })
-      opts = @deploy_config.ssh
+      opts = @deploy_config.ssh || {}
       cmd = 'ssh -o StrictHostKeyChecking=no'
       cmd << ' -t -t' if options[:tty]
       cmd << " -i #{opts[:keyfile]}" if opts[:keyfile]
