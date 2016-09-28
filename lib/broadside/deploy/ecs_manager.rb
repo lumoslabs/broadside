@@ -38,6 +38,22 @@ module Broadside
         ecs.register_task_definition({ family: name }.deep_merge(options).merge(container_definitions: [container]))
       end
 
+      # removes latest n task definitions
+      def deregister_last_n_tasks_definitions(name, count)
+        get_task_definition_arns(name).last(count).each do |arn|
+          ecs.deregister_task_definition(task_definition: arn)
+          debug "Deregistered #{arn}"
+        end
+      end
+
+      def get_latest_task_definition(name)
+        ecs.describe_task_definition(task_definition: get_latest_task_definition_arn(name)).task_definition.to_h
+      end
+
+      def get_latest_task_definition_arn(name)
+        get_task_definition_arns(name).last
+      end
+
       def get_task_arns(cluster, family)
         all_results(:list_tasks, :task_arns, { cluster: cluster, family: family })
       end
@@ -65,12 +81,12 @@ module Broadside
         services.failures.empty? && !services.services.empty?
       end
 
-      def run_task(cluster, task_definition_arn, name, command)
+      def run_task(cluster, name, command)
         fail ArgumentError, "#{command} must be an array" unless command.is_a?(Array)
 
         ecs.run_task(
           cluster: cluster,
-          task_definition: task_definition_arn,
+          task_definition: get_latest_task_definition_arn(name),
           overrides: {
             container_overrides: [
               {

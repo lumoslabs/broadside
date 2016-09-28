@@ -35,7 +35,7 @@ module Broadside
     end
 
     def bootstrap
-      unless get_latest_task_definition_arn
+      unless EcsManager.get_latest_task_definition_arn(family)
         # TODO right now this creates a useless first revision and then update_task_revision will create a 2nd one
         raise ArgumentError, "No first task definition and cannot create one" unless @deploy_config.task_definition_config
 
@@ -61,7 +61,7 @@ module Broadside
     def rollback(count = @deploy_config.rollback)
       super do
         begin
-          deregister_last_n_tasks_definitions(count)
+          EcsManager.deregister_last_n_tasks_definitions(family, count)
           update_service
         rescue StandardError
           error 'Rollback failed to complete!'
@@ -83,7 +83,7 @@ module Broadside
         begin
           run_command(@deploy_config.command)
         ensure
-          deregister_last_n_tasks_definitions(1)
+          EcsManager.deregister_last_n_tasks_definitions(family, 1)
         end
       end
     end
@@ -98,20 +98,18 @@ module Broadside
             run_command(command)
           end
         ensure
-          deregister_last_n_tasks_definitions(1)
+          EcsManager.deregister_last_n_tasks_definitions(family, 1)
         end
       end
     end
 
     def status
       super do
-        td = get_latest_task_definition
-        ips = get_running_instance_ips
         info "\n---------------",
           "\nDeployed task definition information:\n",
-          Rainbow(PP.pp(td, '')).blue,
+          Rainbow(PP.pp(EcsManager.get_latest_task_definition(family), '')).blue,
           "\nPrivate ips of instances running containers:\n",
-          Rainbow(ips.join(' ')).blue,
+          Rainbow(get_running_instance_ips.join(' ')).blue,
           "\n\nssh command:\n#{Rainbow(gen_ssh_cmd(ips.first)).cyan}",
           "\n---------------\n"
       end
@@ -149,14 +147,6 @@ module Broadside
 
     private
 
-    # removes latest n task definitions
-    def deregister_last_n_tasks_definitions(count)
-      EcsManager.get_task_definition_arns(family).last(count).each do |arn|
-        EcsManger.ecs.deregister_task_definition(task_definition: arn)
-        debug "Deregistered #{arn}"
-      end
-    end
-
     # creates a new task revision using current directory's env vars and provided tag
     def update_task_revision
       new_task_def = create_new_task_revision
@@ -174,7 +164,7 @@ module Broadside
 
     # reloads the service using the latest task definition
     def update_service
-      task_definition_arn = get_latest_task_definition_arn
+      task_definition_arn = EcsManager.get_latest_task_definition_arn(family)
       debug "Updating #{family} with scale=#{@deploy_config.scale} using task #{task_definition_arn}..."
 
       update_service_response = EcsManager.ecs.update_service(
@@ -203,7 +193,7 @@ module Broadside
     end
 
     def run_command(command)
-      run_task_response = EcsManager.ecs.run_task(config.ecs.cluster, get_latest_task_definition_arn, family, command)
+      run_task_response = EcsManager.ecs.run_task(config.ecs.cluster, family, command)
 
       exception "Failed to run #{command_name} task." unless run_task_response.successful?
 
@@ -272,16 +262,8 @@ module Broadside
       instances.map { |i| i.private_ip_address }
     end
 
-    def get_latest_task_definition
-      EcsManger.ecs.describe_task_definition(task_definition: get_latest_task_definition_arn).task_definition.to_h
-    end
-
-    def get_latest_task_definition_arn
-      EcsManager.get_task_definition_arns(family).last
-    end
-
     def create_new_task_revision
-      task_def = get_latest_task_definition
+      task_def = EcsManager.get_latest_task_definition(family)
       task_def.delete(:task_definition_arn)
       task_def.delete(:requires_attributes)
       task_def.delete(:revision)
@@ -290,10 +272,10 @@ module Broadside
     end
 
     def ec2_client
-      @ec2_client ||= Aws::EC2::Client.new({
+      @ec2_client ||= Aws::EC2::Client.new(
         region: config.aws.region,
         credentials: config.aws.credentials
-      })
+      )
     end
   end
 end
