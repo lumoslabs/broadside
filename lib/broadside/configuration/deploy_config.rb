@@ -57,12 +57,13 @@ module Broadside
       # Checks existence of provided target
       def validate_targets!
         @targets.each do |target, configuration|
-          TARGET_ATTRIBUTE_VALIDATIONS.each do |var, validation|
+          invalid_messages = TARGET_ATTRIBUTE_VALIDATIONS.map do |var, validation|
             message = validation.call(configuration[var])
+            message.nil? ? nil : "Deploy target '#{@target}' parameter '#{var}' is invalid: #{message}"
+          end.compact
 
-            unless message.nil?
-              exception "Deploy target '#{@target}' parameter '#{var}' is invalid: #{message}"
-            end
+          unless invalid_messages.empty?
+            raise ArgumentError, invalid_messages.join("\n")
           end
         end
 
