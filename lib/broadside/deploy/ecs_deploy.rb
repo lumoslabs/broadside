@@ -185,19 +185,20 @@ module Broadside
     end
 
     def create_task_definition(name, options = {})
-      ecs_client.register_task_definition(
-        {
-          container_definitions: [
-            DEFAULT_CONTAINER_DEFINITION.merge(
-              name: name,
-              command: @command,
-              environment: @deploy_config.env_vars,
-              image: image_tag,
-            )
-          ],
-          family: name
-        }.deep_merge(options)
-      )
+      task_definition = {
+        container_definitions: [
+          DEFAULT_CONTAINER_DEFINITION.merge(
+            name: name,
+            command: @command,
+            environment: @deploy_config.env_vars,
+            image: image_tag,
+          )
+        ],
+        family: name
+      }.deep_merge(options)
+
+      puts task_definition.pretty_inspect
+      ecs_client.register_task_definition(task_definition)
     end
 
     # reloads the service using the latest task definition
