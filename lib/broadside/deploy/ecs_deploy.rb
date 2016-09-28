@@ -43,7 +43,7 @@ module Broadside
     end
 
     def bootstrap
-      unless get_latest_task_def_id
+      unless get_latest_task_definition_arn
         # TODO right now this creates a useless first revision and then update_task_revision will create a 2nd one
         raise ArgumentError, "No first task definition and cannot create one" unless @deploy_config.task_definition_config
 
@@ -169,8 +169,8 @@ module Broadside
       end
 
       debug "Creating a new task definition..."
-      new_task_definition_arn = ecs_client.register_task_definition(new_task_def).task_definition.task_definition_arn
-      debug "Successfully created #{new_task_definition_arn}"
+      arn = ecs_client.register_task_definition(new_task_def).task_definition.task_definition_arn
+      debug "Successfully created #{arn}"
     end
 
     def create_service(name, options = {})
