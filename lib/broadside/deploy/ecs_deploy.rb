@@ -188,7 +188,7 @@ module Broadside
       # Deep merge doesn't work with arrays, so build the hash and merge later
       container_definitions = DEFAULT_CONTAINER_DEFINITION.merge(
         name: name,
-        command: @command,
+        command: @deploy_config.command,
         environment: @deploy_config.env_vars,
         image: image_tag,
       ).merge(options[:container_definitions].first || {})
