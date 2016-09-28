@@ -203,24 +203,11 @@ module Broadside
     end
 
     def run_command(command)
-      command_name = command.join(' ')
-      run_task_response = EcsManager.ecs.run_task(
-        cluster: config.ecs.cluster,
-        task_definition: get_latest_task_definition_arn,
-        overrides: {
-          container_overrides: [
-            {
-              name: family,
-              command: command
-            },
-          ]
-        },
-        count: 1,
-        started_by: "before_deploy:#{command_name}"[0...36]
-      )
+      run_task_response = EcsManager.ecs.run_task(config.ecs.cluster, get_latest_task_definition_arn, family, command)
 
       exception "Failed to run #{command_name} task." unless run_task_response.successful?
 
+      command_name = command.join(' ')
       task_arn = run_task_response.tasks[0].task_arn
       debug "Launched #{command_name} task #{task_arn}, waiting for completion..."
 

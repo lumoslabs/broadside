@@ -65,6 +65,25 @@ module Broadside
         services.failures.empty? && !services.services.empty?
       end
 
+      def run_task(cluster, task_definition_arn, name, command)
+        fail ArgumentError, "#{command} must be an array" unless command.is_a?(Array)
+
+        ecs.run_task(
+          cluster: cluster,
+          task_definition: task_definition_arn,
+          overrides: {
+            container_overrides: [
+              {
+                name: name,
+                command: command
+              },
+            ]
+          },
+          count: 1,
+          started_by: "before_deploy:#{command.join(' ')}"[0...36]
+        )
+      end
+
       private
 
       def all_results(method, key, args = {})
