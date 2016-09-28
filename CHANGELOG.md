@@ -1,3 +1,6 @@
+# 1.1.1
+- [#18](https://github.com/lumoslabs/broadside/pull/18): Refactor EcsManager to its own class
+
 # 1.1.0
 - [#16](https://github.com/lumoslabs/broadside/pull/16): Add bootstrap command; add specs
 

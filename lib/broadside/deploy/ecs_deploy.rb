@@ -1,4 +1,3 @@
-require 'active_support/core_ext/hash'
 require 'aws-sdk'
 require 'open3'
 require 'pp'
@@ -108,7 +107,7 @@ module Broadside
           "\nDeployed task definition information:\n",
           Rainbow(PP.pp(EcsManager.get_latest_task_definition(family), '')).blue,
           "\nPrivate ips of instances running containers:\n",
-          Rainbow(get_running_instance_ips.join(' ')).blue,
+          Rainbow(EcsManager.get_running_instance_ips(config.ecs.cluster, family).join(' ')).blue,
           "\n\nssh command:\n#{Rainbow(gen_ssh_cmd(ips.first)).cyan}",
           "\n---------------\n"
       end
@@ -116,7 +115,7 @@ module Broadside
 
     def logtail
       super do
-        ip = get_running_instance_ips.fetch(@deploy_config.instance)
+        ip = get_running_instance_ip
         debug "Tailing logs for running container at ip #{ip}..."
         search_pattern = Shellwords.shellescape(family)
         cmd = "docker logs -f --tail=10 `docker ps -n 1 --quiet --filter name=#{search_pattern}`"
@@ -127,7 +126,7 @@ module Broadside
 
     def ssh
       super do
-        ip = get_running_instance_ips.fetch(@deploy_config.instance)
+        ip = get_running_instance_ip
         debug "Establishing an SSH connection to ip #{ip}..."
         exec gen_ssh_cmd(ip)
       end
@@ -135,7 +134,7 @@ module Broadside
 
     def bash
       super do
-        ip = get_running_instance_ips.fetch(@deploy_config.instance)
+        ip = get_running_instance_ip
         debug "Running bash for running container at ip #{ip}..."
         search_pattern = Shellwords.shellescape(family)
         cmd = "docker exec -i -t `docker ps -n 1 --quiet --filter name=#{search_pattern}` bash"
@@ -145,6 +144,10 @@ module Broadside
     end
 
     private
+
+    def get_running_instance_ip
+      EcsManager.get_running_instance_ips(config.ecs.cluster, family).fetch(@deploy_config.instance)
+    end
 
     # creates a new task revision using current directory's env vars and provided tag
     def update_task_revision
@@ -173,7 +176,9 @@ module Broadside
         desired_count: @deploy_config.scale
       )
 
-      exception 'Failed to update service during deploy.' unless update_service_response.successful?
+      unless update_service_response.successful?
+        exception('Failed to update service during deploy.', update_service_response.pretty_inspect)
+      end
 
       EcsManager.ecs.wait_until(:services_stable, { cluster: config.ecs.cluster, services: [family] }) do |w|
         w.max_attempts = @deploy_config.timeout ? @deploy_config.timeout / config.ecs.poll_frequency : nil
@@ -195,7 +200,9 @@ module Broadside
       command_name = command.join(' ')
       run_task_response = EcsManager.ecs.run_task(config.ecs.cluster, family, command)
 
-      exception "Failed to run #{command_name} task." unless run_task_response.successful?
+      unless run_task_response.successful?
+        exception("Failed to run #{command_name} task.", run_task_response.pretty_inspect)
+      end
 
       task_arn = run_task_response.tasks[0].task_arn
       debug "Launched #{command_name} task #{task_arn}, waiting for completion..."
@@ -217,7 +224,7 @@ module Broadside
     end
 
     def get_container_logs(task_arn)
-      ip = get_running_instance_ips(task_arn).first
+      ip = EcsManager.get_running_instance_ips(config.ecs.cluster, family, task_arn).first
       debug "Found ip of container instance: #{ip}"
 
       find_container_id_cmd = "#{gen_ssh_cmd(ip)} \"docker ps -aqf 'label=com.amazonaws.ecs.task-arn=#{task_arn}'\""
@@ -234,32 +241,6 @@ module Broadside
       logs
     end
 
-    def get_running_instance_ips(task_ids = nil)
-      task_arns = nil
-      if task_ids.nil?
-        task_arns = EcsManager.get_task_arns(config.ecs.cluster, family)
-        if task_arns.empty?
-          exception "No running tasks found for '#{family}' on cluster '#{config.ecs.cluster}' !"
-        end
-      elsif task_ids.class == String
-        task_arns = [task_ids]
-      else
-        raise ArgumentError, "task_ids must be an array" unless task_ids.is_a?(Array)
-        task_arns = task_ids
-      end
-
-      tasks = EcsManager.ecs.describe_tasks(cluster: config.ecs.cluster, tasks: task_arns).tasks
-      container_instances = EcsManager.ecs.describe_container_instances(
-        cluster: config.ecs.cluster,
-        container_instances: tasks.map { |t| t.container_instance_arn }
-      ).container_instances
-      ec2_instance_ids = container_instances.map { |ci| ci.ec2_instance_id }
-
-      reservations = ec2_client.describe_instances({ instance_ids: ec2_instance_ids }).reservations
-      instances = reservations.map { |r| r.instances }.flatten
-      instances.map { |i| i.private_ip_address }
-    end
-
     def create_new_task_revision
       task_def = EcsManager.get_latest_task_definition(family)
       task_def.delete(:task_definition_arn)
@@ -267,13 +248,6 @@ module Broadside
       task_def.delete(:revision)
       task_def.delete(:status)
       task_def
-    end
-
-    def ec2_client
-      @ec2_client ||= Aws::EC2::Client.new(
-        region: config.aws.region,
-        credentials: config.aws.credentials
-      )
     end
   end
 end

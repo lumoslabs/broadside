@@ -1,3 +1,6 @@
+require 'active_support/core_ext/hash'
+require 'active_support/core_ext/array'
+
 module Broadside
   class EcsManager
     DEFAULT_DESIRED_COUNT = 0
@@ -52,6 +55,22 @@ module Broadside
 
       def get_latest_task_definition_arn(name)
         get_task_definition_arns(name).last
+      end
+
+      def get_running_instance_ips(cluster, family, task_arns = nil)
+        task_arns = task_arns ? Array.wrap(task_arns) : get_task_arns(cluster, family)
+        exception "No running tasks found for '#{family}' on cluster '#{cluster}'!" if task_arns.empty?
+
+        tasks = ecs.describe_tasks(cluster: cluster, tasks: task_arns).tasks
+        container_instances = ecs.describe_container_instances(
+          cluster: cluster,
+          container_instances: tasks.map(&:container_instance_arn),
+        ).container_instances
+        ec2_instance_ids = container_instances.map(&:ec2_instance_id)
+
+        reservations = ec2_client.describe_instances(instance_ids: ec2_instance_ids).reservations
+        instances = reservations.map(&:instances).flatten
+        instances.map(&:private_ip_address)
       end
 
       def get_task_arns(cluster, family)
@@ -112,6 +131,13 @@ module Broadside
         end
 
         results
+      end
+
+      def ec2_client
+        @ec2_client ||= Aws::EC2::Client.new(
+          region: config.aws.region,
+          credentials: config.aws.credentials
+        )
       end
     end
   end
