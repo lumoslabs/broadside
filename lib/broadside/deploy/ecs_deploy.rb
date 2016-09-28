@@ -43,19 +43,19 @@ module Broadside
     end
 
     def bootstrap
+      unless service_exists?
+        raise ArgumentError, "Service doesn't exist and cannot be created" unless @deploy_config.service_config
+
+        info "Service #{family} doesn't exist, creating..."
+        create_service(family, @deploy_config.service_config)
+      end
+
       unless get_latest_task_def_id
         # TODO right now this creates a useless first revision and then update_task_revision will create a 2nd one
         raise ArgumentError, "No first task definition and cannot create one" unless @deploy_config.task_definition_config
 
         info "Creating an initial task definition for '#{family}' from the config..."
         create_task_definition(family, @deploy_config.task_definition_config)
-      end
-
-      unless service_exists?
-        raise ArgumentError, "Service doesn't exist and cannot be created" unless @deploy_config.service_config
-
-        info "Service #{family} doesn't exist, creating..."
-        create_service(family, @deploy_config.service_config)
       end
     end
 
@@ -185,21 +185,17 @@ module Broadside
     end
 
     def create_task_definition(name, options = {})
-      container_definition = DEFAULT_CONTAINER_DEFINITION.merge(
+      # Deep merge doesn't work with arrays
+      container_definitions = DEFAULT_CONTAINER_DEFINITION.merge(
         name: name,
         command: @command,
         environment: @deploy_config.env_vars,
         image: image_tag,
-      )
+      ).merge(options[:container_definitions].first || {})
 
-      task_definition = {
-        container_definitions: [
-          container_definition
-        ],
-        family: name
-      }.deep_merge(options)
+      task_definition = { family: name }.deep_merge(options).merge(container_definitions: [container_definitions])
 
-      puts container_definition.pretty_inspect
+      puts container_definitions.pretty_inspect
       puts task_definition.pretty_inspect
       ecs_client.register_task_definition(task_definition)
     end
