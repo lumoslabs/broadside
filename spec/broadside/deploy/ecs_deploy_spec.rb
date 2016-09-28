@@ -68,14 +68,32 @@ describe Broadside::EcsDeploy do
         }
       end
 
-      let(:stub_response) { { services: [existing_service], failures: [] } }
+      let(:task_name) { 'TEST_APP_TEST_TARGET' }
+      let(:task_definition_arn) { "arn:447374670232:task-definition/#{task_name}:1" }
+      let(:stub_service_response) { { services: [existing_service], failures: [] } }
+      let(:stub_task_definition_response) { { task_definition_arns: [task_definition_arn] } }
+      let(:stub_describe_task_definition_response) do
+        {
+          task_definition: {
+            task_definition_arn: task_definition_arn,
+            container_definitions: [
+              {
+                name: task_name
+              }
+            ],
+            family: task_name
+          }
+        }
+      end
 
       before(:each) do
-        ecs_stub.stub_responses(:describe_services, stub_response)
+        ecs_stub.stub_responses(:describe_services, stub_service_response)
+        ecs_stub.stub_responses(:list_task_definitions, stub_task_definition_response)
+        ecs_stub.stub_responses(:describe_task_definition, stub_describe_task_definition_response)
       end
 
       it 'does not fail on service issues' do
-        pending 'need to figure out how to stub a waiter'
+        pending 'need to figure out how to stub a waiter, but it gets as far as update_service'
 
         expect { deploy.deploy }.to_not raise_error
       end
