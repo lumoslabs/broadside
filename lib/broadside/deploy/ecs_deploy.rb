@@ -103,11 +103,12 @@ module Broadside
 
     def status
       super do
+        ips = EcsManager.get_running_instance_ips(config.ecs.cluster, family).join(' ')
         info "\n---------------",
           "\nDeployed task definition information:\n",
           Rainbow(PP.pp(EcsManager.get_latest_task_definition(family), '')).blue,
           "\nPrivate ips of instances running containers:\n",
-          Rainbow(EcsManager.get_running_instance_ips(config.ecs.cluster, family).join(' ')).blue,
+          Rainbow(ips).blue,
           "\n\nssh command:\n#{Rainbow(gen_ssh_cmd(ips.first)).cyan}",
           "\n---------------\n"
       end
