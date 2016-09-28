@@ -26,13 +26,13 @@ module Broadside
         )
       end
 
-      def create_task_definition(name, command, environment, image, options = {})
+      def create_task_definition(name, command, environment, image_tag, options = {})
         # Deep merge doesn't work with arrays, so build the hash and merge later
         container = DEFAULT_CONTAINER_DEFINITION.merge(
           name: name,
           command: command,
           environment: environment,
-          image: image,
+          image: image_tag
         ).merge(options[:container_definitions].first || {})
 
         ecs.register_task_definition({ family: name }.deep_merge(options).merge(container_definitions: [container]))
@@ -96,7 +96,7 @@ module Broadside
       end
 
       def service_exists?(cluster, family)
-        services = ecs.describe_services({ cluster: cluster, services: [family] })
+        services = ecs.describe_services(cluster: cluster, services: [family])
         services.failures.empty? && !services.services.empty?
       end
 
