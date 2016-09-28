@@ -36,11 +36,10 @@ module Broadside
 
     def bootstrap
       unless EcsManager.get_latest_task_definition_arn(family)
-        # TODO right now this creates a useless first revision and then update_task_revision will create a 2nd one
         raise ArgumentError, "No first task definition and cannot create one" unless @deploy_config.task_definition_config
-
         info "Creating an initial task definition for '#{family}' from the config..."
 
+        # TODO right now this creates a useless first revision and then update_task_revision will create a 2nd one
         EcsManager.create_task_definition(
           family,
           @deploy_config.command,
@@ -193,11 +192,11 @@ module Broadside
     end
 
     def run_command(command)
+      command_name = command.join(' ')
       run_task_response = EcsManager.ecs.run_task(config.ecs.cluster, family, command)
 
       exception "Failed to run #{command_name} task." unless run_task_response.successful?
 
-      command_name = command.join(' ')
       task_arn = run_task_response.tasks[0].task_arn
       debug "Launched #{command_name} task #{task_arn}, waiting for completion..."
 
@@ -209,9 +208,8 @@ module Broadside
         end
       end
 
-      debug 'Task finished running, getting logs...'
       info "#{command_name} task container logs:\n#{get_container_logs(task_arn)}"
-      if (code = get_task_exit_code(config.ecs.cluster, task_arn, family)) == 0
+      if (code = EcsManager.get_task_exit_code(config.ecs.cluster, task_arn, family)) == 0
         debug "#{command_name} task #{task_arn} exited with status code 0"
       else
         exception "#{command_name} task #{task_arn} exited with a non-zero status code #{code}!"
@@ -227,8 +225,7 @@ module Broadside
       container_id = `#{find_container_id_cmd}`.strip
 
       get_container_logs_cmd = "#{gen_ssh_cmd(ip)} \"docker logs #{container_id}\""
-      debug "Running command to get logs of container #{container_id}:",
-        "\n#{get_container_logs_cmd}"
+      debug "Running command to get logs of container #{container_id}:\n#{get_container_logs_cmd}"
 
       logs = nil
       Open3.popen3(get_container_logs_cmd) do |_, stdout, stderr, _|
@@ -247,18 +244,19 @@ module Broadside
       elsif task_ids.class == String
         task_arns = [task_ids]
       else
+        raise ArgumentError, "task_ids must be an array" unless task_ids.is_a?(Array)
         task_arns = task_ids
       end
 
       tasks = EcsManager.ecs.describe_tasks(cluster: config.ecs.cluster, tasks: task_arns).tasks
-      container_instance_arns = tasks.map { |t| t.container_instance_arn }
       container_instances = EcsManager.ecs.describe_container_instances(
-        cluster: config.ecs.cluster, container_instances: container_instance_arns
+        cluster: config.ecs.cluster,
+        container_instances: tasks.map { |t| t.container_instance_arn }
       ).container_instances
       ec2_instance_ids = container_instances.map { |ci| ci.ec2_instance_id }
+
       reservations = ec2_client.describe_instances({ instance_ids: ec2_instance_ids }).reservations
       instances = reservations.map { |r| r.instances }.flatten
-
       instances.map { |i| i.private_ip_address }
     end
 

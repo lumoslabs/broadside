@@ -6,6 +6,7 @@ module Broadside
     class DeployConfig < ConfigStruct
       include Utils
 
+      # TODO this shouldn't be the default; lots of apps using broadside are not rails
       DEFAULT_PREDEPLOY_COMMANDS = [
         ['bundle', 'exec', 'rake', '--trace', 'db:migrate']
       ]
@@ -68,7 +69,7 @@ module Broadside
         end
 
         unless @targets.has_key?(@target)
-          exception "Could not find deploy target #{@target} in configuration !"
+          raise ArgumentError, "Could not find deploy target #{@target} in configuration !"
         end
       end
 
@@ -87,7 +88,7 @@ module Broadside
           vars = Dotenv.load(env_file)
           @env_vars = vars.map { |k,v| {'name'=> k, 'value' => v } }
         else
-          exception "Could not find file '#{env_file}' for loading environment variables !"
+          raise ArgumentError, "Could not find file '#{env_file}' for loading environment variables !"
         end
 
         @scale ||= @targets[@target][:scale]
