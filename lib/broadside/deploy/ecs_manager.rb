@@ -117,18 +117,18 @@ module Broadside
 
       def service_exists?(cluster, family)
         services = ecs.describe_services(cluster: cluster, services: [family])
-        services.failures.empty? && !services.services.empty?
+        services.failures.empty? && services.services.any?
       end
 
       private
 
       def all_results(method, key, args = {})
         page = ecs.public_send(method, args)
-        results = page.send(key)
+        results = page.public_send(key)
 
         while page.next_token
           page = ecs.public_send(method, args.merge(next_token: page.next_token))
-          results += page.send(key)
+          results += page.public_send(key)
         end
 
         results
