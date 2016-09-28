@@ -171,6 +171,8 @@ on_error do |exception|
     error exception.message, "\nRun your last command with --help for more information."
     false
   else
+    pp exception.message
+    pp exception.backtrace
     true
   end
 end
