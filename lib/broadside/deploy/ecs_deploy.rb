@@ -47,7 +47,7 @@ module Broadside
         # TODO right now this creates a useless first revision and then update_task_revision will create a 2nd one
         raise ArgumentError, "No first task definition and cannot create one" unless @deploy_config.task_definition_config
 
-        info "Creating an initial task definition from the config..."
+        info "Creating an initial task definition for '#{family}' from the config..."
         create_task_definition(family, @deploy_config.task_definition_config)
       end
 
