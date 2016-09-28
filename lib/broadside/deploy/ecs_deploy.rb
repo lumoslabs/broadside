@@ -158,7 +158,7 @@ module Broadside
       end
 
       debug "Creating a new task definition..."
-      arn = EcsManger.ecs.register_task_definition(new_task_def).task_definition.task_definition_arn
+      arn = EcsManager.ecs.register_task_definition(new_task_def).task_definition.task_definition_arn
       debug "Successfully created #{arn}"
     end
 
@@ -250,9 +250,9 @@ module Broadside
         task_arns = task_ids
       end
 
-      tasks = EcsManger.ecs.describe_tasks(cluster: config.ecs.cluster, tasks: task_arns).tasks
+      tasks = EcsManager.ecs.describe_tasks(cluster: config.ecs.cluster, tasks: task_arns).tasks
       container_instance_arns = tasks.map { |t| t.container_instance_arn }
-      container_instances = EcsManger.ecs.describe_container_instances(
+      container_instances = EcsManager.ecs.describe_container_instances(
         cluster: config.ecs.cluster, container_instances: container_instance_arns
       ).container_instances
       ec2_instance_ids = container_instances.map { |ci| ci.ec2_instance_id }
