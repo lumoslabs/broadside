@@ -185,12 +185,12 @@ module Broadside
     end
 
     def create_task_definition(name, options = {})
-      container_definition = DEFAULT_CONTAINER_DEFINITION.merge({
+      container_definition = DEFAULT_CONTAINER_DEFINITION.merge(
         name: name,
         command: @command,
         environment: @deploy_config.env_vars,
         image: image_tag,
-      })
+      )
 
       task_definition = {
         container_definitions: [
@@ -199,6 +199,7 @@ module Broadside
         family: name
       }.deep_merge(options)
 
+      puts container_definition.pretty_inspect
       puts task_definition.pretty_inspect
       ecs_client.register_task_definition(task_definition)
     end
