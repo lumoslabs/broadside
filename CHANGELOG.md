@@ -1,3 +1,6 @@
+# 1.1.0
+- [#16](https://github.com/lumoslabs/broadside/pull/16): Add bootstrap command; add specs
+
 # 1.0.3
 - [#12](https://github.com/lumoslabs/broadside/issues/12): Fix isssue with not being to use ssh, bash, logtail commands without specifying instance index
 
