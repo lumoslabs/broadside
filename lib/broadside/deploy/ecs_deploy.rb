@@ -37,7 +37,7 @@ module Broadside
           error 'Deploy failed! Rolling back...'
           rollback(1)
           error 'Deployment did not finish successfully.'
-          raise
+          raise e
         end
       end
     end
@@ -64,9 +64,9 @@ module Broadside
         begin
           deregister_last_n_tasks_definitions(count)
           update_service
-        rescue StandardError => e
+        rescue StandardError
           error 'Rollback failed to complete!'
-          raise e
+          raise
         end
       end
     end
@@ -153,7 +153,7 @@ module Broadside
     # removes latest n task definitions
     def deregister_last_n_tasks_definitions(count)
       get_task_definition_arns.last(count).each do |arn|
-        ecs_client.deregister_task_definition({ task_definition: arn })
+        ecs_client.deregister_task_definition(task_definition: arn)
         debug "Deregistered #{arn}"
       end
     end
@@ -214,8 +214,8 @@ module Broadside
 
       exception 'Failed to update service during deploy.' unless update_service_response.successful?
 
-      ecs_client.wait_until(:services_stable, {cluster: config.ecs.cluster, services: [family]}) do |w|
-        w.max_attempts = @deploy_config.timeout.nil? ? @deploy_config.timeout : @deploy_config.timeout / config.ecs.poll_frequency
+      ecs_client.wait_until(:services_stable, { cluster: config.ecs.cluster, services: [family] }) do |w|
+        w.max_attempts = @deploy_config.timeout ? @deploy_config.timeout / config.ecs.poll_frequency : nil
         w.delay = config.ecs.poll_frequency
         seen_event = nil
 
@@ -241,7 +241,7 @@ module Broadside
               name: family,
               command: command
             },
-          ],
+          ]
         },
         count: 1,
         started_by: "before_deploy:#{command_name}"[0...36]
@@ -249,10 +249,10 @@ module Broadside
 
       exception "Failed to run #{command_name} task." unless run_task_response.successful?
 
-      task_id = run_task_response.tasks[0].task_arn
-      debug "Launched #{command_name} task #{task_id}, waiting for completion..."
+      task_arn = run_task_response.tasks[0].task_arn
+      debug "Launched #{command_name} task #{task_arn}, waiting for completion..."
 
-      ecs_client.wait_until(:tasks_stopped, {cluster: config.ecs.cluster, tasks: [task_id]}) do |w|
+      ecs_client.wait_until(:tasks_stopped, { cluster: config.ecs.cluster, tasks: [task_arn] }) do |w|
         w.max_attempts = nil
         w.delay = config.ecs.poll_frequency
         w.before_attempt do |attempt|
@@ -261,19 +261,19 @@ module Broadside
       end
 
       debug 'Task finished running, getting logs...'
-      info "#{command_name} task container logs:\n#{get_container_logs(task_id)}"
-      if (code = get_task_exit_code(task_id)) == 0
-        debug "#{command_name} task #{task_id} exited with status code 0"
+      info "#{command_name} task container logs:\n#{get_container_logs(task_arn)}"
+      if (code = get_task_exit_code(task_arn)) == 0
+        debug "#{command_name} task #{task_arn} exited with status code 0"
       else
-        exception "#{command_name} task #{task_id} exited with a non-zero status code #{code}!"
+        exception "#{command_name} task #{task_arn} exited with a non-zero status code #{code}!"
       end
     end
 
-    def get_container_logs(task_id)
-      ip = get_running_instance_ips(task_id).first
+    def get_container_logs(task_arn)
+      ip = get_running_instance_ips(task_arn).first
       debug "Found ip of container instance: #{ip}"
 
-      find_container_id_cmd = "#{gen_ssh_cmd(ip)} \"docker ps -aqf 'label=com.amazonaws.ecs.task-arn=#{task_id}'\""
+      find_container_id_cmd = "#{gen_ssh_cmd(ip)} \"docker ps -aqf 'label=com.amazonaws.ecs.task-arn=#{task_arn}'\""
       debug "Running command to find container id:\n#{find_container_id_cmd}"
       container_id = `#{find_container_id_cmd}`.strip
 
@@ -288,8 +288,8 @@ module Broadside
       logs
     end
 
-    def get_task_exit_code(task_id)
-      task = ecs_client.describe_tasks({ cluster: config.ecs.cluster, tasks: [task_id] }).tasks.first
+    def get_task_exit_code(task_arn)
+      task = ecs_client.describe_tasks({ cluster: config.ecs.cluster, tasks: [task_arn] }).tasks.first
       container = task.containers.select { |c| c.name == family }.first
       container.exit_code
     end
