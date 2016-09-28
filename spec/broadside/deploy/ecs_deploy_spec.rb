@@ -26,7 +26,13 @@ describe Broadside::EcsDeploy do
     }
   end
 
-  let(:ecs_stub) { Aws::ECS::Client.new(region: Broadside.config.aws.region, credentials: Broadside.config.aws.credentials, stub_responses: true) }
+  let(:ecs_stub) do
+    Aws::ECS::Client.new(
+      region: Broadside.config.aws.region,
+      credentials: Aws::Credentials.new('access', 'secret'),
+      stub_responses: true
+    )
+  end
   let(:deploy) { described_class.new(valid_options) }
 
   before(:each) { deploy.instance_variable_set(:@ecs_client, ecs_stub) }
@@ -62,14 +68,13 @@ describe Broadside::EcsDeploy do
     context 'with an existing service' do
       let :existing_service do
         {
-          service_arn: "arn:aws:ecs:us-east-1:447374670232:service/events_test_ecs_script_2",
-          service_name: "events_test_ecs_script_2",
-          cluster_arn: "arn:aws:ecs:us-east-1:447374670232:cluster/c-large"
+          service_arn: "arn:aws:ecs:us-east-1:1234:service/#{task_name}",
+          service_name: "events_test_ecs_script_2"
         }
       end
 
       let(:task_name) { 'TEST_APP_TEST_TARGET' }
-      let(:task_definition_arn) { "arn:447374670232:task-definition/#{task_name}:1" }
+      let(:task_definition_arn) { "arn:aws:ecs:us-east-1:1234:task-definition/#{task_name}:1" }
       let(:stub_service_response) { { services: [existing_service], failures: [] } }
       let(:stub_task_definition_response) { { task_definition_arns: [task_definition_arn] } }
       let(:stub_describe_task_definition_response) do
