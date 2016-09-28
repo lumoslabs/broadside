@@ -50,7 +50,7 @@ module Broadside
         create_service(family, @deploy_config.service_config)
       end
 
-      unless get_latest_task_definition_id
+      unless get_latest_task_definition_arn
         # TODO right now this creates a useless first revision and then update_task_revision will create a 2nd one
         raise ArgumentError, "No first task definition and cannot create one" unless @deploy_config.task_definition_config
 
@@ -169,8 +169,8 @@ module Broadside
       end
 
       debug "Creating a new task definition..."
-      new_task_def_id = ecs_client.register_task_definition(new_task_def).task_definition.task_definition_arn
-      debug "Successfully created #{new_task_def_id}"
+      new_task_definition_arn = ecs_client.register_task_definition(new_task_def).task_definition.task_definition_arn
+      debug "Successfully created #{new_task_definition_arn}"
     end
 
     def create_service(name, options = {})
@@ -202,13 +202,13 @@ module Broadside
 
     # reloads the service using the latest task definition
     def update_service
-      task_definition_id = get_latest_task_definition_id
-      debug "Updating #{family} with scale=#{@deploy_config.scale} using task #{task_definition_id}..."
+      task_definition_arn = get_latest_task_definition_arn
+      debug "Updating #{family} with scale=#{@deploy_config.scale} using task #{task_definition_arn}..."
 
       update_service_response = ecs_client.update_service(
         cluster: config.ecs.cluster,
         service: family,
-        task_definition: task_definition_id,
+        task_definition: task_definition_arn,
         desired_count: @deploy_config.scale
       )
 
@@ -234,7 +234,7 @@ module Broadside
       command_name = command.join(' ')
       run_task_response = ecs_client.run_task(
         cluster: config.ecs.cluster,
-        task_definition: get_latest_task_definition_id,
+        task_definition: get_latest_task_definition_arn,
         overrides: {
           container_overrides: [
             {
@@ -320,10 +320,10 @@ module Broadside
     end
 
     def get_latest_task_definition
-      ecs_client.describe_task_definition({ task_definition: get_latest_task_definition_id }).task_definition.to_h
+      ecs_client.describe_task_definition({ task_definition: get_latest_task_definition_arn }).task_definition.to_h
     end
 
-    def get_latest_task_definition_id
+    def get_latest_task_definition_arn
       get_task_definition_arns.last
     end
 
