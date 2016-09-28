@@ -62,9 +62,9 @@ module Broadside
         all_results(:list_task_definitions, :task_definition_arns, { family_prefix: family })
       end
 
-      def get_task_exit_code(task_arn, family)
-        task = EcsManager.ecs.describe_tasks({ cluster: Broadside.config.ecs.cluster, tasks: [task_arn] }).tasks.first
-        container = task.containers.select { |c| c.name == family }.first
+      def get_task_exit_code(cluster, task_arn, name)
+        task = ecs.describe_tasks({ cluster: cluster, tasks: [task_arn] }).tasks.first
+        container = task.containers.select { |c| c.name == name }.first
         container.exit_code
       end
 
@@ -72,13 +72,8 @@ module Broadside
         all_results(:list_task_definition_families, :families)
       end
 
-      def list_services
-        all_results(:list_services, :service_arns, { cluster: config.ecs.cluster })
-      end
-
-      def service_exists?(cluster, family)
-        services = ecs.describe_services({ cluster: cluster, services: [family] })
-        services.failures.empty? && !services.services.empty?
+      def list_services(cluster)
+        all_results(:list_services, :service_arns, { cluster: cluster })
       end
 
       def run_task(cluster, name, command)
@@ -100,6 +95,11 @@ module Broadside
         )
       end
 
+      def service_exists?(cluster, family)
+        services = ecs.describe_services({ cluster: cluster, services: [family] })
+        services.failures.empty? && !services.services.empty?
+      end
+
       private
 
       def all_results(method, key, args = {})
@@ -107,7 +107,7 @@ module Broadside
         results = page.send(key)
 
         while page.next_token
-          page = ecs.send(method, args.merge(next_token: page.next_token))
+          page = ecs.public_send(method, args.merge(next_token: page.next_token))
           results += page.send(key)
         end
 

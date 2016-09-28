@@ -211,7 +211,7 @@ module Broadside
 
       debug 'Task finished running, getting logs...'
       info "#{command_name} task container logs:\n#{get_container_logs(task_arn)}"
-      if (code = get_task_exit_code(task_arn, family)) == 0
+      if (code = get_task_exit_code(config.ecs.cluster, task_arn, family)) == 0
         debug "#{command_name} task #{task_arn} exited with status code 0"
       else
         exception "#{command_name} task #{task_arn} exited with a non-zero status code #{code}!"
