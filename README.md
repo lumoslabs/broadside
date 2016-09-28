@@ -44,7 +44,7 @@ Broadside.configure do |config|
     # initial task definition
     game_save_as_json_blob_stream: {
       scale: 1,
-      command: ['java', '-cp', '*:.', 'com.lumoslabs.events.kstream.streams.GameSaveAsJsonBlob'],
+      command: ['java', '-cp', '*:.', 'path.to.MyClass'],
       env_file: '.env.production',
       service: {
         deployment_configuration: {
