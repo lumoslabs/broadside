@@ -43,19 +43,19 @@ module Broadside
     end
 
     def bootstrap
-      unless service_exists?
-        raise ArgumentError, "Service doesn't exist and cannot be created" unless @deploy_config.service_config
-
-        info "Service #{family} doesn't exist, creating..."
-        create_service(family, @deploy_config.service_config)
-      end
-
       unless get_latest_task_def_id
         # TODO right now this creates a useless first revision and then update_task_revision will create a 2nd one
         raise ArgumentError, "No first task definition and cannot create one" unless @deploy_config.task_definition_config
 
         info "Creating an initial task definition from the config..."
         create_task_definition(family, @deploy_config.task_definition_config)
+      end
+
+      unless service_exists?
+        raise ArgumentError, "Service doesn't exist and cannot be created" unless @deploy_config.service_config
+
+        info "Service #{family} doesn't exist, creating..."
+        create_service(family, @deploy_config.service_config)
       end
     end
 
