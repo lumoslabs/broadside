@@ -47,14 +47,14 @@ module Broadside
         # TODO right now this creates a useless first revision and then update_task_revision will create a 2nd one
         raise ArgumentError, "No first task definition and cannot create one" unless @deploy_config.task_definition_config
 
-        info "Creating an initial task definition from the config..."
+        info "Creating an initial task definition for '#{family}' from the config..."
         create_task_definition(family, @deploy_config.task_definition_config)
       end
 
       unless service_exists?
         raise ArgumentError, "Service doesn't exist and cannot be created" unless @deploy_config.service_config
 
-        info "Service #{family} doesn't exist, creating..."
+        info "Service '#{family}' doesn't exist, creating..."
         create_service(family, @deploy_config.service_config)
       end
     end
@@ -185,18 +185,16 @@ module Broadside
     end
 
     def create_task_definition(name, options = {})
+      # Deep merge doesn't work with arrays, so build the hash and merge later
+      container_definitions = DEFAULT_CONTAINER_DEFINITION.merge(
+        name: name,
+        command: @command,
+        environment: @deploy_config.env_vars,
+        image: image_tag,
+      ).merge(options[:container_definitions].first || {})
+
       ecs_client.register_task_definition(
-        {
-          container_definitions: [
-            DEFAULT_CONTAINER_DEFINITION.merge(
-              name: name,
-              command: @command,
-              environment: @deploy_config.env_vars,
-              image: image_tag,
-            )
-          ],
-          family: name
-        }.deep_merge(options)
+        { family: name }.deep_merge(options).merge(container_definitions: [container_definitions])
       )
     end
 
