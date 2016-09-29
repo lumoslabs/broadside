@@ -110,7 +110,7 @@ module Broadside
         return nil if target_attribute.nil?
         return 'predeploy_commands must be an array' unless target_attribute.is_a?(Array)
 
-        messages = target_attribute.select { |cmd| !cmd.is_a?(Array) }.map do |command|
+        messages = target_attribute.reject { |cmd| cmd.is_a?(Array) }.map do |command|
           "predeploy_command '#{command}' must be an array" unless command.is_a?(Array)
         end
         messages.empty? ? nil : messages.join(', ')
