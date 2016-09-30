@@ -1,3 +1,3 @@
 module Broadside
-  VERSION = '1.1.1'
+  VERSION = '1.0.3'
 end

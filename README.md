@@ -46,12 +46,12 @@ Broadside.configure do |config|
       scale: 1,
       command: ['java', '-cp', '*:.', 'path.to.MyClass'],
       env_file: '.env.production',
-      service: {
+      service_config: {
         deployment_configuration: {
           minimum_healthy_percent: 0.5,
         }
       },
-      task_definition: {
+      task_definition_config: {
         container_definitions: [
           {
             cpu: 1,
