@@ -22,7 +22,13 @@ module Broadside
 
     def deploy
       super do
-        exception "Service #{family} does not exist!  Please bootstrap a service." unless service_exists?
+        unless service_exists?
+          exception "No service for #{family}! Please bootstrap or manually configure the service."
+        end
+        unless get_latest_task_def_id
+          exception "No task definition for '#{family}'! Please bootstrap or manually configure the task definition."
+        end
+
         update_task_revision
 
         begin
