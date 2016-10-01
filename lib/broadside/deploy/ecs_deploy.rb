@@ -1,3 +1,4 @@
+require 'active_support/core_ext/hash'
 require 'aws-sdk'
 require 'open3'
 require 'pp'
@@ -6,15 +7,23 @@ require 'shellwords'
 
 module Broadside
   class EcsDeploy < Deploy
+
+    DEFAULT_DESIRED_COUNT = 0
+    DEFAULT_CONTAINER_DEFINITION = {
+      cpu: 1,
+      essential: true,
+      memory: 1000
+    }
+
     def initialize(opts)
       super(opts)
       config.ecs.verify(:cluster, :poll_frequency)
-      check_service_existence
     end
 
     def deploy
       super do
-        update_task
+        exception "Service #{family} does not exist!" unless service_exists?
+        update_task_revision
 
         begin
           update_service
@@ -22,14 +31,31 @@ module Broadside
           error 'Caught interrupt signal, rolling back...'
           rollback(1)
           error 'Deployment did not finish successfully.'
-          abort
+          raise
         rescue StandardError => e
           error e.inspect, "\n", e.backtrace.join("\n")
           error 'Deploy failed! Rolling back...'
           rollback(1)
           error 'Deployment did not finish successfully.'
-          abort
+          raise
         end
+      end
+    end
+
+    def bootstrap
+      unless get_latest_task_def_id
+        # Right now this creates a useless first revision and then update_task_revision will create a 2nd one
+        raise ArgumentError, "No first task definition and cannot create one" unless @deploy_config.task_definition_config
+
+        info "Creating an initial task definition for '#{family}' from the config..."
+        create_task_definition(family, @deploy_config.task_definition_config)
+      end
+
+      unless service_exists?
+        raise ArgumentError, "Service doesn't exist and cannot be created" unless @deploy_config.service_config
+
+        info "Service '#{family}' doesn't exist, creating..."
+        create_service(family, @deploy_config.service_config)
       end
     end
 
@@ -53,7 +79,7 @@ module Broadside
 
     def run
       super do
-        update_task
+        update_task_revision
 
         begin
           run_command(@deploy_config.command)
@@ -66,7 +92,7 @@ module Broadside
     # runs before deploy commands using the latest task definition
     def run_predeploy
       super do
-        update_task
+        update_task_revision
 
         begin
           @deploy_config.predeploy_commands.each do |command|
@@ -94,7 +120,7 @@ module Broadside
 
     def logtail
       super do
-        ip = get_running_instance_ip_at_index!(@deploy_config.instance)
+        ip = get_running_instance_ips.fetch(@deploy_config.instance)
         debug "Tailing logs for running container at ip #{ip}..."
         search_pattern = Shellwords.shellescape(family)
         cmd = "docker logs -f --tail=10 `docker ps -n 1 --quiet --filter name=#{search_pattern}`"
@@ -105,7 +131,7 @@ module Broadside
 
     def ssh
       super do
-        ip = get_running_instance_ip_at_index!(@deploy_config.instance)
+        ip = get_running_instance_ips.fetch(@deploy_config.instance)
         debug "Establishing an SSH connection to ip #{ip}..."
         exec gen_ssh_cmd(ip)
       end
@@ -113,7 +139,7 @@ module Broadside
 
     def bash
       super do
-        ip = get_running_instance_ip_at_index!(@deploy_config.instance)
+        ip = get_running_instance_ips.fetch(@deploy_config.instance)
         debug "Running bash for running container at ip #{ip}..."
         search_pattern = Shellwords.shellescape(family)
         cmd = "docker exec -i -t `docker ps -n 1 --quiet --filter name=#{search_pattern}` bash"
@@ -124,49 +150,65 @@ module Broadside
 
     private
 
-    def get_running_instance_ip_at_index(index)
-      ips = get_running_instance_ips
-      ips.size > index ? ips[index] : false
-    end
-
-    def get_running_instance_ip_at_index!(index)
-      ip = get_running_instance_ip_at_index(index)
-      return ip if ip
-      exception 'Instance index greater than available instance count.'
-    end
-
     # removes latest n task definitions
     def deregister_tasks(count)
-      get_task_def_ids.last(count).each do |td_id|
+      get_task_definition_arns.last(count).each do |td_id|
         ecs_client.deregister_task_definition({task_definition: td_id})
         debug "Deregistered #{td_id}"
       end
     end
 
     # creates a new task revision using current directory's env vars and provided tag
-    def update_task
-      debug "Creating a new task definition..."
+    def update_task_revision
       new_task_def = create_new_task_revision
 
-      container_def = new_task_def[:container_definitions].select { |c| c[:name] == family }.first
-      container_def[:environment] = @deploy_config.env_vars
-      container_def[:image] = image_tag
-      container_def[:command] = @deploy_config.command
+      new_task_def[:container_definitions].select { |c| c[:name] == family }.first.tap do |container_def|
+        container_def[:environment] = @deploy_config.env_vars
+        container_def[:image] = image_tag
+        container_def[:command] = @deploy_config.command
+      end
 
+      debug "Creating a new task definition..."
       new_task_def_id = ecs_client.register_task_definition(new_task_def).task_definition.task_definition_arn
       debug "Successfully created #{new_task_def_id}"
+    end
+
+    def create_service(name, options = {})
+      ecs_client.create_service(
+        {
+          cluster: config.ecs.cluster,
+          desired_count: DEFAULT_DESIRED_COUNT,
+          service_name: name,
+          task_definition: name
+        }.deep_merge(options)
+      )
+    end
+
+    def create_task_definition(name, options = {})
+      # Deep merge doesn't work with arrays, so build the hash and merge later
+      container_definitions = DEFAULT_CONTAINER_DEFINITION.merge(
+        name: name,
+        command: @deploy_config.command,
+        environment: @deploy_config.env_vars,
+        image: image_tag,
+      ).merge(options[:container_definitions].first || {})
+
+      ecs_client.register_task_definition(
+        { family: name }.deep_merge(options).merge(container_definitions: [container_definitions])
+      )
     end
 
     # reloads the service using the latest task definition
     def update_service
       td = get_latest_task_def_id
       debug "Updating #{family} with scale=#{@deploy_config.scale} using task #{td}..."
-      resp =  ecs_client.update_service({
+      resp = ecs_client.update_service({
         cluster: config.ecs.cluster,
         service: family,
         task_definition: get_latest_task_def_id,
         desired_count: @deploy_config.scale
       })
+
       if resp.successful?
         begin
           ecs_client.wait_until(:services_stable, {cluster: config.ecs.cluster, services: [family]}) do |w|
@@ -208,6 +250,7 @@ module Broadside
         count: 1,
         started_by: "before_deploy:#{command_name}"[0...36]
       })
+
       if resp.successful?
         task_id = resp.tasks[0].task_arn
         debug "Launched #{command_name} task #{task_id}"
@@ -221,7 +264,7 @@ module Broadside
         end
         debug 'Task finished running, getting logs...'
         info "#{command_name} task container logs:\n#{get_container_logs(task_id)}"
-        if(code = get_task_exit_code(task_id)) == 0
+        if (code = get_task_exit_code(task_id)) == 0
           debug "#{command_name} task #{task_id} exited with status code 0"
         else
           exception "#{command_name} task #{task_id} exited with a non-zero status code #{code}!"
@@ -259,7 +302,7 @@ module Broadside
     def get_running_instance_ips(task_ids = nil)
       task_arns = nil
       if task_ids.nil?
-        task_arns = get_tasks
+        task_arns = get_task_arns
         if task_arns.empty?
           exception "No running tasks found for '#{family}' on cluster '#{config.ecs.cluster}' !"
         end
@@ -277,44 +320,32 @@ module Broadside
       ec2_instance_ids = container_instances.map { |ci| ci.ec2_instance_id }
       reservations = ec2_client.describe_instances({instance_ids: ec2_instance_ids}).reservations
       instances = reservations.map { |r| r.instances }.flatten
-      private_ips = instances.map { |i| i.private_ip_address }
-      private_ips
+
+      instances.map { |i| i.private_ip_address }
     end
 
     def get_latest_task_def
       ecs_client.describe_task_definition({task_definition: get_latest_task_def_id}).task_definition.to_h
     end
 
-    def get_tasks
-      # used for pagination if > 100 tasks
-      next_token = nil
-      tasks = []
-      loop do
-        resp = ecs_client.list_tasks({cluster: config.ecs.cluster, family: family, next_token: next_token})
-        next_token = resp.next_token
-        tasks += resp.task_arns
-        break if next_token.nil?
-      end
-
-      tasks
+    def get_task_arns
+      all_results(:list_tasks, :task_arns, { cluster: config.ecs.cluster, family: family })
     end
 
-    def get_task_def_ids
-      # used for pagination if > 100 task_definition ids
-      next_token = nil
-      task_def_ids = []
-      loop do
-        resp = ecs_client.list_task_definitions({family_prefix: family, next_token: next_token})
-        next_token = resp.next_token
-        task_def_ids += resp.task_definition_arns
-        break if next_token.nil?
-      end
+    def get_task_definition_arns
+      all_results(:list_task_definitions, :task_definition_arns, { family_prefix: family })
+    end
 
-      task_def_ids
+    def list_task_definition_families
+      all_results(:list_task_definition_families, :families)
+    end
+
+    def list_services
+      all_results(:list_services, :service_arns, { cluster: config.ecs.cluster })
     end
 
     def get_latest_task_def_id
-      get_task_def_ids.last
+      get_task_definition_arns.last
     end
 
     def create_new_task_revision
@@ -324,6 +355,11 @@ module Broadside
       task_def.delete(:revision)
       task_def.delete(:status)
       task_def
+    end
+
+    def service_exists?
+      services = ecs_client.describe_services({ cluster: config.ecs.cluster, services: [family] })
+      services.failures.empty? && !services.services.empty?
     end
 
     def ecs_client
@@ -340,11 +376,16 @@ module Broadside
       })
     end
 
-    def check_service_existence
-      resp = ecs_client.describe_services({cluster: config.ecs.cluster, services: [family]})
-      unless resp.failures.empty?
-        exception "Could not find ECS service '#{family}' in cluster '#{config.ecs.cluster}' !"
+    def all_results(method, key, args = {})
+      page = ecs_client.public_send(method, args)
+      results = page.send(key)
+
+      while page.next_token
+        page = ecs.send(method, args.merge(next_token: page.next_token))
+        results += page.send(key)
       end
+
+      results
     end
   end
 end

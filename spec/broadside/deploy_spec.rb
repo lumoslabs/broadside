@@ -14,7 +14,7 @@ module Broadside
     end
     let(:invalid_options) do
       {
-        target: nil,
+        target: nil
       }
     end
 
