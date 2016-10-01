@@ -22,7 +22,13 @@ module Broadside
 
     def deploy
       super do
-        exception "Service #{family} does not exist!" unless service_exists?
+        unless service_exists?
+          exception "No service for #{family}! Please bootstrap or manually configure the service."
+        end
+        unless get_latest_task_def_id
+          exception "No task definition for '#{family}'! Please bootstrap or manually configure the task definition."
+        end
+
         update_task_revision
 
         begin
@@ -43,16 +49,20 @@ module Broadside
     end
 
     def bootstrap
+      # Right now this creates a useless first revision and then update_task_revision will create a 2nd one
       unless get_latest_task_def_id
-        # Right now this creates a useless first revision and then update_task_revision will create a 2nd one
-        raise ArgumentError, "No first task definition and cannot create one" unless @deploy_config.task_definition_config
+        unless @deploy_config.task_definition_config
+          raise ArgumentError, "No first task definition and no :task_definition_config in '#{family}' configuration"
+        end
 
         info "Creating an initial task definition for '#{family}' from the config..."
         create_task_definition(family, @deploy_config.task_definition_config)
       end
 
       unless service_exists?
-        raise ArgumentError, "Service doesn't exist and cannot be created" unless @deploy_config.service_config
+        unless @deploy_config.service_config
+          raise ArgumentError, "Service doesn't exist and no :service_config in '#{family}' configuration"
+        end
 
         info "Service '#{family}' doesn't exist, creating..."
         create_service(family, @deploy_config.service_config)
