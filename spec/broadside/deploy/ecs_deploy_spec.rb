@@ -43,13 +43,13 @@ describe Broadside::EcsDeploy do
 
   context 'bootstrap' do
     it 'fails without service_config' do
-      expect { deploy.bootstrap }.to raise_error(/No first task definition and cannot create one/)
+      expect { deploy.bootstrap }.to raise_error(/No first task definition and no :task_definition_config/)
     end
 
     it 'fails without task_definition_config' do
       deploy.deploy_config.task_definition_config = task_definition_config
 
-      expect { deploy.bootstrap }.to raise_error(/Service doesn't exist and cannot be created/)
+      expect { deploy.bootstrap }.to raise_error(/Service doesn't exist and no :service_config /)
     end
 
     it 'succeeds' do
@@ -62,7 +62,7 @@ describe Broadside::EcsDeploy do
 
   context 'deploy' do
     it 'fails without an existing service' do
-      expect { deploy.deploy }.to raise_error(/Service TEST_APP_TEST_TARGET does not exist/)
+      expect { deploy.deploy }.to raise_error(/No service for TEST_APP_TEST_TARGET/)
     end
 
     context 'with an existing service' do
