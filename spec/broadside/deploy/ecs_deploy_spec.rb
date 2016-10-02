@@ -13,7 +13,7 @@ describe Broadside::EcsDeploy do
       stub_responses: true
     )
   end
-  # TODO should be tested in a real config at the service: key
+  # TODO should be tested in a real config at the service_config: key
   let(:service_config) do
     {
       deployment_configuration: {
@@ -21,7 +21,8 @@ describe Broadside::EcsDeploy do
       }
     }
   end
-  # TODO should be tested in a real config at the task_definition: key
+
+  # TODO should be tested in a real config at the task_definition_config: key
   let(:task_definition_config) do
     {
       container_definitions: [
@@ -40,6 +41,7 @@ describe Broadside::EcsDeploy do
   end
 
   context 'bootstrap' do
+    before(:each) { Broadside::EcsManager.instance_variable_set(:@ecs_client, ecs_stub) }
     it 'fails without task_definition_config' do
       expect { deploy.bootstrap }.to raise_error(/No first task definition and cannot create one/)
     end
