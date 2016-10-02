@@ -13,7 +13,13 @@ module Broadside
 
     def deploy
       super do
-        exception "Service #{family} does not exist!" unless EcsManager.service_exists?(config.ecs.cluster, family)
+        unless EcsManager.service_exists?(config.ecs.cluster, family)
+          exception "No service for #{family}! Please bootstrap or manually configure the service."
+        end
+        unless EcsManager.get_latest_task_definition_arn(family)
+          exception "No task definition for '#{family}'! Please bootstrap or manually configure the task definition."
+        end
+
         update_task_revision
 
         begin
@@ -35,7 +41,10 @@ module Broadside
 
     def bootstrap
       unless EcsManager.get_latest_task_definition_arn(family)
-        raise ArgumentError, "No first task definition and cannot create one" unless @deploy_config.task_definition_config
+        unless @deploy_config.task_definition_config
+          raise ArgumentError, "No first task definition and no :task_definition_config in '#{family}' configuration"
+        end
+
         info "Creating an initial task definition for '#{family}' from the config..."
 
         # TODO right now this creates a useless first revision and then update_task_revision will create a 2nd one
@@ -49,7 +58,9 @@ module Broadside
       end
 
       unless EcsManager.service_exists?(config.ecs.cluster, family)
-        raise ArgumentError, "Service doesn't exist and cannot be created" unless @deploy_config.service_config
+        unless @deploy_config.service_config
+          raise ArgumentError, "Service doesn't exist and no :service_config in '#{family}' configuration"
+        end
 
         info "Service '#{family}' doesn't exist, creating..."
         EcsManager.create_service(config.ecs.cluster, family, @deploy_config.service_config)
