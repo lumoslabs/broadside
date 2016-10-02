@@ -107,7 +107,7 @@ module Broadside
               {
                 name: name,
                 command: command
-              },
+              }
             ]
           },
           count: 1,
