@@ -42,7 +42,6 @@ accept Fixnum do |val|
   val.to_i
 end
 
-
 desc 'Bootstrap your service and task definition.'
 command :bootstrap do |b|
   add_shared_deploy_configs(b)
