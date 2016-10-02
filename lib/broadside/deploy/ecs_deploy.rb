@@ -208,7 +208,7 @@ module Broadside
 
     def run_command(command)
       command_name = command.join(' ')
-      run_task_response = EcsManager.ecs.run_task(config.ecs.cluster, family, command)
+      run_task_response = EcsManager.run_task(config.ecs.cluster, family, command)
 
       unless run_task_response.successful?
         exception("Failed to run #{command_name} task.", run_task_response.pretty_inspect)
