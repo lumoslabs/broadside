@@ -17,7 +17,7 @@ module Broadside
     end
 
     def exception(*args)
-      raise Broadside::Error, args.join(' ')
+      raise Broadside::Error, args.join("\n")
     end
 
     def config

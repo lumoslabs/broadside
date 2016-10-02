@@ -19,7 +19,7 @@ module Broadside
         it 'validates deploy_target configuration' do
           config.targets[:test_target].merge!(config_hash)
           expect { config.validate_targets! }.to_not raise_error if succeeds
-          expect { config.validate_targets! }.to raise_error(Broadside::Error) unless succeeds
+          expect { config.validate_targets! }.to raise_error(ArgumentError) unless succeeds
         end
       end
 
