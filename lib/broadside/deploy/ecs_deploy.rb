@@ -47,7 +47,6 @@ module Broadside
 
         info "Creating an initial task definition for '#{family}' from the config..."
 
-        # TODO right now this creates a useless first revision and then update_task_revision will create a 2nd one
         EcsManager.create_task_definition(
           family,
           @deploy_config.command,
