@@ -226,7 +226,6 @@ module Broadside
 
       info "#{command_name} task container logs:\n#{get_container_logs(task_arn)}"
 
-      # TODO: it should check ALL the task exit codes from all the runs
       if (code = EcsManager.get_task_exit_code(config.ecs.cluster, task_arn, family)) == 0
         debug "#{command_name} task #{task_arn} exited with status code 0"
       else
