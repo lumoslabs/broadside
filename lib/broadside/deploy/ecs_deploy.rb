@@ -381,7 +381,7 @@ module Broadside
       results = page.send(key)
 
       while page.next_token
-        page = ecs.send(method, args.merge(next_token: page.next_token))
+        page = ecs_client.send(method, args.merge(next_token: page.next_token))
         results += page.send(key)
       end
 
