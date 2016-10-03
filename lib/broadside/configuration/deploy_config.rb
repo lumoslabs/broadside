@@ -6,7 +6,7 @@ module Broadside
     class DeployConfig < ConfigStruct
       include Utils
 
-      # TODO this shouldn't be the default; lots of apps using broadside are not rails
+      # TODO for 2.x this shouldn't be the default; lots of apps using broadside are not rails
       DEFAULT_PREDEPLOY_COMMANDS = [
         ['bundle', 'exec', 'rake', '--trace', 'db:migrate']
       ]
