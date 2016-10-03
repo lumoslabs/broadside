@@ -1,3 +1,6 @@
+# 1.1.1
+- [#25](https://github.com/lumoslabs/broadside/issues/25): Fix issue with undefined local variable 'ecs'
+
 # 1.1.0
 - [#16](https://github.com/lumoslabs/broadside/pull/16): Add bootstrap command; add specs
 
