@@ -39,20 +39,20 @@ describe Broadside::EcsManager do
   end
 
   context 'all_results' do
-    let(:task_definition_arn) { "arn:aws:ecs:us-east-1:1234:task-definition/task:1" }
-    let(:stub_task_definition_response) do
+    let(:task_definition_arns) { ["arn:task-definition/task:1", "arn:task-definition/other_task:1" ] }
+    let(:stub_task_definition_responses) do
       [
-        { task_definition_arns: [task_definition_arn], next_token: 'MzQ3N' },
-        { task_definition_arns: [task_definition_arn] }
+        { task_definition_arns: [task_definition_arns[0]], next_token: 'MzQ3N' },
+        { task_definition_arns: [task_definition_arns[1]] }
       ]
     end
 
     before do
-      ecs_stub.stub_responses(:list_task_definitions, stub_task_definition_response)
+      ecs_stub.stub_responses(:list_task_definitions, stub_task_definition_responses)
     end
 
     it 'can pull multipage results' do
-      expect { described_class.get_task_definition_arns('task') }.to_not raise_error
+      expect(described_class.get_task_definition_arns('task')).to eq(task_definition_arns)
     end
   end
 end
