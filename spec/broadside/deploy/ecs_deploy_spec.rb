@@ -41,7 +41,6 @@ describe Broadside::EcsDeploy do
   end
 
   context 'bootstrap' do
-    before(:each) { Broadside::EcsManager.instance_variable_set(:@ecs_client, ecs_stub) }
     it 'fails without task_definition_config' do
       expect { deploy.bootstrap }.to raise_error(//)
     end
