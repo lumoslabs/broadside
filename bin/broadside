@@ -27,7 +27,7 @@ def add_shared_deploy_configs(subcmd)
 
   subcmd.action do |global_options, options, args|
     _DeployObj = Kernel.const_get("Broadside::#{Broadside.config.deploy.type.capitalize}Deploy")
-    _DeployObj.new(options).send(subcmd.name)
+    _DeployObj.new(options).public_send(subcmd.name)
   end
 end
 
@@ -168,7 +168,7 @@ on_error do |exception|
   # false skips default error handling
   case exception
   when Broadside::MissingVariableError
-    error exception.message, "\nRun your last command with --help for more information."
+    error exception.message, "Run your last command with --help for more information."
     false
   else
     true
