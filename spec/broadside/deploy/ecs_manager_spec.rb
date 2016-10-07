@@ -6,6 +6,13 @@ describe Broadside::EcsManager do
   let(:service_name) { 'service' }
   let(:cluster) { 'cluster' }
   let(:name) { 'job' }
+  let(:task_definition_arns) { ["arn:task-definition/task:1", "arn:task-definition/other_task:1" ] }
+  let(:stub_task_definition_responses) do
+    [
+      { task_definition_arns: [task_definition_arns[0]], next_token: 'MzQ3N' },
+      { task_definition_arns: [task_definition_arns[1]] }
+    ]
+  end
 
   let(:ecs_stub) do
     Aws::ECS::Client.new(
@@ -38,15 +45,20 @@ describe Broadside::EcsManager do
     expect(described_class.get_latest_task_definition(name)).to be_nil
   end
 
-  context 'all_results' do
-    let(:task_definition_arns) { ["arn:task-definition/task:1", "arn:task-definition/other_task:1" ] }
-    let(:stub_task_definition_responses) do
-      [
-        { task_definition_arns: [task_definition_arns[0]], next_token: 'MzQ3N' },
-        { task_definition_arns: [task_definition_arns[1]] }
-      ]
+  context 'run command' do
+    let(:task_arn) { "arn:aws:ecs:us-east-1:<aws_account_id>:task/a9f21ea7-c9f5-44b1-b8e6-b31f50ed33c0" }
+
+    before do
+      ecs_stub.stub_responses(:list_task_definitions, stub_task_definition_responses)
+      ecs_stub.stub_responses(:run_task, { tasks: [{ task_arn: task_arn }] })
     end
 
+    it 'runs commands' do
+      expect(described_class.run_task(cluster, name, %w(bundle exec rake db:migrate))).to eq(task_arn)
+    end
+  end
+
+  context 'all_results' do
     before do
       ecs_stub.stub_responses(:list_task_definitions, stub_task_definition_responses)
     end

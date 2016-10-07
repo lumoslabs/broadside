@@ -220,13 +220,7 @@ module Broadside
 
     def run_command(command)
       command_name = command.join(' ')
-      run_task_response = EcsManager.run_task(config.ecs.cluster, family, command)
-
-      unless run_task_response.successful?
-        exception("Failed to run #{command_name} task.", run_task_response.pretty_inspect)
-      end
-
-      task_arn = run_task_response.tasks[0].task_arn
+      task_arn = EcsManager.run_task(config.ecs.cluster, family, command)
       debug "Launched #{command_name} task #{task_arn}, waiting for completion..."
 
       EcsManager.ecs.wait_until(:tasks_stopped, { cluster: config.ecs.cluster, tasks: [task_arn] }) do |w|
