@@ -64,7 +64,6 @@ module Broadside
       super do
         begin
           check_service_and_task_definition
-
           EcsManager.deregister_last_n_tasks_definitions(family, count)
           update_service
         rescue StandardError
@@ -112,7 +111,6 @@ module Broadside
     def status
       super do
         check_service_and_task_definition
-
         ips = EcsManager.get_running_instance_ips(config.ecs.cluster, family)
         info "\n---------------",
           "\nDeployed task definition information:\n",
@@ -127,7 +125,6 @@ module Broadside
     def logtail
       super do
         check_service_and_task_definition
-
         ip = get_running_instance_ip
         debug "Tailing logs for running container at ip #{ip}..."
         search_pattern = Shellwords.shellescape(family)
@@ -140,7 +137,6 @@ module Broadside
     def ssh
       super do
         check_service_and_task_definition
-
         ip = get_running_instance_ip
         debug "Establishing an SSH connection to ip #{ip}..."
         exec gen_ssh_cmd(ip)
@@ -150,7 +146,6 @@ module Broadside
     def bash
       super do
         check_service_and_task_definition
-
         ip = get_running_instance_ip
         debug "Running bash for running container at ip #{ip}..."
         search_pattern = Shellwords.shellescape(family)
