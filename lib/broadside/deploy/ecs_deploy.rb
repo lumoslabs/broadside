@@ -64,7 +64,7 @@ module Broadside
       super do
         begin
           check_service_and_task_definition
-          EcsManager.deregister_last_n_tasks_definitions(family, count)
+          EcsManager.deregister_last_n_task_definitions(family, count)
           update_service
         rescue StandardError
           error 'Rollback failed to complete!'

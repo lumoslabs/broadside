@@ -95,6 +95,13 @@ describe Broadside::EcsDeploy do
 
         expect { deploy.deploy }.to_not raise_error
       end
+
+      it 'can rollback' do
+        # This shouldn't really raise JMESPath::Errors::InvalidTypeError but until we sort out how to spec a
+        # Waiter, it does.  At least it got that far.
+        # https://github.com/aws/aws-sdk-ruby/issues/1307
+        expect { deploy.rollback(1) }.to raise_error(JMESPath::Errors::InvalidTypeError)
+      end
     end
   end
 end

@@ -3,6 +3,8 @@ require 'active_support/core_ext/array'
 
 module Broadside
   class EcsManager
+    include Utils
+
     DEFAULT_DESIRED_COUNT = 0
     DEFAULT_CONTAINER_DEFINITION = {
       cpu: 1,
@@ -31,21 +33,23 @@ module Broadside
 
       def create_task_definition(name, command, environment, image_tag, options = {})
         # Deep merge doesn't work with arrays, so build the hash and merge later
-        container = DEFAULT_CONTAINER_DEFINITION.merge(
-          name: name,
-          command: command,
-          environment: environment,
-          image: image_tag
-        ).merge(options[:container_definitions].first || {})
+        containers = (options[:container_definitions] || [{}]).map do |container_definition|
+          DEFAULT_CONTAINER_DEFINITION.merge(
+            name: name,
+            command: command,
+            environment: environment,
+            image: image_tag
+          ).merge(container_definition)
+        end
 
-        ecs.register_task_definition({ family: name }.deep_merge(options).merge(container_definitions: [container]))
+        ecs.register_task_definition({ family: name }.deep_merge(options).merge(container_definitions: containers))
       end
 
       # removes latest n task definitions
-      def deregister_last_n_tasks_definitions(name, count)
+      def deregister_last_n_task_definitions(name, count)
         get_task_definition_arns(name).last(count).each do |arn|
           ecs.deregister_task_definition(task_definition: arn)
-          debug "Deregistered #{arn}"
+          debug "Deregistered #{arn}..."
         end
       end
 
@@ -83,7 +87,7 @@ module Broadside
       end
 
       def get_task_exit_code(cluster, task_arn, name)
-        task = ecs.describe_tasks({ cluster: cluster, tasks: [task_arn] }).tasks.first
+        task = ecs.describe_tasks(cluster: cluster, tasks: [task_arn]).tasks.first
         container = task.containers.select { |c| c.name == name }.first
         container.exit_code
       end
