@@ -41,7 +41,10 @@ Broadside.configure do |config|
       env_file: '../.env.staging'
     },
     # Example with a task_definition and service configuration which you use to bootstrap a service and
-    # initial task definition
+    # initial task definition.  Accepts all the options AWS does - read their documentation for details:
+    #
+    # Service config: https://docs.aws.amazon.com/sdkforruby/api/Aws/ECS/Client.html#create_service-instance_method
+    # Task Definition Config: https://docs.aws.amazon.com/sdkforruby/api/Aws/ECS/Client.html#register_task_definition-instance_method
     game_save_as_json_blob_stream: {
       scale: 1,
       command: ['java', '-cp', '*:.', 'path.to.MyClass'],
