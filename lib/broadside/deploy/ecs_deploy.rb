@@ -40,7 +40,7 @@ module Broadside
     end
 
     def bootstrap
-      unless EcsManager.get_latest_task_definition_arn(family)
+      if @deploy_config.force || !EcsManager.get_latest_task_definition_arn(family)
         unless @deploy_config.task_definition_config
           raise ArgumentError, "No first task definition and no :task_definition_config in '#{family}' configuration"
         end
@@ -56,13 +56,17 @@ module Broadside
         )
       end
 
-      unless EcsManager.service_exists?(config.ecs.cluster, family)
+      if @deploy_config.force || !EcsManager.service_exists?(config.ecs.cluster, family)
         unless @deploy_config.service_config
           raise ArgumentError, "Service doesn't exist and no :service_config in '#{family}' configuration"
         end
 
         info "Service '#{family}' doesn't exist, creating..."
-        EcsManager.create_service(config.ecs.cluster, family, @deploy_config.service_config)
+        if EcsManager.service_exists?(config.ecs.cluster, family)
+          update_service(@deploy_config.service_config)
+        else
+          EcsManager.create_service(config.ecs.cluster, family, @deploy_config.service_config)
+        end
       end
     end
 
@@ -174,16 +178,16 @@ module Broadside
     end
 
     # reloads the service using the latest task definition
-    def update_service
+    def update_service(service_config = {})
       task_definition_arn = EcsManager.get_latest_task_definition_arn(family)
       debug "Updating #{family} with scale=#{@deploy_config.scale} using task #{task_definition_arn}..."
 
-      update_service_response = EcsManager.ecs.update_service(
+      update_service_response = EcsManager.ecs.update_service({
         cluster: config.ecs.cluster,
+        desired_count: @deploy_config.scale,
         service: family,
-        task_definition: task_definition_arn,
-        desired_count: @deploy_config.scale
-      )
+        task_definition: task_definition_arn
+      }.merge(service_config))
 
       unless update_service_response.successful?
         exception('Failed to update service during deploy.', update_service_response.pretty_inspect)
