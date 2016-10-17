@@ -40,7 +40,9 @@ module Broadside
     end
 
     def bootstrap
-      if @deploy_config.force || !EcsManager.get_latest_task_definition_arn(family)
+      if EcsManager.get_latest_task_definition_arn(family)
+        logger.info("Task definition for #{family} already exists.")
+      else
         unless @deploy_config.task_definition_config
           raise ArgumentError, "No first task definition and no :task_definition_config in '#{family}' configuration"
         end
@@ -56,17 +58,15 @@ module Broadside
         )
       end
 
-      if @deploy_config.force || !EcsManager.service_exists?(config.ecs.cluster, family)
+      if EcsManager.service_exists?(config.ecs.cluster, family)
+        logger.info("Service for #{family} already exists.")
+      else
         unless @deploy_config.service_config
           raise ArgumentError, "Service doesn't exist and no :service_config in '#{family}' configuration"
         end
 
         info "Service '#{family}' doesn't exist, creating..."
-        if EcsManager.service_exists?(config.ecs.cluster, family)
-          update_service(@deploy_config.service_config)
-        else
-          EcsManager.create_service(config.ecs.cluster, family, @deploy_config.service_config)
-        end
+        EcsManager.create_service(config.ecs.cluster, family, @deploy_config.service_config)
       end
     end
 
@@ -162,9 +162,9 @@ module Broadside
       EcsManager.get_running_instance_ips(config.ecs.cluster, family).fetch(@deploy_config.instance)
     end
 
-    # creates a new task revision using current directory's env vars and provided tag
+    # creates a new task revision using current directory's env vars, provided tag, and configured options
     def update_task_revision
-      revision = create_new_task_revision
+      revision = create_new_task_revision.deep_merge(@deploy_config.task_definition_config || {})
 
       revision[:container_definitions].select { |c| c[:name] == family }.first.tap do |container_def|
         container_def[:environment] = @deploy_config.env_vars
@@ -178,7 +178,7 @@ module Broadside
     end
 
     # reloads the service using the latest task definition
-    def update_service(service_config = {})
+    def update_service
       task_definition_arn = EcsManager.get_latest_task_definition_arn(family)
       debug "Updating #{family} with scale=#{@deploy_config.scale} using task #{task_definition_arn}..."
 
@@ -187,7 +187,7 @@ module Broadside
         desired_count: @deploy_config.scale,
         service: family,
         task_definition: task_definition_arn
-      }.merge(service_config))
+      }.deep_merge(@deploy_config.service_config || {}))
 
       unless update_service_response.successful?
         exception('Failed to update service during deploy.', update_service_response.pretty_inspect)
