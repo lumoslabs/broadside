@@ -15,7 +15,6 @@ module Broadside
       @deploy_config.rollback = opts[:rollback] || @deploy_config.rollback
       @deploy_config.instance = opts[:instance] || @deploy_config.instance
       @deploy_config.command = opts[:command]   || @deploy_config.command
-      @deploy_config.force = opts[:force]       || @deploy_config.force
     end
 
     def short

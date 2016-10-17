@@ -13,7 +13,7 @@ describe Broadside::EcsDeploy do
       stub_responses: true
     )
   end
-  # TODO should be tested in a real config at the service_config: key
+
   let(:service_config) do
     {
       deployment_configuration: {
@@ -22,7 +22,6 @@ describe Broadside::EcsDeploy do
     }
   end
 
-  # TODO should be tested in a real config at the task_definition_config: key
   let(:task_definition_config) do
     {
       container_definitions: [
@@ -69,31 +68,41 @@ describe Broadside::EcsDeploy do
       let(:existing_service) { { service_name: task_name, service_arn: "#{arn}:service/#{task_name}" } }
       let(:task_definition_arn) { "#{arn}:task-definition/#{task_name}:1" }
       let(:stub_service_response) { { services: [existing_service], failures: [] } }
-      let(:stub_task_definition_response) { { task_definition_arns: [task_definition_arn] } }
-      let(:stub_describe_task_definition_response) do
-        {
-          task_definition: {
-            task_definition_arn: task_definition_arn,
-            container_definitions: [
-              {
-                name: task_name
-              }
-            ],
-            family: task_name
-          }
-        }
-      end
 
       before(:each) do
         ecs_stub.stub_responses(:describe_services, stub_service_response)
-        ecs_stub.stub_responses(:list_task_definitions, stub_task_definition_response)
-        ecs_stub.stub_responses(:describe_task_definition, stub_describe_task_definition_response)
       end
 
-      it 'does not fail on service issues' do
-        pending 'need to figure out how to stub a waiter, but it gets as far as update_service'
+      it 'fails without an existing task_definition' do
+        expect { deploy.deploy }.to raise_error(/No task definition for/)
+      end
 
-        expect { deploy.deploy }.to_not raise_error
+      context 'with an existing task definition' do
+        let(:stub_task_definition_response) { { task_definition_arns: [task_definition_arn] } }
+        let(:stub_describe_task_definition_response) do
+          {
+            task_definition: {
+              task_definition_arn: task_definition_arn,
+              container_definitions: [
+                {
+                  name: task_name
+                }
+              ],
+              family: task_name
+            }
+          }
+        end
+
+        before(:each) do
+          ecs_stub.stub_responses(:list_task_definitions, stub_task_definition_response)
+          ecs_stub.stub_responses(:describe_task_definition, stub_describe_task_definition_response)
+        end
+
+        it 'does not fail on service issues' do
+          pending 'need to figure out how to stub a waiter, but it gets as far as update_service'
+
+          expect { deploy.deploy }.to_not raise_error
+        end
       end
     end
   end

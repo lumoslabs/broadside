@@ -24,8 +24,7 @@ module Broadside
         :instance,
         :predeploy_commands,
         :service_config,
-        :task_definition_config,
-        :force
+        :task_definition_config
       )
 
       TARGET_ATTRIBUTE_VALIDATIONS = {
@@ -52,7 +51,6 @@ module Broadside
         @instance = 0
         @service_config = nil
         @task_definition_config = nil
-        @force = false
       end
 
       # Validates format of deploy targets
