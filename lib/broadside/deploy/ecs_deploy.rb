@@ -162,18 +162,25 @@ module Broadside
       EcsManager.get_running_instance_ips(config.ecs.cluster, family).fetch(@deploy_config.instance)
     end
 
-    # creates a new task revision using current directory's env vars, provided tag, and configured options
+    # Creates a new task revision using current directory's env vars, provided tag, and configured options.
+    # Currently can only handle a single container definition.
     def update_task_revision
-      revision = create_new_task_revision.deep_merge(@deploy_config.task_definition_config || {})
-
-      revision[:container_definitions].select { |c| c[:name] == family }.first.tap do |container_def|
-        container_def[:environment] = @deploy_config.env_vars
-        container_def[:image] = image_tag
-        container_def[:command] = @deploy_config.command
-      end
+      revision = EcsManager.get_latest_task_definition(family).except(
+        :task_definition_arn,
+        :requires_attributes,
+        :revision,
+        :status
+      )
+      revision.except!()
 
       debug "Creating a new task definition..."
-      arn = EcsManager.ecs.register_task_definition(revision).task_definition.task_definition_arn
+      arn = EcsManager.create_task_definition(
+        family,
+        @deploy_config.command,
+        @deploy_config.env_vars,
+        image_tag,
+        revision.deep_merge(@deploy_config.task_definition_config || {})
+      ).task_definition.task_definition_arn
       debug "Successfully created #{arn}"
     end
 
@@ -253,15 +260,6 @@ module Broadside
         logs = "STDOUT:--\n#{stdout.read}\nSTDERR:--\n#{stderr.read}"
       end
       logs
-    end
-
-    def create_new_task_revision
-      task_def = EcsManager.get_latest_task_definition(family)
-      task_def.delete(:task_definition_arn)
-      task_def.delete(:requires_attributes)
-      task_def.delete(:revision)
-      task_def.delete(:status)
-      task_def
     end
   end
 end
