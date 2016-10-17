@@ -3,7 +3,9 @@ require 'spec_helper'
 describe Broadside::EcsDeploy do
   include_context 'full configuration'
 
+  let(:app_name) { 'TEST_APP' }
   let(:task_name) { 'TEST_TARGET' }
+  let(:family) { "#{app_name}_#{task_name}" }
   let(:valid_options) { { target: task_name.to_sym } }
   let(:deploy) { described_class.new(valid_options) }
   let(:ecs_stub) do
@@ -60,13 +62,12 @@ describe Broadside::EcsDeploy do
 
   context 'deploy' do
     it 'fails without an existing service' do
-      expect { deploy.deploy }.to raise_error(/No service for TEST_APP_#{task_name}!/)
+      expect { deploy.deploy }.to raise_error(/No service for #{family}!/)
     end
 
     context 'with an existing service' do
       let(:arn) { 'arn:aws:ecs:us-east-1:1234' }
       let(:existing_service) { { service_name: task_name, service_arn: "#{arn}:service/#{task_name}" } }
-      let(:task_definition_arn) { "#{arn}:task-definition/#{task_name}:1" }
       let(:stub_service_response) { { services: [existing_service], failures: [] } }
 
       before(:each) do
@@ -78,6 +79,7 @@ describe Broadside::EcsDeploy do
       end
 
       context 'with an existing task definition' do
+        let(:task_definition_arn) { "#{arn}:task-definition/#{task_name}:1" }
         let(:stub_task_definition_response) { { task_definition_arns: [task_definition_arn] } }
         let(:stub_describe_task_definition_response) do
           {
@@ -85,10 +87,10 @@ describe Broadside::EcsDeploy do
               task_definition_arn: task_definition_arn,
               container_definitions: [
                 {
-                  name: task_name
+                  name: family
                 }
               ],
-              family: task_name
+              family: family
             }
           }
         end
