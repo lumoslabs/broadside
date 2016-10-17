@@ -160,7 +160,7 @@ module Broadside
     # Currently can only handle a single container definition.
     def update_task_revision
       revision = EcsManager.get_latest_task_definition(family)
-      if revision[:container_definitions].size != 1
+      if revision[:container_definitions].select { |c| c[:name] == family }.size != 1
         warn "This task_definition has multiple container definitions; only the first will be updated."
       end
 
