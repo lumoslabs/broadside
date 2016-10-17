@@ -53,19 +53,12 @@ module Broadside
           raise ArgumentError, "No first task definition and no :task_definition_config in '#{family}' configuration"
         end
 
-        configured_containers = @deploy_config.task_definition_config[:container_definitions]
-        if configured_containers && configured_containers.size > 1
-          raise ArgumentError, 'Creating > 1 container definition not supported yet'
-        end
-
         info "Creating an initial task definition for '#{family}' from the config..."
 
         EcsManager.ecs.register_task_definition(
           @deploy_config.task_definition_config.merge(
             family: family,
-            container_definitions: [
-              DEFAULT_CONTAINER_DEFINITION.merge(container_definition).merge(configured_containers.first || {})
-            ]
+            container_definitions: [DEFAULT_CONTAINER_DEFINITION.merge(container_definition)]
           )
         )
       end
@@ -187,10 +180,8 @@ module Broadside
       exception "Can only update one container definition!" if updatable_container_definitions.size != 1
 
       # Deep merge doesn't work well with arrays (e.g. :container_definitions), so build the container first.
-      task_definition_config = (@deploy_config.task_definition_config || {}).dup
-      configured_container_definition = task_definition_config.delete(:container_definitions).try(:first) || {}
-      updatable_container_definitions.first.merge!(container_definition.merge(configured_container_definition))
-      revision.deep_merge!(task_definition_config)
+      updatable_container_definitions.first.merge!(container_definition)
+      revision.deep_merge!((@deploy_config.task_definition_config || {}).except(:container_definitions))
 
       task_definition = EcsManager.ecs.register_task_definition(revision).task_definition
       debug "Successfully created #{task_definition.task_definition_arn}"
@@ -275,12 +266,17 @@ module Broadside
     end
 
     def container_definition
-      {
+      configured_containers = (@deploy_config.task_definition_config || {})[:container_definitions]
+      if configured_containers && configured_containers.size > 1
+        raise ArgumentError, 'Creating > 1 container definition not supported yet'
+      end
+
+      (configured_containers.try(:first) || {}).merge(
         name: family,
         command: @deploy_config.command,
         environment: @deploy_config.env_vars,
         image: image_tag
-      }
+      )
     end
   end
 end
