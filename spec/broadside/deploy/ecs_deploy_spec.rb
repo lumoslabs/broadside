@@ -67,7 +67,13 @@ describe Broadside::EcsDeploy do
 
     context 'with an existing service' do
       let(:arn) { 'arn:aws:ecs:us-east-1:1234' }
-      let(:existing_service) { { service_name: task_name, service_arn: "#{arn}:service/#{task_name}" } }
+      let(:existing_service) do
+        {
+          service_name: task_name,
+          service_arn: "#{arn}:service/#{task_name}",
+          deployments: [{ desired_count: 1, running_count: 1 }]
+        }
+      end
       let(:stub_service_response) { { services: [existing_service], failures: [] } }
 
       before(:each) do
@@ -101,8 +107,6 @@ describe Broadside::EcsDeploy do
         end
 
         it 'does not fail on service issues' do
-          pending 'need to figure out how to stub a waiter, but it gets as far as update_service'
-
           expect { deploy.deploy }.to_not raise_error
         end
       end
