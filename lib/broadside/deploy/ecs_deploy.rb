@@ -161,11 +161,13 @@ module Broadside
     def update_task_revision
       revision = EcsManager.get_latest_task_definition(family)
       if revision[:container_definitions].size != 1
-        warn "This task_definition has multiple container definitions; only the first will be used."
+        warn "This task_definition has multiple container definitions; only the first will be updated."
       end
 
+      # Deep merge doesn't work well with arrays (e.g. :container_definitions), so build the container first.
       task_definition_config = (@deploy_config.task_definition_config || {}).dup
       new_container = revision.delete(:container_definitions).
+                               select { |c| c[:name] == family }.
                                first.
                                merge(container_definition).
                                merge(task_definition_config.delete(:container_definitions).try(:first) || {})
@@ -173,7 +175,6 @@ module Broadside
       revision.except!(:requires_attributes, :revision, :status, :task_definition_arn)
       revision.deep_merge!(task_definition_config)
 
-      debug "Creating a new task definition..."
       task_definition = EcsManager.create_task_definition_revision(new_container, revision).task_definition
       debug "Successfully created #{task_definition.task_definition_arn}"
     end
