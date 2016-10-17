@@ -29,15 +29,9 @@ module Broadside
         )
       end
 
-      def create_task_definition(name, command, environment, image_tag, options = {})
-        # Deep merge doesn't work with arrays, so build the hash and merge later
-        container = DEFAULT_CONTAINER_DEFINITION.merge(options[:container_definitions].first || {}).merge(
-          name: name,
-          command: command,
-          environment: environment,
-          image: image_tag
-        )
-
+      def create_task_definition_revision(container_definition, options = {})
+        # Deep merge doesn't work with arrays like :container_definitions, so build the container first.
+        container = DEFAULT_CONTAINER_DEFINITION.merge(container_definition)
         ecs.register_task_definition({ family: name }.deep_merge(options).merge(container_definitions: [container]))
       end
 

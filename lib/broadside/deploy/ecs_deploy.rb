@@ -49,13 +49,7 @@ module Broadside
 
         info "Creating an initial task definition for '#{family}' from the config..."
 
-        EcsManager.create_task_definition(
-          family,
-          @deploy_config.command,
-          @deploy_config.env_vars,
-          image_tag,
-          @deploy_config.task_definition_config
-        )
+        EcsManager.create_task_definition_revision(container_definition, @deploy_config.task_definition_config)
       end
 
       if EcsManager.service_exists?(config.ecs.cluster, family)
@@ -165,23 +159,23 @@ module Broadside
     # Creates a new task revision using current directory's env vars, provided tag, and configured options.
     # Currently can only handle a single container definition.
     def update_task_revision
-      revision = EcsManager.get_latest_task_definition(family).except(
-        :task_definition_arn,
-        :requires_attributes,
-        :revision,
-        :status
-      )
-      revision.except!()
+      revision = EcsManager.get_latest_task_definition(family)
+      if revision[:container_definitions].size != 1
+        warn "This task_definition has multiple container definitions; only the first will be used."
+      end
+
+      task_definition_config = (@deploy_config.task_definition_config || {}).dup
+      new_container = revision.delete(:container_definitions).
+                               first.
+                               merge(container_definition).
+                               merge(task_definition_config.delete(:container_definitions) || {})
+
+      revision.except!(:requires_attributes, :revision, :status, :task_definition_arn)
+      revision.deep_merge!(task_definition_config)
 
       debug "Creating a new task definition..."
-      arn = EcsManager.create_task_definition(
-        family,
-        @deploy_config.command,
-        @deploy_config.env_vars,
-        image_tag,
-        revision.deep_merge(@deploy_config.task_definition_config || {})
-      ).task_definition.task_definition_arn
-      debug "Successfully created #{arn}"
+      task_definition = EcsManager.create_task_definition_revision(new_container, revision).task_definition
+      debug "Successfully created #{task_definition.task_definition_arn}"
     end
 
     # reloads the service using the latest task definition
@@ -260,6 +254,15 @@ module Broadside
         logs = "STDOUT:--\n#{stdout.read}\nSTDERR:--\n#{stderr.read}"
       end
       logs
+    end
+
+    def container_definition
+      {
+        name: family,
+        command: @deploy_config.command,
+        environment: @deploy_config.env_vars,
+        image: image_tag
+      }
     end
   end
 end
