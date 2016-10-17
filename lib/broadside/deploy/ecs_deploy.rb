@@ -41,7 +41,7 @@ module Broadside
 
     def bootstrap
       if EcsManager.get_latest_task_definition_arn(family)
-        logger.info("Task definition for #{family} already exists.")
+        info("Task definition for #{family} already exists.")
       else
         unless @deploy_config.task_definition_config
           raise ArgumentError, "No first task definition and no :task_definition_config in '#{family}' configuration"
@@ -53,7 +53,7 @@ module Broadside
       end
 
       if EcsManager.service_exists?(config.ecs.cluster, family)
-        logger.info("Service for #{family} already exists.")
+        info("Service for #{family} already exists.")
       else
         unless @deploy_config.service_config
           raise ArgumentError, "Service doesn't exist and no :service_config in '#{family}' configuration"

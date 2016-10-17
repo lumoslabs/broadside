@@ -11,6 +11,8 @@ module Broadside
     }
 
     class << self
+      include Utils
+
       def ecs
         @ecs_client ||= Aws::ECS::Client.new(
           region: Broadside.config.aws.region,
@@ -32,7 +34,9 @@ module Broadside
       def create_task_definition_revision(container_definition, options = {})
         # Deep merge doesn't work with arrays like :container_definitions, so build the container first.
         container = DEFAULT_CONTAINER_DEFINITION.merge(container_definition)
-        ecs.register_task_definition({ family: name }.deep_merge(options).merge(container_definitions: [container]))
+        task_definition_hash = { family: name }.deep_merge(options).merge(container_definitions: [container])
+        debug("Registering task definition:\n#{task_definition_hash}")
+        ecs.register_task_definition(task_definition_hash)
       end
 
       # removes latest n task definitions
