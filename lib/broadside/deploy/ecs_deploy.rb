@@ -168,7 +168,7 @@ module Broadside
       new_container = revision.delete(:container_definitions).
                                first.
                                merge(container_definition).
-                               merge(task_definition_config.delete(:container_definitions) || {})
+                               merge(task_definition_config.delete(:container_definitions).try(:first) || {})
 
       revision.except!(:requires_attributes, :revision, :status, :task_definition_arn)
       revision.deep_merge!(task_definition_config)
