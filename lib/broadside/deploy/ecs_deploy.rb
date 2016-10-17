@@ -53,8 +53,8 @@ module Broadside
           raise ArgumentError, "No first task definition and no :task_definition_config in '#{family}' configuration"
         end
 
-        containers = @deploy_config.task_definition_config[:container_definitions]
-        if containers && containers.size > 1
+        configured_containers = @deploy_config.task_definition_config[:container_definitions]
+        if configured_containers && configured_containers.size > 1
           raise ArgumentError, 'Creating > 1 container definition not supported yet'
         end
 
@@ -63,7 +63,9 @@ module Broadside
         EcsManager.ecs.register_task_definition(
           @deploy_config.task_definition_config.merge(
             family: family,
-            container_definitions: [DEFAULT_CONTAINER_DEFINITION.merge(container_definition).merge(containers.first)]
+            container_definitions: [
+              DEFAULT_CONTAINER_DEFINITION.merge(container_definition).merge(configured_containers.first || {})
+            ]
           )
         )
       end
