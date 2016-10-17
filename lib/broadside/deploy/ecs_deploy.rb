@@ -6,6 +6,12 @@ require 'shellwords'
 
 module Broadside
   class EcsDeploy < Deploy
+    DEFAULT_CONTAINER_DEFINITION = {
+      cpu: 1,
+      essential: true,
+      memory: 1000
+    }
+
     def initialize(opts)
       super(opts)
       config.ecs.verify(:cluster, :poll_frequency)
@@ -47,9 +53,19 @@ module Broadside
           raise ArgumentError, "No first task definition and no :task_definition_config in '#{family}' configuration"
         end
 
+        containers = @deploy_config.task_definition_config[:container_definitions]
+        if containers && containers.size > 1
+          raise ArgumentError, 'Creating > 1 container definition not supported yet'
+        end
+
         info "Creating an initial task definition for '#{family}' from the config..."
 
-        EcsManager.create_task_definition_revision(container_definition, @deploy_config.task_definition_config)
+        EcsManager.ecs.register_task_definition(
+          @deploy_config.task_definition_config.merge(
+            family: family,
+            container_definitions: [DEFAULT_CONTAINER_DEFINITION.merge(container_definition).merge(containers.first)]
+          )
+        )
       end
 
       if EcsManager.service_exists?(config.ecs.cluster, family)
@@ -159,23 +175,22 @@ module Broadside
     # Creates a new task revision using current directory's env vars, provided tag, and configured options.
     # Currently can only handle a single container definition.
     def update_task_revision
-      revision = EcsManager.get_latest_task_definition(family)
-      if revision[:container_definitions].select { |c| c[:name] == family }.size != 1
-        warn "This task_definition has multiple container definitions; only the first will be updated."
-      end
+      revision = EcsManager.get_latest_task_definition(family).except(
+        :requires_attributes,
+        :revision,
+        :status,
+        :task_definition_arn
+      )
+      updatable_container_definitions = revision[:container_definitions].select { |c| c[:name] == family }
+      exception "Can only update one container definition!" if updatable_container_definitions.size != 1
 
       # Deep merge doesn't work well with arrays (e.g. :container_definitions), so build the container first.
       task_definition_config = (@deploy_config.task_definition_config || {}).dup
-      new_container = revision.delete(:container_definitions).
-                               select { |c| c[:name] == family }.
-                               first.
-                               merge(container_definition).
-                               merge(task_definition_config.delete(:container_definitions).try(:first) || {})
-
-      revision.except!(:requires_attributes, :revision, :status, :task_definition_arn)
+      configured_container_definition = task_definition_config.delete(:container_definitions).try(:first) || {}
+      updatable_container_definitions.first.merge!(container_definition.merge(configured_container_definition))
       revision.deep_merge!(task_definition_config)
 
-      task_definition = EcsManager.create_task_definition_revision(new_container, revision).task_definition
+      task_definition = EcsManager.ecs.register_task_definition(revision).task_definition
       debug "Successfully created #{task_definition.task_definition_arn}"
     end
 

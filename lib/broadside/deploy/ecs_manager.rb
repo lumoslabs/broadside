@@ -4,11 +4,6 @@ require 'active_support/core_ext/array'
 module Broadside
   class EcsManager
     DEFAULT_DESIRED_COUNT = 0
-    DEFAULT_CONTAINER_DEFINITION = {
-      cpu: 1,
-      essential: true,
-      memory: 1000
-    }
 
     class << self
       include Utils
@@ -29,13 +24,6 @@ module Broadside
             task_definition: name
           }.deep_merge(options)
         )
-      end
-
-      def create_task_definition_revision(container_definition, options = {})
-        debug "Creating a new task definition..."
-        container = DEFAULT_CONTAINER_DEFINITION.merge(container_definition)
-        task_definition_hash = { family: name }.deep_merge(options).merge(container_definitions: [container])
-        ecs.register_task_definition(task_definition_hash)
       end
 
       # removes latest n task definitions
