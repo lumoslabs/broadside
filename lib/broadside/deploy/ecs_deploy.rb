@@ -30,7 +30,7 @@ module Broadside
 
         begin
           update_service
-        rescue SignalException::Interrupt
+        rescue Interrupt
           error 'Caught interrupt signal, rolling back...'
           rollback(1)
           error 'Deployment did not finish successfully.'
@@ -223,7 +223,7 @@ module Broadside
       command_name = command.join(' ')
       run_task_response = EcsManager.run_task(config.ecs.cluster, family, command)
 
-      unless run_task_response.successful?
+      unless run_task_response.successful? && run_task_response.tasks.try(:[], 0)
         exception("Failed to run #{command_name} task.", run_task_response.pretty_inspect)
       end
 
