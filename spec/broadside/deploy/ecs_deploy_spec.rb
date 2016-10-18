@@ -27,10 +27,11 @@ describe Broadside::EcsDeploy do
     client
   end
 
+  let(:desired_count) { 2 }
   let(:minimum_healthy_percent) { 40 }
   let(:service_config) do
     {
-      desired_count: 2,
+      desired_count: desired_count,
       deployment_configuration: {
         minimum_healthy_percent: minimum_healthy_percent,
       }
@@ -141,7 +142,7 @@ describe Broadside::EcsDeploy do
           deploy.short
 
           service_requests = api_request_log.select { |cmd| cmd.keys.first == :update_service }
-          expect(service_requests.first.values.first[:desired_count]).to eq(2)
+          expect(service_requests.first.values.first[:desired_count]).to eq(desired_count)
         end
       end
     end
