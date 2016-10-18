@@ -1,3 +1,8 @@
+# 1.2.0
+- [#32](https://github.com/lumoslabs/broadside/pull/32): Deploys will also update service configs defined in a deploy target (see full list in the [AWS Docs](https://docs.aws.amazon.com/sdkforruby/api/Aws/ECS/Client.html#create_service-instance_method))
+- Updates additional container definition configs like cpu, memory. See full list in the [AWS Docs](https://docs.aws.amazon.com/sdkforruby/api/Aws/ECS/Client.html#register_task_definition-instance_method)
+- [#24](https://github.com/lumoslabs/broadside/pull/24): Refactored most ECS-specific utility methods into a separate class
+
 # 1.1.1
 - [#25](https://github.com/lumoslabs/broadside/issues/25): Fix issue with undefined local variable 'ecs'
 
