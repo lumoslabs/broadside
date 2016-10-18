@@ -6,13 +6,10 @@ module Broadside
     include Utils
 
     DEFAULT_DESIRED_COUNT = 0
-    DEFAULT_CONTAINER_DEFINITION = {
-      cpu: 1,
-      essential: true,
-      memory: 1000
-    }
 
     class << self
+      include Utils
+
       def ecs
         @ecs_client ||= Aws::ECS::Client.new(
           region: Broadside.config.aws.region,
@@ -29,18 +26,6 @@ module Broadside
             task_definition: name
           }.deep_merge(options)
         )
-      end
-
-      def create_task_definition(name, command, environment, image_tag, options = {})
-        # Deep merge doesn't work with arrays, so build the hash and merge later
-        container = DEFAULT_CONTAINER_DEFINITION.merge(
-          name: name,
-          command: command,
-          environment: environment,
-          image: image_tag
-        ).merge(options[:container_definitions].first || {})
-
-        ecs.register_task_definition({ family: name }.deep_merge(options).merge(container_definitions: [container]))
       end
 
       # removes latest n task definitions
