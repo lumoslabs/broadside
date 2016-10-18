@@ -30,7 +30,7 @@ module Broadside
 
         begin
           update_service
-        rescue Interrupt
+        rescue SignalException::Interrupt
           error 'Caught interrupt signal, rolling back...'
           rollback(1)
           error 'Deployment did not finish successfully.'
