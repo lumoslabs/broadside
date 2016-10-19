@@ -6,6 +6,12 @@ require 'shellwords'
 
 module Broadside
   class EcsDeploy < Deploy
+    DEFAULT_CONTAINER_DEFINITION = {
+      cpu: 1,
+      essential: true,
+      memory: 1000
+    }
+
     def initialize(opts)
       super(opts)
       config.ecs.verify(:cluster, :poll_frequency)
@@ -34,23 +40,26 @@ module Broadside
     end
 
     def bootstrap
-      unless EcsManager.get_latest_task_definition_arn(family)
+      if EcsManager.get_latest_task_definition_arn(family)
+        info("Task definition for #{family} already exists.")
+      else
         unless @deploy_config.task_definition_config
           raise ArgumentError, "No first task definition and no :task_definition_config in '#{family}' configuration"
         end
 
         info "Creating an initial task definition for '#{family}' from the config..."
 
-        EcsManager.create_task_definition(
-          family,
-          @deploy_config.command,
-          @deploy_config.env_vars,
-          image_tag,
-          @deploy_config.task_definition_config
+        EcsManager.ecs.register_task_definition(
+          @deploy_config.task_definition_config.merge(
+            family: family,
+            container_definitions: [DEFAULT_CONTAINER_DEFINITION.merge(container_definition)]
+          )
         )
       end
 
-      unless EcsManager.service_exists?(config.ecs.cluster, family)
+      if EcsManager.service_exists?(config.ecs.cluster, family)
+        info("Service for #{family} already exists.")
+      else
         unless @deploy_config.service_config
           raise ArgumentError, "Service doesn't exist and no :service_config in '#{family}' configuration"
         end
@@ -171,19 +180,24 @@ module Broadside
       EcsManager.get_running_instance_ips(config.ecs.cluster, family).fetch(@deploy_config.instance)
     end
 
-    # creates a new task revision using current directory's env vars and provided tag
+    # Creates a new task revision using current directory's env vars, provided tag, and configured options.
+    # Currently can only handle a single container definition.
     def update_task_revision
-      revision = create_new_task_revision
+      revision = EcsManager.get_latest_task_definition(family).except(
+        :requires_attributes,
+        :revision,
+        :status,
+        :task_definition_arn
+      )
+      updatable_container_definitions = revision[:container_definitions].select { |c| c[:name] == family }
+      exception "Can only update one container definition!" if updatable_container_definitions.size != 1
 
-      revision[:container_definitions].select { |c| c[:name] == family }.first.tap do |container_def|
-        container_def[:environment] = @deploy_config.env_vars
-        container_def[:image] = image_tag
-        container_def[:command] = @deploy_config.command
-      end
+      # Deep merge doesn't work well with arrays (e.g. :container_definitions), so build the container first.
+      updatable_container_definitions.first.merge!(container_definition)
+      revision.deep_merge!((@deploy_config.task_definition_config || {}).except(:container_definitions))
 
-      debug "Creating a new task definition..."
-      arn = EcsManager.ecs.register_task_definition(revision).task_definition.task_definition_arn
-      debug "Successfully created #{arn}"
+      task_definition = EcsManager.ecs.register_task_definition(revision).task_definition
+      debug "Successfully created #{task_definition.task_definition_arn}"
     end
 
     # reloads the service using the latest task definition
@@ -191,12 +205,12 @@ module Broadside
       task_definition_arn = EcsManager.get_latest_task_definition_arn(family)
       debug "Updating #{family} with scale=#{@deploy_config.scale} using task #{task_definition_arn}..."
 
-      update_service_response = EcsManager.ecs.update_service(
+      update_service_response = EcsManager.ecs.update_service({
         cluster: config.ecs.cluster,
+        desired_count: @deploy_config.scale,
         service: family,
-        task_definition: task_definition_arn,
-        desired_count: @deploy_config.scale
-      )
+        task_definition: task_definition_arn
+      }.deep_merge(@deploy_config.service_config || {}))
 
       unless update_service_response.successful?
         exception('Failed to update service during deploy.', update_service_response.pretty_inspect)
@@ -220,7 +234,13 @@ module Broadside
 
     def run_command(command)
       command_name = command.join(' ')
-      task_arn = EcsManager.run_task(config.ecs.cluster, family, command)
+      run_task_response = EcsManager.run_task(config.ecs.cluster, family, command)
+
+      unless run_task_response.successful? && run_task_response.tasks.try(:[], 0)
+        exception("Failed to run #{command_name} task.", run_task_response.pretty_inspect)
+      end
+
+      task_arn = run_task_response.tasks[0].task_arn
       debug "Launched #{command_name} task #{task_arn}, waiting for completion..."
 
       EcsManager.ecs.wait_until(:tasks_stopped, { cluster: config.ecs.cluster, tasks: [task_arn] }) do |w|
@@ -258,13 +278,18 @@ module Broadside
       logs
     end
 
-    def create_new_task_revision
-      task_def = EcsManager.get_latest_task_definition(family)
-      task_def.delete(:task_definition_arn)
-      task_def.delete(:requires_attributes)
-      task_def.delete(:revision)
-      task_def.delete(:status)
-      task_def
+    def container_definition
+      configured_containers = (@deploy_config.task_definition_config || {})[:container_definitions]
+      if configured_containers && configured_containers.size > 1
+        raise ArgumentError, 'Creating > 1 container definition not supported yet'
+      end
+
+      (configured_containers.try(:first) || {}).merge(
+        name: family,
+        command: @deploy_config.command,
+        environment: @deploy_config.env_vars,
+        image: image_tag
+      )
     end
   end
 end
