@@ -144,14 +144,19 @@ describe Broadside::EcsDeploy do
           service_requests = api_request_log.select { |cmd| cmd.keys.first == :update_service }
           expect(service_requests.first.values.first[:desired_count]).to eq(desired_count)
         end
-      end
 
-      it 'can rollback' do
-        pending 'this needs fixing'
-        # This shouldn't really raise JMESPath::Errors::InvalidTypeError but until we sort out how to spec a
-        # Waiter, it does.  At least it got that far.
-        # https://github.com/aws/aws-sdk-ruby/issues/1307
-        expect { deploy.rollback(1) }.to raise_error(JMESPath::Errors::InvalidTypeError)
+        it 'can rollback' do
+          expect { deploy.rollback(1) }.to_not raise_error
+          expect(api_request_log.map(&:keys).flatten).to eq([
+            :describe_services,
+            :list_task_definitions,
+            :list_task_definitions,
+            :deregister_task_definition,
+            :list_task_definitions,
+            :update_service,
+            :describe_services
+          ])
+        end
       end
     end
   end
