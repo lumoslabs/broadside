@@ -6,16 +6,16 @@ module Broadside
 
     def initialize(opts)
       @deploy_config = Broadside.config.deploy.dup
-      @deploy_config.tag ||= opts[:tag]
-      @deploy_config.target ||= opts[:target]
+      @deploy_config.tag = opts[:tag]           || @deploy_config.tag
+      @deploy_config.target = opts[:target]     || @deploy_config.target
       @deploy_config.verify(:target, :targets)
       @deploy_config.load_target!
 
-      @deploy_config.scale ||= opts[:scale]
-      @deploy_config.rollback ||= opts[:rollback]
-      @deploy_config.instance ||= opts[:instance]
-      @deploy_config.command ||= opts[:command]
-      @deploy_config.lines ||= opts[:lines]
+      @deploy_config.scale = opts[:scale]       || @deploy_config.scale
+      @deploy_config.rollback = opts[:rollback] || @deploy_config.rollback
+      @deploy_config.instance = opts[:instance] || @deploy_config.instance
+      @deploy_config.command = opts[:command]   || @deploy_config.command
+      @deploy_config.lines = opts[:lines]       || @deploy_config.lines
     end
 
     def short

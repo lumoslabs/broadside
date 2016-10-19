@@ -52,7 +52,7 @@ module Broadside
         @instance = 0
         @service_config = nil
         @task_definition_config = nil
-        @lines = 100
+        @lines = 10
       end
 
       # Validates format of deploy targets
