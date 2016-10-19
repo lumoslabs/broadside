@@ -19,13 +19,7 @@ module Broadside
 
     def deploy
       super do
-        unless EcsManager.service_exists?(config.ecs.cluster, family)
-          exception "No service for #{family}! Please bootstrap or manually configure the service."
-        end
-        unless EcsManager.get_latest_task_definition_arn(family)
-          exception "No task definition for '#{family}'! Please bootstrap or manually configure the task definition."
-        end
-
+        check_service_and_task_definition
         update_task_revision
 
         begin
@@ -78,7 +72,8 @@ module Broadside
     def rollback(count = @deploy_config.rollback)
       super do
         begin
-          EcsManager.deregister_last_n_tasks_definitions(family, count)
+          check_service_and_task_definition
+          EcsManager.deregister_last_n_task_definitions(family, count)
           update_service
         rescue StandardError
           error 'Rollback failed to complete!'
@@ -89,12 +84,14 @@ module Broadside
 
     def scale
       super do
+        check_service_and_task_definition
         update_service
       end
     end
 
     def run
       super do
+        check_service_and_task_definition
         update_task_revision
 
         begin
@@ -107,6 +104,8 @@ module Broadside
 
     # runs before deploy commands using the latest task definition
     def run_predeploy
+      check_service_and_task_definition
+
       super do
         update_task_revision
 
@@ -120,6 +119,7 @@ module Broadside
 
     def status
       super do
+        check_service_and_task_definition
         ips = EcsManager.get_running_instance_ips(config.ecs.cluster, family)
         info "\n---------------",
           "\nDeployed task definition information:\n",
@@ -133,6 +133,7 @@ module Broadside
 
     def logtail
       super do
+        check_service_and_task_definition
         ip = get_running_instance_ip
         debug "Tailing logs for running container at ip #{ip}..."
         search_pattern = Shellwords.shellescape(family)
@@ -144,6 +145,7 @@ module Broadside
 
     def ssh
       super do
+        check_service_and_task_definition
         ip = get_running_instance_ip
         debug "Establishing an SSH connection to ip #{ip}..."
         exec gen_ssh_cmd(ip)
@@ -152,6 +154,7 @@ module Broadside
 
     def bash
       super do
+        check_service_and_task_definition
         ip = get_running_instance_ip
         debug "Running bash for running container at ip #{ip}..."
         search_pattern = Shellwords.shellescape(family)
@@ -162,6 +165,16 @@ module Broadside
     end
 
     private
+
+    def check_service_and_task_definition
+      unless EcsManager.service_exists?(config.ecs.cluster, family)
+        exception "No service for #{family}! Please bootstrap or manually configure the service."
+      end
+
+      unless EcsManager.get_latest_task_definition_arn(family)
+        exception "No task definition for '#{family}'! Please bootstrap or manually configure the task definition."
+      end
+    end
 
     def get_running_instance_ip
       EcsManager.get_running_instance_ips(config.ecs.cluster, family).fetch(@deploy_config.instance)

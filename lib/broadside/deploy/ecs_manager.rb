@@ -3,6 +3,8 @@ require 'active_support/core_ext/array'
 
 module Broadside
   class EcsManager
+    include Utils
+
     DEFAULT_DESIRED_COUNT = 0
 
     class << self
@@ -27,10 +29,10 @@ module Broadside
       end
 
       # removes latest n task definitions
-      def deregister_last_n_tasks_definitions(name, count)
+      def deregister_last_n_task_definitions(name, count)
         get_task_definition_arns(name).last(count).each do |arn|
           ecs.deregister_task_definition(task_definition: arn)
-          debug "Deregistered #{arn}"
+          debug "Deregistered #{arn}..."
         end
       end
 
@@ -68,7 +70,7 @@ module Broadside
       end
 
       def get_task_exit_code(cluster, task_arn, name)
-        task = ecs.describe_tasks({ cluster: cluster, tasks: [task_arn] }).tasks.first
+        task = ecs.describe_tasks(cluster: cluster, tasks: [task_arn]).tasks.first
         container = task.containers.select { |c| c.name == name }.first
         container.exit_code
       end
@@ -81,10 +83,11 @@ module Broadside
         all_results(:list_services, :service_arns, { cluster: cluster })
       end
 
+      # Returns the task_arn of the started task
       def run_task(cluster, name, command)
         fail ArgumentError, "#{command} must be an array" unless command.is_a?(Array)
 
-        ecs.run_task(
+        run_task_response = ecs.run_task(
           cluster: cluster,
           task_definition: get_latest_task_definition_arn(name),
           overrides: {
@@ -98,6 +101,12 @@ module Broadside
           count: 1,
           started_by: "before_deploy:#{command.join(' ')}"[0...36]
         )
+
+        unless run_task_response.successful?
+          exception("Failed to run #{command_name} task.", run_task_response.pretty_inspect)
+        end
+
+        run_task_response.tasks[0].task_arn
       end
 
       def service_exists?(cluster, family)

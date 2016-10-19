@@ -144,6 +144,19 @@ describe Broadside::EcsDeploy do
           service_requests = api_request_log.select { |cmd| cmd.keys.first == :update_service }
           expect(service_requests.first.values.first[:desired_count]).to eq(desired_count)
         end
+
+        it 'can rollback' do
+          expect { deploy.rollback(1) }.to_not raise_error
+          expect(api_request_log.map(&:keys).flatten).to eq([
+            :describe_services,
+            :list_task_definitions,
+            :list_task_definitions,
+            :deregister_task_definition,
+            :list_task_definitions,
+            :update_service,
+            :describe_services
+          ])
+        end
       end
     end
   end

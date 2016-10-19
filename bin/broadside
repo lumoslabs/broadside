@@ -76,19 +76,6 @@ command :deploy do |d|
     add_shared_deploy_configs(subcmd)
   end
 
-  d.desc 'Creates a single instance of the application to run a command.'
-  d.command :run do |subcmd|
-    subcmd.desc 'Docker tag for application container'
-    subcmd.arg_name 'TAG'
-    subcmd.flag [:tag]
-
-    subcmd.desc 'Command to run (wrap argument in quotes)'
-    subcmd.arg_name 'COMMAND'
-    subcmd.flag [:command], type: Array
-
-    add_shared_deploy_configs(subcmd)
-  end
-
   d.desc 'Rolls back n releases and deploys'
   d.command :rollback do |subcmd|
     subcmd.desc 'Number of releases to rollback'
@@ -97,41 +84,54 @@ command :deploy do |d|
 
     add_shared_deploy_configs(subcmd)
   end
+end
 
-  d.desc 'Gets information about what is currently deployed.'
-  d.command :status do |subcmd|
-    add_shared_deploy_configs(subcmd)
-  end
+desc 'Creates a single instance of the application to run a command.'
+command :run do |subcmd|
+  subcmd.desc 'Docker tag for application container'
+  subcmd.arg_name 'TAG'
+  subcmd.flag [:tag]
 
-  d.desc 'Tail the logs inside the running container.'
-  d.command :logtail do |subcmd|
-    subcmd.desc '0-based instance index'
-    subcmd.default_value 0
-    subcmd.arg_name 'INSTANCE'
-    subcmd.flag [:n, :instance], type: Fixnum
+  subcmd.desc 'Command to run (wrap argument in quotes)'
+  subcmd.arg_name 'COMMAND'
+  subcmd.flag [:command], type: Array
 
-    add_shared_deploy_configs(subcmd)
-  end
+  add_shared_deploy_configs(subcmd)
+end
 
-  d.desc 'Establish a secure shell on the instance running the container.'
-  d.command :ssh do |subcmd|
-    subcmd.desc '0-based instance index'
-    subcmd.default_value 0
-    subcmd.arg_name 'INSTANCE'
-    subcmd.flag [:n, :instance], type: Fixnum
+desc 'Gets information about what is currently deployed.'
+command :status do |subcmd|
+  add_shared_deploy_configs(subcmd)
+end
 
-    add_shared_deploy_configs(subcmd)
-  end
+desc 'Tail the logs inside the running container.'
+command :logtail do |subcmd|
+  subcmd.desc '0-based instance index'
+  subcmd.default_value 0
+  subcmd.arg_name 'INSTANCE'
+  subcmd.flag [:n, :instance], type: Fixnum
 
-  d.desc 'Establish a shell inside the running container.'
-  d.command :bash do |subcmd|
-    subcmd.desc '0-based instance index'
-    subcmd.default_value 0
-    subcmd.arg_name 'INSTANCE'
-    subcmd.flag [:n, :instance], type: Fixnum
+  add_shared_deploy_configs(subcmd)
+end
 
-    add_shared_deploy_configs(subcmd)
-  end
+desc 'Establish a secure shell on the instance running the container.'
+command :ssh do |subcmd|
+  subcmd.desc '0-based instance index'
+  subcmd.default_value 0
+  subcmd.arg_name 'INSTANCE'
+  subcmd.flag [:n, :instance], type: Fixnum
+
+  add_shared_deploy_configs(subcmd)
+end
+
+desc 'Establish a shell inside the running container.'
+command :bash do |subcmd|
+  subcmd.desc '0-based instance index'
+  subcmd.default_value 0
+  subcmd.arg_name 'INSTANCE'
+  subcmd.flag [:n, :instance], type: Fixnum
+
+  add_shared_deploy_configs(subcmd)
 end
 
 def call_hook(type, command)
