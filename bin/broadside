@@ -110,6 +110,11 @@ command :deploy do |d|
     subcmd.arg_name 'INSTANCE'
     subcmd.flag [:n, :instance], type: Fixnum
 
+    subcmd.desc 'Number of lines to tail'
+    subcmd.default_value 10
+    subcmd.arg_name 'TAIL_LINES'
+    subcmd.flag [:l, :lines], type: Fixnum
+
     add_shared_deploy_configs(subcmd)
   end
 

@@ -22,6 +22,7 @@ module Broadside
         :env_vars,
         :command,
         :instance,
+        :lines,
         :predeploy_commands,
         :service_config,
         :task_definition_config
@@ -51,6 +52,7 @@ module Broadside
         @instance = 0
         @service_config = nil
         @task_definition_config = nil
+        @lines = 10
       end
 
       # Validates format of deploy targets

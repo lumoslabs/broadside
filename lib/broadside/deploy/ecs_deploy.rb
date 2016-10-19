@@ -136,7 +136,7 @@ module Broadside
         ip = get_running_instance_ip
         debug "Tailing logs for running container at ip #{ip}..."
         search_pattern = Shellwords.shellescape(family)
-        cmd = "docker logs -f --tail=10 `docker ps -n 1 --quiet --filter name=#{search_pattern}`"
+        cmd = "docker logs -f --tail=#{@deploy_config.lines} `docker ps -n 1 --quiet --filter name=#{search_pattern}`"
         tail_cmd = gen_ssh_cmd(ip) + " '#{cmd}'"
         exec tail_cmd
       end
