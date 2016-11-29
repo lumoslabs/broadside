@@ -1,3 +1,6 @@
+# 1.2.1
+- [#35](https://github.com/lumoslabs/broadside/pull/35/files): Allows logtail to display more than 10 lines
+
 # 1.2.0
 - [#32](https://github.com/lumoslabs/broadside/pull/32): Deploys will also update service configs defined in a deploy target (see full list in the [AWS Docs](https://docs.aws.amazon.com/sdkforruby/api/Aws/ECS/Client.html#create_service-instance_method))
 - Updates additional container definition configs like cpu, memory. See full list in the [AWS Docs](https://docs.aws.amazon.com/sdkforruby/api/Aws/ECS/Client.html#register_task_definition-instance_method)
