@@ -30,7 +30,7 @@ module Broadside
 
       TARGET_ATTRIBUTE_VALIDATIONS = {
         scale: ->(target_attribute) { validate_types([Fixnum], target_attribute) },
-        env_file: ->(target_attribute) { validate_types([String], target_attribute) },
+        env_file: ->(target_attribute) { validate_types([String, Array], target_attribute) },
         command: ->(target_attribute) { validate_types([Array, NilClass], target_attribute) },
         predeploy_commands: ->(target_attribute) { validate_predeploy_commands(target_attribute) },
         service_config: ->(target_attribute) { validate_types([Hash, NilClass], target_attribute) },
@@ -77,26 +77,36 @@ module Broadside
       # Loads deploy target data using provided target
       def load_target!
         validate_targets!
-        env_file = Pathname.new(@targets[@target][:env_file])
-
-        unless env_file.absolute?
-          dir = config.file.nil? ? Dir.pwd : Pathname.new(config.file).dirname
-          env_file = env_file.expand_path(dir)
-        end
-
-        if env_file.exist?
-          vars = Dotenv.load(env_file)
-          @env_vars = vars.map { |k, v| { 'name'=> k, 'value' => v } }
-        else
-          raise ArgumentError, "Could not find file '#{env_file}' for loading environment variables !"
-        end
+        load_env_vars!
 
         @scale ||= @targets[@target][:scale]
         @command = @targets[@target][:command]
-        # TODO: what's up with predeploy_commands.  ||= []?
         @predeploy_commands = @targets[@target][:predeploy_commands] if @targets[@target][:predeploy_commands]
         @service_config = @targets[@target][:service_config]
         @task_definition_config = @targets[@target][:task_definition_config]
+      end
+
+      def load_env_vars!
+        @env_vars ||= {}
+
+        [@targets[@target][:env_file]].flatten.each do |env_path|
+          env_file = Pathname.new(env_path)
+
+          unless env_file.absolute?
+            dir = config.file.nil? ? Dir.pwd : Pathname.new(config.file).dirname
+            env_file = env_file.expand_path(dir)
+          end
+
+          if env_file.exist?
+            vars = Dotenv.load(env_file)
+            @env_vars.merge!(vars)
+          else
+            raise ArgumentError, "Could not find file '#{env_file}' for loading environment variables !"
+          end
+        end
+
+        # convert env vars to format ecs expects
+        @env_vars = @env_vars.map { |k, v| { 'name' => k, 'value' => v } }
       end
 
       private
