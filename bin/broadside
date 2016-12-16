@@ -47,6 +47,7 @@ command :bootstrap do |b|
   add_shared_deploy_configs(b)
 end
 
+desc 'List the targets and images'
 command :show_images do |h|
   Broadside.config.deploy.targets.each do |k, v|
     _DeployObj = Kernel.const_get("Broadside::#{Broadside.config.deploy.type.capitalize}Deploy")
