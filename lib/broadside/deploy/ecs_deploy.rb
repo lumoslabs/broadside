@@ -131,7 +131,7 @@ module Broadside
       end
     end
 
-    def current_images
+    def current_image_info
       super do
         EcsManager.get_latest_task_definition(family)[:container_definitions].map do |definition|
           definition.slice(:name, :image)

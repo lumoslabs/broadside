@@ -53,7 +53,7 @@ command :show_images do |show|
     _DeployObj = Kernel.const_get("Broadside::#{Broadside.config.deploy.type.capitalize}Deploy")
 
     Broadside.config.deploy.targets.each do |k, v|
-      _DeployObj.new(target: k).current_images.each do |image|
+      _DeployObj.new(target: k).current_image_info.each do |image|
         printf("%20s %20s %20s", k, image[:name], image[:image])
       end
     end

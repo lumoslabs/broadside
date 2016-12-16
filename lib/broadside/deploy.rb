@@ -82,7 +82,7 @@ module Broadside
       yield
     end
 
-    def current_image
+    def current_image_info
       yield
     end
 
