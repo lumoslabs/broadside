@@ -82,7 +82,7 @@ module Broadside
       yield
     end
 
-    def current_image_info
+    def container_definitions
       yield
     end
 

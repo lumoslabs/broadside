@@ -54,7 +54,7 @@ command :show_images do |show|
     printf("%-40s %-50s %-25s %-10s\n", 'Target', 'Container Name', 'Image', 'Version')
 
     Broadside.config.deploy.targets.each do |k, v|
-      _DeployObj.new(target: k).current_image_info.each do |image|
+      _DeployObj.new(target: k).container_definitions.each do |image|
         image_tag, version = image[:image].split(':')
         printf("%-40s %-50s %-25s %-10s\n", k, image[:name], image_tag, version)
       end
