@@ -1,3 +1,6 @@
+# 1.3.0
+- Add `show_images` command to display all the targets' deployed images
+
 # 1.2.1
 - [#35](https://github.com/lumoslabs/broadside/pull/35/files): Allows logtail to display more than 10 lines
 
