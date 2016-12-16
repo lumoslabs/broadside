@@ -9,7 +9,7 @@ module Broadside
     end
 
     def deploy
-      @deploy ||= DeployConfig.new
+      @deploy ||= Targets.new
     end
 
     def aws

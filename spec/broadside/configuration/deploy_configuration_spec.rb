@@ -2,10 +2,10 @@ require 'spec_helper'
 
 module Broadside
   class Configuration
-    describe DeployConfig do
+    describe Targets do
       shared_examples 'valid_configuration?' do |succeeds, config_hash|
         let(:config) do
-          config = Broadside::Configuration::DeployConfig.new
+          config = described_class.new
           config.targets = {
             test_target: {
               scale: 1,
@@ -56,7 +56,7 @@ module Broadside
       describe '#load_env_vars!' do
         context 'with a single environment file' do
           let(:config) do
-            config = Broadside::Configuration::DeployConfig.new
+            config = described_class.new
             config.targets = {
               test_target: {
                 env_file: File.join(FIXTURES_PATH, 'sample_dotenv')
@@ -79,7 +79,7 @@ module Broadside
 
         context 'with multiple environment files' do
           let(:config) do
-            config = Broadside::Configuration::DeployConfig.new
+            config = described_class.new
             config.targets = {
               test_target: {
                 env_file: [File.join(FIXTURES_PATH, 'sample_dotenv_a'), File.join(FIXTURES_PATH, 'sample_dotenv_b')]

@@ -3,7 +3,7 @@ require 'pathname'
 
 module Broadside
   class Configuration
-    class DeployConfig < ConfigStruct
+    class Targets < ConfigStruct
       include Utils
 
       DEFAULT_PREDEPLOY_COMMANDS = [
