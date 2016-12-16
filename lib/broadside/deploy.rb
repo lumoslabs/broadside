@@ -82,6 +82,10 @@ module Broadside
       yield
     end
 
+    def container_definitions
+      yield
+    end
+
     protected
 
     def family

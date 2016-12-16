@@ -6,9 +6,7 @@ module Broadside
     class DeployConfig < ConfigStruct
       include Utils
 
-      DEFAULT_PREDEPLOY_COMMANDS = [
-        ['bundle', 'exec', 'rake', '--trace', 'db:migrate']
-      ]
+      DEFAULT_PREDEPLOY_COMMANDS = ['bundle exec rake --trace db:migrate'.split]
 
       attr_accessor(
         :type,

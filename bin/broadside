@@ -47,6 +47,21 @@ command :bootstrap do |b|
   add_shared_deploy_configs(b)
 end
 
+desc 'List the targets and images'
+command :show_images do |show|
+  show.action do |global_options, options, args|
+    _DeployObj = Kernel.const_get("Broadside::#{Broadside.config.deploy.type.capitalize}Deploy")
+    printf("%-40s %-50s %-25s %-10s\n", 'Target', 'Container Name', 'Image', 'Version')
+
+    Broadside.config.deploy.targets.each do |k, v|
+      _DeployObj.new(target: k).container_definitions.each do |image|
+        image_tag, version = image[:image].split(':')
+        printf("%-40s %-50s %-25s %-10s\n", k, image[:name], image_tag, version)
+      end
+    end
+  end
+end
+
 desc 'Deploy your application.'
 command :deploy do |d|
   d.desc 'Deploys without running migrations'
@@ -158,7 +173,6 @@ end
 
 pre do |global, command, options, args|
   Broadside.load_config(global[:config])
-
   call_hook(:prehook, command)
   true
 end
@@ -167,7 +181,6 @@ post do |global, command, options, args|
   call_hook(:posthook, command)
   true
 end
-
 
 on_error do |exception|
   # false skips default error handling
