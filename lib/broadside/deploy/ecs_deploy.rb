@@ -131,10 +131,10 @@ module Broadside
       end
     end
 
-    def current_image
+    def current_images
       super do
-        EcsManager.get_latest_task_definition(family)[:container_definitions].each do |definition|
-          info "#{@deploy_config.target}: #{definition[:image]}"
+        EcsManager.get_latest_task_definition(family)[:container_definitions].map do |definition|
+          definition.slice(:name, :image)
         end
       end
     end
