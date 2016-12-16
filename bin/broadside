@@ -51,10 +51,12 @@ desc 'List the targets and images'
 command :show_images do |show|
   show.action do |global_options, options, args|
     _DeployObj = Kernel.const_get("Broadside::#{Broadside.config.deploy.type.capitalize}Deploy")
+    printf("%40s %50s %20s %10s\n", 'Target', 'Container Name', 'Image', 'Version')
 
     Broadside.config.deploy.targets.each do |k, v|
       _DeployObj.new(target: k).current_image_info.each do |image|
-        printf("%20s %20s %20s", k, image[:name], image[:image])
+        image_tag, version = image[:image].split(':')
+        printf("%40s %50s %20s %10s\n", k, image[:name], image_tag, version)
       end
     end
   end
