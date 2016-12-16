@@ -131,6 +131,14 @@ module Broadside
       end
     end
 
+    def current_image
+      super do
+        EcsManager.get_latest_task_definition(family)[:container_definitions].each do |definition|
+          info "#{@deploy_config.target}: #{definition[:image]}"
+        end
+      end
+    end
+
     def logtail
       super do
         ip = get_running_instance_ip

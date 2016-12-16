@@ -82,6 +82,10 @@ module Broadside
       yield
     end
 
+    def current_image
+      yield
+    end
+
     protected
 
     def family
