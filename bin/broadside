@@ -89,15 +89,6 @@ command :deploy do |d|
     add_shared_deploy_configs(subcmd)
   end
 
-  d.desc 'Creates an initial task definition and service, then runs a series of bootstrap commands.'
-  d.command :bootstrap do |subcmd|
-    subcmd.desc 'Docker tag for application container'
-    subcmd.arg_name 'TAG'
-    subcmd.flag [:tag]
-
-    add_shared_deploy_configs(subcmd)
-  end
-
   d.desc 'Rolls back n releases and deploys'
   d.command :rollback do |subcmd|
     subcmd.desc 'Number of releases to rollback'
