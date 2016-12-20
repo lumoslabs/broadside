@@ -24,6 +24,7 @@ module Broadside
         :instance,
         :lines,
         :predeploy_commands,
+        :bootstrap_commands,
         :service_config,
         :task_definition_config
       )
@@ -33,6 +34,7 @@ module Broadside
         env_file: ->(target_attribute) { validate_types([String, Array], target_attribute) },
         command: ->(target_attribute) { validate_types([Array, NilClass], target_attribute) },
         predeploy_commands: ->(target_attribute) { validate_predeploy_commands(target_attribute) },
+        bootstrap_commands: ->(target_attribute) { validate_bootstrap_commands(target_attribute) },
         service_config: ->(target_attribute) { validate_types([Hash, NilClass], target_attribute) },
         task_definition_config: ->(target_attribute) { validate_types([Hash, NilClass], target_attribute) }
       }
@@ -49,6 +51,7 @@ module Broadside
         @env_vars = nil
         @command = nil
         @predeploy_commands = DEFAULT_PREDEPLOY_COMMANDS
+        @bootstrap_commands = []
         @instance = 0
         @service_config = nil
         @task_definition_config = nil
@@ -82,6 +85,7 @@ module Broadside
         @scale ||= @targets[@target][:scale]
         @command = @targets[@target][:command]
         @predeploy_commands = @targets[@target][:predeploy_commands] if @targets[@target][:predeploy_commands]
+        @bootstrap_commands = @targets[@target][:bootstrap_commands] if @targets[@target][:bootstrap_commands]
         @service_config = @targets[@target][:service_config]
         @task_definition_config = @targets[@target][:task_definition_config]
       end
@@ -111,22 +115,33 @@ module Broadside
 
       private
 
-      def self.validate_types(types, target_attribute)
-        if types.include?(target_attribute.class)
-          nil
-        else
-          "'#{target_attribute}' must be of type [#{types.join('|')}], got '#{target_attribute.class}' !"
+      class << self
+        def validate_types(types, target_attribute)
+          if types.include?(target_attribute.class)
+            nil
+          else
+            "'#{target_attribute}' must be of type [#{types.join('|')}], got '#{target_attribute.class}' !"
+          end
         end
-      end
 
-      def self.validate_predeploy_commands(commands)
-        return nil if commands.nil?
-        return 'predeploy_commands must be an array' unless commands.is_a?(Array)
-
-        messages = commands.reject { |cmd| cmd.is_a?(Array) }.map do |command|
-          "predeploy_command '#{command}' must be an array" unless command.is_a?(Array)
+        def validate_predeploy_commands(commands)
+          validate_commands(commands, 'predeploy_commands')
         end
-        messages.empty? ? nil : messages.join(', ')
+
+        def validate_bootstrap_commands(commands)
+          validate_commands(commands, 'bootstrap_commands')
+        end
+
+        def validate_commands(commands, attribute_name)
+          return nil if commands.nil?
+          return "#{attribute_name} must be an array" unless commands.is_a?(Array)
+
+          messages = commands.reject { |cmd| cmd.is_a?(Array) }.map do |command|
+            "#{attribute_name} '#{command}' must be an array" unless command.is_a?(Array)
+          end
+
+          messages.empty? ? nil : messages.join(', ')
+        end
       end
     end
   end

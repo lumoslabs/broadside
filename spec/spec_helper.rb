@@ -1,5 +1,6 @@
 require 'broadside'
 require 'fakefs/spec_helpers'
+require 'pry-byebug'
 
 RSpec.configure do |config|
   config.before do
