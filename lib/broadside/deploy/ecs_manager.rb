@@ -3,6 +3,8 @@ require 'active_support/core_ext/array'
 
 module Broadside
   class EcsManager
+    include Utils
+
     DEFAULT_DESIRED_COUNT = 0
 
     class << self
