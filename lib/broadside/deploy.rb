@@ -34,13 +34,6 @@ module Broadside
       info 'Deployment complete.'
     end
 
-    def run_bootstrap
-      @deploy_config.verify(:tag, :ssh)
-      info "Running bootstrap commands for #{family}..."
-      yield
-      info 'Bootstrap complete.'
-    end
-
     def rollback(count = @deploy_config.rollback)
       @deploy_config.verify(:rollback)
       info "Rolling back #{@deploy_config.rollback} release for #{family}..."
