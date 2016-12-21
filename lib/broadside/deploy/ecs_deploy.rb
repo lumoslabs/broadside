@@ -73,6 +73,8 @@ module Broadside
         info "Service '#{family}' doesn't exist, creating..."
         EcsManager.create_service(config.ecs.cluster, family, @deploy_config.service_config)
       end
+
+      @deploy_config.bootstrap_commands.each { |command| run_command(command) }
     end
 
     def rollback(count = @deploy_config.rollback)
