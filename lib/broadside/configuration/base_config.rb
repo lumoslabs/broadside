@@ -3,7 +3,7 @@ require 'logger'
 module Broadside
   class Configuration
     class BaseConfig < ConfigStruct
-      attr_accessor :application, :git_repo, :docker_image, :logger, :loglevel, :prehook, :posthook
+      attr_accessor :application, :docker_image, :logger, :loglevel, :prehook, :posthook
 
       def initialize
         @application = nil

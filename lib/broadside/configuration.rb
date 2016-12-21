@@ -3,13 +3,10 @@ module Broadside
     include Utils
 
     attr_accessor :base, :deploy, :ecs, :aws, :file
+    attr_reader :targets
 
     def initialize
       @base = BaseConfig.new
-    end
-
-    def deploy
-      @deploy ||= Targets.new
     end
 
     def aws
@@ -18,6 +15,11 @@ module Broadside
 
     def ecs
       @ecs ||= EcsConfig.new
+    end
+
+    def targets=
+      @targets = targets.map { |name, config| Target.new(name, config) }
+      @targets.each(&:validate)
     end
 
     def verify

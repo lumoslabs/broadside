@@ -5,7 +5,7 @@ require 'rainbow'
 require 'shellwords'
 
 module Broadside
-  class EcsDeploy < Deploy
+  class EcsTarget < Target
     DEFAULT_CONTAINER_DEFINITION = {
       cpu: 1,
       essential: true,
