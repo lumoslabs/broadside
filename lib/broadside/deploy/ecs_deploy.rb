@@ -48,7 +48,7 @@ module Broadside
     def bootstrap
       if EcsManager.get_latest_task_definition_arn(family)
         info("Task definition for #{family} already exists.")
-        run_bootstrap_commands(update_task_def: true)
+        run_bootstrap_commands
       else
         unless @deploy_config.task_definition_config
           raise ArgumentError, "No first task definition and no :task_definition_config in '#{family}' configuration"
@@ -78,13 +78,13 @@ module Broadside
       end
     end
 
-    def run_bootstrap_commands(update_task_def: false)
-      update_task_revision if update_task_def
+    def run_bootstrap_commands
+      update_task_revision
 
       begin
         @deploy_config.bootstrap_commands.each { |command| run_command(command) }
       ensure
-        EcsManager.deregister_last_n_tasks_definitions(family, 1) if update_task_def
+        EcsManager.deregister_last_n_tasks_definitions(family, 1)
       end
     end
 
