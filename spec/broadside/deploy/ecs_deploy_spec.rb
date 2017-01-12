@@ -111,6 +111,7 @@ describe Broadside::EcsDeploy do
         context 'and some configured bootstrap commands' do
           before do
             Broadside.configure do |config|
+              puts "targets: #{config.targets}"
               config.targets[test_target.to_sym].bootstrap_commands = [%w(foo bar baz)]
             end
           end
