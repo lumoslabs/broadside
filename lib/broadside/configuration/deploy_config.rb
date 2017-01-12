@@ -11,7 +11,6 @@ module Broadside
       ]
 
       attr_accessor(
-        :cluster,
         :type,
         :tag,
         :ssh,
@@ -62,6 +61,10 @@ module Broadside
         @lines = 10
         @cluster = nil
         @poll_frequency = 2
+      end
+
+      def cluster
+        @cluster || config.ecs.cluster
       end
 
       # Validates format of deploy targets

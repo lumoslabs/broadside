@@ -16,6 +16,10 @@ module Broadside
       @aws ||= AwsConfig.new
     end
 
+    def ecs
+      @ecs ||= EcsConfig.new
+    end
+
     def verify
       @base.verify(:application, :docker_image)
     end
