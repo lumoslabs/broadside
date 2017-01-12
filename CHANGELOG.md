@@ -1,3 +1,6 @@
+# 1.3.0
+- [#41](https://github.com/lumoslabs/broadside/pull/41/files): Introduce the concept of bootstrap commands, which are designed to be run when setting up a new server or environment.
+
 # 1.2.1
 - [#35](https://github.com/lumoslabs/broadside/pull/35/files): Allows logtail to display more than 10 lines
 
