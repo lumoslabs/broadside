@@ -4,9 +4,9 @@ module Broadside
 
     attr_reader :target
 
-    def initialize(target, tag, opts = {})
+    def initialize(target, opts = {})
       @target = target
-      @tag = tag
+      @tag = opts[:tag]
       @scale = opts[:scale]       || @target.scale
       @rollback = opts[:rollback] || 1
       @instance = opts[:instance] || @target.instance
