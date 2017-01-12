@@ -6,8 +6,8 @@ require 'broadside/configuration/aws_config'
 require 'broadside/configuration/ecs_config'
 require 'broadside/target'
 require 'broadside/deploy'
-require 'broadside/deploy/ecs_deploy'
-require 'broadside/deploy/ecs_manager'
+require 'broadside/ecs/ecs_deploy'
+require 'broadside/ecs/ecs_manager'
 require 'broadside/version'
 
 module Broadside

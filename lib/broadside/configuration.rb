@@ -7,9 +7,7 @@ module Broadside
 
     attr_accessor :ecs, :aws, :file
     attr_accessor :application, :docker_image, :logger, :loglevel, :prehook, :posthook, :ssh, :type
-    attr_accessor :logger
     attr_reader :targets
-
 
     def initialize
       @logger = ::Logger.new(STDOUT)
