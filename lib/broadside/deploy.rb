@@ -28,13 +28,14 @@ module Broadside
     end
 
     def deploy
+      verify(:tag)
       info "Deploying #{image_tag} to #{family}..."
       yield
       info 'Deployment complete.'
     end
 
-    def rollback(count = @target.rollback)
-      info "Rolling back #{@rollback} release for #{family}..."
+    def rollback(count = @rollback)
+      info "Rolling back #{count} release for #{family}..."
       yield
       info 'Rollback complete.'
     end
