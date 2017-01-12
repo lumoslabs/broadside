@@ -36,7 +36,7 @@ module Broadside
     deprecate :base, 'config.base.option should be configured directly as config.option', 2017, 4
 
     def deploy
-      raise ArgumentError, 'config.deploy '
+      raise ArgumentError, 'config.deploy was removed in Broadside 2.0'
     end
 
     def verify

@@ -78,6 +78,8 @@ module Broadside
     end
 
     def run_bootstrap_commands
+      return if @target.bootstrap_commands.nil? || @target.bootstrap_commands.empty?
+
       update_task_revision
 
       begin
@@ -120,6 +122,8 @@ module Broadside
     # runs before deploy commands using the latest task definition
     def run_predeploy
       super do
+        return if @target.predeploy_commands.nil? || @target.predeploy_commands.empty?
+
         update_task_revision
 
         begin

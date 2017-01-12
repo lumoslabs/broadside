@@ -2,6 +2,7 @@ module Broadside
   class EcsConfig
     include VerifyInstanceVariables
 
+    # Cluster can be overridden in a Target
     attr_accessor :cluster, :poll_frequency
 
     def initialize

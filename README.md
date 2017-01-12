@@ -21,7 +21,7 @@ Broadside.configure do |config|
       command: ['bundle', 'exec', 'unicorn', '-c', 'config/unicorn.conf.rb'],
       env_file: '../.env.production'
       predeploy_commands: [
-        ['bundle', 'exec', 'rake', 'db:migrate'],
+        Broadside::Predeploy::RAKE_DB_MIGRATE,     # RAKE_DB_MIGRATE is just a constant for your convenience
         ['bundle', 'exec', 'rake', 'data:migrate']
       ]
     },

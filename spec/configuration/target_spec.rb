@@ -27,9 +27,9 @@ describe Broadside::Target do
     it_behaves_like 'valid_configuration?', true,  command: nil
     it_behaves_like 'valid_configuration?', true,  command: ['bundle', 'exec', 'resque:work']
 
-    it_behaves_like 'valid_configuration?', true,  predeploy_commands: [['bundle', 'exec', 'rake' 'db:migrate']]
+    it_behaves_like 'valid_configuration?', true,  predeploy_commands: [Broadside::Predeploy::RAKE_DB_MIGRATE]
     it_behaves_like 'valid_configuration?', true,  predeploy_commands: [
-      ['bundle', 'exec', 'rake' 'db:migrate'],
+      Broadside::Predeploy::RAKE_DB_MIGRATE,
       ['bundle', 'exec', 'rake' 'assets:precompile']
     ]
     it_behaves_like 'valid_configuration?', true,  predeploy_commands: nil
