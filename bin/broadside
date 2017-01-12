@@ -26,7 +26,7 @@ def add_shared_deploy_configs(subcmd)
   subcmd.flag [:t, :target], type: Symbol
 
   subcmd.action do |global_options, options, args|
-    _DeployObj = Kernel.const_get("Broadside::#{Broadside.config.deploy.type.capitalize}Deploy")
+    _DeployObj = Kernel.const_get("Broadside::#{Broadside.config.type.capitalize}Deploy")
     _DeployObj.new(options).public_send(subcmd.name)
   end
 end
@@ -145,6 +145,7 @@ end
 
 def call_hook(type, command)
   hook = Broadside.config.send(type)
+
   if hook.is_a?(Proc)
     hook_args =
       if command.parent.is_a?(GLI::Command)

@@ -6,7 +6,7 @@ module Broadside
     include Utils
 
     attr_accessor :ecs, :aws, :file
-    attr_accessor :application, :docker_image, :logger, :loglevel, :prehook, :posthook, :ssh, :type
+    attr_accessor :application, :docker_image, :logger, :prehook, :posthook, :ssh, :type
     attr_reader :targets
 
     def initialize
@@ -28,7 +28,7 @@ module Broadside
     end
 
     def verify
-      @base.verify(:application, :docker_image)
+      super(:application, :docker_image)
     end
   end
 end
