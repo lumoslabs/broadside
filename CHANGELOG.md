@@ -1,6 +1,9 @@
 # 2.0.0
 - [#5](https://github.com/lumoslabs/broadside/issues/5): `:cluster` and `:poll_frequency` are now configured per target, not per broadside instance
 
+# 1.4.0
+= [#42](https://github.com/lumoslabs/broadside/pull/42/files): Update the task definition when running bootstrap
+
 # 1.3.0
 - [#41](https://github.com/lumoslabs/broadside/pull/41/files): Introduce the concept of bootstrap commands, which are designed to be run when setting up a new server or environment.
 
