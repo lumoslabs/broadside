@@ -27,6 +27,12 @@ module Broadside
       @targets = _targets.map { |name, config| Target.new(name, config) }
     end
 
+    # Maintain backward compatibility
+    def base
+      warn("config.base is deprecated; configure those options directly")
+      self
+    end
+
     def verify
       super(:application, :docker_image)
     end
