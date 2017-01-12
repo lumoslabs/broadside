@@ -14,7 +14,6 @@ Broadside.configure do |config|
   config.base.application = 'hello_world'
   config.base.docker_image = 'lumoslabs/hello_world'
   config.deploy.type = 'ecs'
-  config.ecs.
   config.deploy.targets = {
     production_web: {
       cluster: 'micro-cluster',
