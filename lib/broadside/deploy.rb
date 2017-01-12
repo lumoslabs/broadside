@@ -4,14 +4,16 @@ module Broadside
 
     attr_reader :target
 
-    def initialize(target, opts = {})
+    def initialize(target, tag, opts = {})
       @target = target
-      @tag = opts[:tag]
+      @tag = tag
       @scale = opts[:scale]       || @target.scale
       @rollback = opts[:rollback] || 1
       @instance = opts[:instance] || @target.instance
       @command = opts[:command]   || @target.command
       @lines = opts[:lines]       || 10
+
+      raise ArgumentError, 'No tag provided' unless @tag
     end
 
     def short
@@ -24,7 +26,6 @@ module Broadside
     end
 
     def deploy
-      @target.verify(:tag)
       info "Deploying #{image_tag} to #{family}..."
       yield
       info 'Deployment complete.'

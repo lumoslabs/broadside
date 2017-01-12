@@ -5,7 +5,7 @@ describe Broadside::EcsDeploy do
 
   let(:family) { "#{test_app}_#{test_target}" }
   let(:target) { Broadside::Target.new(test_target, test_target_config) }
-  let(:deploy) { described_class.new(target, tag: 'tag_the_bag') }
+  let(:deploy) { described_class.new(target, 'tag_the_bag') }
 
   let(:api_request_log) { [] }
 
