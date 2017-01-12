@@ -2,13 +2,14 @@ require 'spec_helper'
 
 describe Broadside::Target do
   shared_examples 'valid_configuration?' do |succeeds, config_hash|
-    let(:target) { described_class.new(config_hash) }
+    let(:valid_options) { { scale: 100, env_files: '.env.test' } }
+    let(:target) { described_class.new('tarbaby_target', valid_options.merge(config_hash) )}
 
     it 'validates target configuration' do
       if succeeds
-        expect { target.send(:validate_targets!) }.to_not raise_error
+        expect { target.send(:validate!) }.to_not raise_error
       else
-        expect {  target.send(:validate_targets!) }.to raise_error(ArgumentError)
+        expect {  target.send(:validate!) }.to raise_error(ArgumentError)
       end
     end
   end
