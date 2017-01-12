@@ -3,6 +3,8 @@ require 'pathname'
 
 module Broadside
   class Target < Broadside::ConfigStruct
+    include Utils
+
     attr_accessor(
       :bootstrap_commands,
       :command,
@@ -24,7 +26,7 @@ module Broadside
       command: ->(target_attribute) { validate_types([Array, NilClass], target_attribute) },
       env_files: ->(target_attribute) { validate_types([String, Array], target_attribute) },
       predeploy_commands: ->(target_attribute) { validate_predeploy_commands(target_attribute) },
-      scale: ->(target_attribute) { validate_types([Fixnum], target_attribute) },
+      scale: ->(target_attribute) { validate_types([Integer], target_attribute) },
       service_config: ->(target_attribute) { validate_types([Hash, NilClass], target_attribute) },
       task_definition_config: ->(target_attribute) { validate_types([Hash, NilClass], target_attribute) }
     }
@@ -83,7 +85,7 @@ module Broadside
     end
 
     def self.validate_types(types, target_attribute)
-      return nil if types.include?(target_attribute.class)
+      return nil if types.any? { |type| target_attribute.is_a?(type) }
 
       "'#{target_attribute}' must be of type [#{types.join('|')}], got '#{target_attribute.class}' !"
     end

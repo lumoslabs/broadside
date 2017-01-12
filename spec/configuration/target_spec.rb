@@ -2,54 +2,51 @@ require 'spec_helper'
 
 describe Broadside::Target do
   shared_examples 'valid_configuration?' do |succeeds, config_hash|
-    let(:valid_options) { { scale: 100, env_files: '.env.test' } }
+    let(:valid_options) { { scale: 100, env_files: File.join(FIXTURES_PATH, 'sample_dotenv') } }
     let(:target) { described_class.new('tarbaby_target', valid_options.merge(config_hash) )}
 
     it 'validates target configuration' do
       if succeeds
-        expect { target.send(:validate!) }.to_not raise_error
+        expect { target }.to_not raise_error
       else
-        expect {  target.send(:validate!) }.to raise_error(ArgumentError)
+        expect { target }.to raise_error(ArgumentError)
       end
     end
   end
 
   describe '#validate_targets!' do
-    include_examples 'valid_configuration?', false, scale: 1.1
-    include_examples 'valid_configuration?', false, scale: '1'
-    include_examples 'valid_configuration?', false, scale: nil
-    include_examples 'valid_configuration?', true,  scale: 100
+    it_behaves_like 'valid_configuration?', false, scale: 1.1
+    it_behaves_like 'valid_configuration?', false, scale: '1'
+    it_behaves_like 'valid_configuration?', false, scale: nil
+    it_behaves_like 'valid_configuration?', true,  scale: 100
 
-    include_examples 'valid_configuration?', false, env_files: nil
-    include_examples 'valid_configuration?', true,  env_files: '.env.test'
+    it_behaves_like 'valid_configuration?', false, env_files: nil
+    it_behaves_like 'valid_configuration?', true, {}
 
-    include_examples 'valid_configuration?', false, command: 'bundle exec rails s'
-    include_examples 'valid_configuration?', true,  command: nil
-    include_examples 'valid_configuration?', true,  command: ['bundle', 'exec', 'resque:work']
+    it_behaves_like 'valid_configuration?', false, command: 'bundle exec rails s'
+    it_behaves_like 'valid_configuration?', true,  command: nil
+    it_behaves_like 'valid_configuration?', true,  command: ['bundle', 'exec', 'resque:work']
 
-    include_examples 'valid_configuration?', true,  predeploy_commands: [['bundle', 'exec', 'rake' 'db:migrate']]
-    include_examples 'valid_configuration?', true,  predeploy_commands: [
+    it_behaves_like 'valid_configuration?', true,  predeploy_commands: [['bundle', 'exec', 'rake' 'db:migrate']]
+    it_behaves_like 'valid_configuration?', true,  predeploy_commands: [
       ['bundle', 'exec', 'rake' 'db:migrate'],
       ['bundle', 'exec', 'rake' 'assets:precompile']
     ]
-    include_examples 'valid_configuration?', true,  predeploy_commands: nil
-    include_examples 'valid_configuration?', false,  predeploy_commands: ['bundle', 'exec', 'rake' 'db:migrate']
-    include_examples 'valid_configuration?', false,  predeploy_commands: 'bundle exec rake db:migrate'
+    it_behaves_like 'valid_configuration?', true,  predeploy_commands: nil
+    it_behaves_like 'valid_configuration?', false,  predeploy_commands: ['bundle', 'exec', 'rake' 'db:migrate']
+    it_behaves_like 'valid_configuration?', false,  predeploy_commands: 'bundle exec rake db:migrate'
 
-    include_examples 'valid_configuration?', false, command: 'bundle exec rails s'
-    include_examples 'valid_configuration?', true,  command: nil
-    include_examples 'valid_configuration?', true,  command: ['bundle', 'exec', 'resque:work']
-
-
-    include_examples 'valid_configuration?', true,  env_files: ['env_file1', 'env_file2']
+    it_behaves_like 'valid_configuration?', false, command: 'bundle exec rails s'
+    it_behaves_like 'valid_configuration?', true,  command: nil
+    it_behaves_like 'valid_configuration?', true,  command: ['bundle', 'exec', 'resque:work']
   end
 
   describe '#load_env_vars!' do
-    let(:env_files) { File.join(FIXTURES_PATH, 'sample_dotenv') }
     let(:valid_options) { { scale: 100, env_files: env_files } }
     let(:target) { described_class.new('tarbaby_target', valid_options) }
 
     context 'with a single environment file' do
+      let(:env_files) { File.join(FIXTURES_PATH, 'sample_dotenv') }
       let(:expected_env_vars) do
         [
           { 'name' => 'TEST_KEY1', 'value' => 'TEST_VALUE1'},
