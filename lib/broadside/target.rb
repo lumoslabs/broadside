@@ -1,60 +1,65 @@
+require 'dotenv'
+require 'pathname'
+
 module Broadside
-  class Configuration
-    class Target < ConfigStruct
-      attr_accessor(
-        :command,
-        :env_vars,
-        :instance,
-        :name,
-        :predeploy_commands,
-        :scale,
-        :service_config,
-        :tag,
-        :task_definition_config,
-        :timeout
-      )
+  class Target < Broadside::ConfigStruct
+    attr_accessor(
+      :bootstrap_commands,
+      :command,
+      :env_vars,
+      :instance,
+      :name,
+      :predeploy_commands,
+      :scale,
+      :service_config,
+      :tag,
+      :task_definition_config,
+      :timeout
+    )
 
-      DEFAULT_INSTANCE = 0
-      DEFAULT_PREDEPLOY_COMMANDS = ['bundle', 'exec', 'rake', '--trace', 'db:migrate']
+    DEFAULT_INSTANCE = 0
+    DEFAULT_PREDEPLOY_COMMANDS = ['bundle', 'exec', 'rake', '--trace', 'db:migrate']
 
-      TARGET_ATTRIBUTE_VALIDATIONS = {
-        command: ->(target_attribute) { validate_types([Array, NilClass], target_attribute) },
-        env_files: ->(target_attribute) { validate_types([String, Array], target_attribute) },
-        predeploy_commands: ->(target_attribute) { validate_predeploy_commands(target_attribute) },
-        scale: ->(target_attribute) { validate_types([Fixnum], target_attribute) },
-        service_config: ->(target_attribute) { validate_types([Hash, NilClass], target_attribute) },
-        task_definition_config: ->(target_attribute) { validate_types([Hash, NilClass], target_attribute) }
-      }
+    TARGET_ATTRIBUTE_VALIDATIONS = {
+      command: ->(target_attribute) { validate_types([Array, NilClass], target_attribute) },
+      env_files: ->(target_attribute) { validate_types([String, Array], target_attribute) },
+      predeploy_commands: ->(target_attribute) { validate_predeploy_commands(target_attribute) },
+      scale: ->(target_attribute) { validate_types([Fixnum], target_attribute) },
+      service_config: ->(target_attribute) { validate_types([Hash, NilClass], target_attribute) },
+      task_definition_config: ->(target_attribute) { validate_types([Hash, NilClass], target_attribute) }
+    }
 
-      def initialize(name, config)
-        load_env_vars!
+    def initialize(name, config)
+      @name = name
+      @type = 'ecs'
+      @config = config
 
-        @name = name
-        @type = 'ecs'
-        @config = config
+      @bootstrap_commands = @config[:bootstrap_commands] || []
+      @command = @config[:command]
+      @env_files = [*@config[:env_files]]
+      @env_vars = {}
+      @instance = DEFAULT_INSTANCE
+      @predeploy_commands = @config[:predeploy_commands] || DEFAULT_PREDEPLOY_COMMANDS
+      @scale = @config[:scale]
+      @service_config = @config[:service_config]
+      @task_definition_config = @config[:task_definition_config]
 
-        @command = @config[:command]
-        @env_files = [*@config[:env_files]]
-        @instance = DEFAULT_INSTANCE
-        @predeploy_commands = @config[:predeploy_commands] || DEFAULT_PREDEPLOY_COMMANDS
-        @scale = @config[:scale]
-        @service_config = @config[:service_config]
-        @task_definition_config = @config[:task_definition_config]
-      end
-
-      def validate!
-        invalid_messages = TARGET_ATTRIBUTE_VALIDATIONS.map do |var, validation|
-          message = validation.call(configuration[var])
-          message.nil? ? nil : "Deploy target '#{@target}' parameter '#{var}' is invalid: #{message}"
-        end.compact
-
-        unless invalid_messages.empty?
-          raise ArgumentError, invalid_messages.join("\n")
-        end
-      end
+      validate!
+      load_env_vars!
     end
 
     private
+
+    def validate!
+      invalid_messages = TARGET_ATTRIBUTE_VALIDATIONS.map do |var, validation|
+        message = validation.call(@config[var])
+        message.nil? ? nil : "Deploy target '#{@name}' parameter '#{var}' is invalid: #{message}"
+      end.compact
+
+      unless invalid_messages.empty?
+        raise ArgumentError, invalid_messages.join("\n")
+      end
+    end
 
     def load_env_vars!
       @env_files.flatten.each do |env_path|

@@ -144,7 +144,7 @@ command :deploy do |d|
 end
 
 def call_hook(type, command)
-  hook = Broadside.config.base.send(type)
+  hook = Broadside.config.send(type)
   if hook.is_a?(Proc)
     hook_args =
       if command.parent.is_a?(GLI::Command)
