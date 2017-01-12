@@ -1,6 +1,7 @@
 module Broadside
   class Deploy
     include Utils
+    include VerifyInstanceVariables
 
     attr_reader :target
 
@@ -12,6 +13,7 @@ module Broadside
       @instance = opts[:instance] || @target.instance
       @command = opts[:command]   || @target.command
       @lines = opts[:lines]       || 10
+      @instance = opts[:instance] || @target.instance
 
       raise ArgumentError, 'No tag provided' unless @tag
     end
@@ -38,20 +40,22 @@ module Broadside
     end
 
     def scale
-      info "Rescaling #{family} with scale=#{@target.scale}"
+      info "Rescaling #{family} with scale=#{@scale}"
       yield
       info 'Rescaling complete.'
     end
 
     def run
-      @target.verify(:tag, :ssh, :command)
-      info "Running command [#{@target.command}] for #{family}..."
+      config.verify(:ssh)
+      verify(:tag, :command)
+      info "Running command [#{@command}] for #{family}..."
       yield
       info 'Complete.'
     end
 
     def run_predeploy
-      @target.verify(:tag, :ssh)
+      config.verify(:ssh)
+      verify(:tag)
       info "Running predeploy commands for #{family}..."
       yield
       info 'Predeploy complete.'
@@ -64,17 +68,17 @@ module Broadside
     end
 
     def logtail
-      @target.verify(:instance)
+      verify(:instance)
       yield
     end
 
     def ssh
-      @target.verify(:instance)
+      verify(:instance)
       yield
     end
 
     def bash
-      @target.verify(:instance)
+      verify(:instance)
       yield
     end
 

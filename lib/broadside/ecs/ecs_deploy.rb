@@ -110,7 +110,7 @@ module Broadside
         update_task_revision
 
         begin
-          run_command(@target.command)
+          run_command(@command)
         ensure
           EcsManager.deregister_last_n_tasks_definitions(family, 1)
         end
