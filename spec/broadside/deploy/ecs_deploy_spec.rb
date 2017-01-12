@@ -4,7 +4,8 @@ describe Broadside::EcsDeploy do
   include_context 'full configuration'
 
   let(:family) { "#{test_app}_#{test_target}" }
-  let(:deploy) { described_class.new(Broadside::Target.new(test_target, test_target_config)) }
+  let(:target) { Broadside::Target.new(test_target, test_target_config) }
+  let(:deploy) { described_class.new(target) }
 
   let(:api_request_log) { [] }
 
@@ -109,11 +110,8 @@ describe Broadside::EcsDeploy do
         end
 
         context 'and some configured bootstrap commands' do
-          before do
-            Broadside.configure do |config|
-              puts "targets: #{config.targets}"
-              config.targets[test_target.to_sym].bootstrap_commands = [%w(foo bar baz)]
-            end
+          let(:target) do
+            Broadside::Target.new(test_target, test_target_config.merge(bootstrap_commands: [%w(foo bar baz)]))
           end
 
           it 'runs bootstrap commands' do
