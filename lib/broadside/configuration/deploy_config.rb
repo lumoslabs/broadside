@@ -30,6 +30,8 @@ module Broadside
       )
 
       TARGET_ATTRIBUTE_VALIDATIONS = {
+        poll_frequency: ->(target_attribute) { validate_types([Fixnum, NilClass], target_attribute) },
+        cluster: ->(target_attribute) { validate_types([String], target_attribute) },
         scale: ->(target_attribute) { validate_types([Fixnum], target_attribute) },
         env_file: ->(target_attribute) { validate_types([String, Array], target_attribute) },
         command: ->(target_attribute) { validate_types([Array, NilClass], target_attribute) },
@@ -56,6 +58,16 @@ module Broadside
         @service_config = nil
         @task_definition_config = nil
         @lines = 10
+        @cluster = nil
+        @poll_frequency = 2
+      end
+
+      def cluster
+        @cluster || config.ecs.cluster
+      end
+
+      def poll_frequency
+        @poll_frequency || config.ecs.poll_frequency
       end
 
       # Validates format of deploy targets
@@ -88,6 +100,8 @@ module Broadside
         @bootstrap_commands = @targets[@target][:bootstrap_commands] if @targets[@target][:bootstrap_commands]
         @service_config = @targets[@target][:service_config]
         @task_definition_config = @targets[@target][:task_definition_config]
+        @cluster = @targets[@target][:cluster]
+        @poll_frequency ||= @targets[@target][:poll_frequency]
       end
 
       def load_env_vars!

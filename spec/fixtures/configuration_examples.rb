@@ -26,7 +26,8 @@ shared_context 'deploy configuration' do
         TEST_TARGET: {
           scale: 1,
           command: ['sleep', 'infinity'],
-          env_file: File.join(FIXTURES_PATH, '.env.test')
+          env_file: File.join(FIXTURES_PATH, '.env.test'),
+          cluster: 'cluster'
         }
       }
       c.deploy.ssh = {
@@ -44,7 +45,6 @@ shared_context 'ecs configuration' do
       c.deploy.type = 'ecs'
       c.deploy.application = 'TEST_APP'
       c.deploy.docker_image = 'rails'
-      c.ecs.cluster = 'cluster'
     end
   end
 end

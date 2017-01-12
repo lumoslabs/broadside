@@ -14,9 +14,9 @@ Broadside.configure do |config|
   config.base.application = 'hello_world'
   config.base.docker_image = 'lumoslabs/hello_world'
   config.deploy.type = 'ecs'
-  config.ecs.cluster = 'micro-cluster'
   config.deploy.targets = {
     production_web: {
+      cluster: 'micro-cluster',
       scale: 7,
       command: ['bundle', 'exec', 'unicorn', '-c', 'config/unicorn.conf.rb'],
       env_file: '../.env.production'
@@ -26,16 +26,19 @@ Broadside.configure do |config|
       ]
     },
     production_worker: {
+      cluster: 'micro-cluster',
       scale: 15,
       command: ['bundle', 'exec', 'rake', 'resque:work'],
       env_file: '../.env.production'
     },
     staging_web: {
+      cluster: 'micro-cluster',
       scale: 1,
       command: ['bundle', 'exec', 'puma'],
       env_file: '../.env.staging'
     },
     staging_worker: {
+      cluster: 'micro-cluster',
       scale: 1,
       command: ['bundle', 'exec', 'rake', 'resque:work'],
       env_file: '../.env.staging'
@@ -46,6 +49,7 @@ Broadside.configure do |config|
     # Service config: https://docs.aws.amazon.com/sdkforruby/api/Aws/ECS/Client.html#create_service-instance_method
     # Task Definition Config: https://docs.aws.amazon.com/sdkforruby/api/Aws/ECS/Client.html#register_task_definition-instance_method
     game_save_as_json_blob_stream: {
+      cluster: 'micro-cluster',
       scale: 1,
       command: ['java', '-cp', '*:.', 'path.to.MyClass'],
       env_file: '.env.production',
