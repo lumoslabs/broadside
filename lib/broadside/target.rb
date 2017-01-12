@@ -2,24 +2,26 @@ module Broadside
   class Configuration
     class Target < ConfigStruct
       attr_accessor(
-        :config,
-        :tag,
-        :timeout,
-        :scale,
-        :env_vars,
         :command,
+        :env_vars,
         :instance,
+        :name,
         :predeploy_commands,
+        :scale,
         :service_config,
-        :task_definition_config
+        :tag,
+        :task_definition_config,
+        :timeout
       )
 
+      DEFAULT_INSTANCE = 0
       DEFAULT_PREDEPLOY_COMMANDS = ['bundle', 'exec', 'rake', '--trace', 'db:migrate']
+
       TARGET_ATTRIBUTE_VALIDATIONS = {
-        scale: ->(target_attribute) { validate_types([Fixnum], target_attribute) },
-        env_file: ->(target_attribute) { validate_types([String, Array], target_attribute) },
         command: ->(target_attribute) { validate_types([Array, NilClass], target_attribute) },
+        env_files: ->(target_attribute) { validate_types([String, Array], target_attribute) },
         predeploy_commands: ->(target_attribute) { validate_predeploy_commands(target_attribute) },
+        scale: ->(target_attribute) { validate_types([Fixnum], target_attribute) },
         service_config: ->(target_attribute) { validate_types([Hash, NilClass], target_attribute) },
         task_definition_config: ->(target_attribute) { validate_types([Hash, NilClass], target_attribute) }
       }
@@ -30,13 +32,14 @@ module Broadside
         @name = name
         @type = 'ecs'
         @config = config
-        @scale = @config[:scale]
+
         @command = @config[:command]
-        @predeploy_commands = @config[:predeploy_commands]
+        @env_files = [*@config[:env_files]]
+        @instance = DEFAULT_INSTANCE
+        @predeploy_commands = @config[:predeploy_commands] || DEFAULT_PREDEPLOY_COMMANDS
+        @scale = @config[:scale]
         @service_config = @config[:service_config]
         @task_definition_config = @config[:task_definition_config]
-        @predeploy_commands = DEFAULT_PREDEPLOY_COMMANDS
-        @instance = 0
       end
 
       def validate!
@@ -54,7 +57,7 @@ module Broadside
     private
 
     def load_env_vars!
-      @target[:env_file].flatten.each do |env_path|
+      @env_files.flatten.each do |env_path|
         env_file = Pathname.new(env_path)
 
         unless env_file.absolute?
