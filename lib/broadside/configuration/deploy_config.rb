@@ -26,8 +26,7 @@ module Broadside
         :predeploy_commands,
         :bootstrap_commands,
         :service_config,
-        :task_definition_config,
-        :poll_frequency
+        :task_definition_config
       )
 
       TARGET_ATTRIBUTE_VALIDATIONS = {
@@ -65,6 +64,10 @@ module Broadside
 
       def cluster
         @cluster || config.ecs.cluster
+      end
+
+      def poll_frequency
+        @poll_frequency || config.ecs.poll_frequency
       end
 
       # Validates format of deploy targets
