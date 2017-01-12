@@ -1,5 +1,10 @@
+# 2.0.0
+- `Target` is a first class object
+- `Deploy` is composed of a `Target` plus command line options
+- There is no more `base` configuration - the main `Configuration` object holds all the `base` config
+
 # 1.4.0
-= [#42](https://github.com/lumoslabs/broadside/pull/42/files): Update the task definition when running bootstrap
+- [#42](https://github.com/lumoslabs/broadside/pull/42/files): Update the task definition when running bootstrap
 
 # 1.3.0
 - [#41](https://github.com/lumoslabs/broadside/pull/41/files): Introduce the concept of bootstrap commands, which are designed to be run when setting up a new server or environment.
