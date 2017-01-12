@@ -32,8 +32,7 @@ module Broadside
     end
 
     def rollback(count = @target.rollback)
-      @target.verify(:rollback)
-      info "Rolling back #{@target.rollback} release for #{family}..."
+      info "Rolling back #{@rollback} release for #{family}..."
       yield
       info 'Rollback complete.'
     end
