@@ -11,6 +11,7 @@ module Broadside
       ]
 
       attr_accessor(
+        :cluster,
         :type,
         :tag,
         :ssh,
@@ -26,7 +27,8 @@ module Broadside
         :predeploy_commands,
         :bootstrap_commands,
         :service_config,
-        :task_definition_config
+        :task_definition_config,
+        :poll_frequency
       )
 
       TARGET_ATTRIBUTE_VALIDATIONS = {
@@ -40,22 +42,23 @@ module Broadside
       }
 
       def initialize
-        @type = 'ecs'
-        @ssh = nil
-        @tag = nil
-        @rollback = 1
+        @bootstrap_commands = []
+        @instance = 0
+        @lines = 10
+        @poll_frequency = 2
+        @predeploy_commands = DEFAULT_PREDEPLOY_COMMANDS
         @timeout = 600
-        @target = nil
-        @targets = nil
+        @type = 'ecs'
+        @rollback = 1
+
+        @cluster = nil
         @scale = nil
         @env_vars = nil
         @command = nil
-        @predeploy_commands = DEFAULT_PREDEPLOY_COMMANDS
-        @bootstrap_commands = []
-        @instance = 0
         @service_config = nil
         @task_definition_config = nil
-        @lines = 10
+        @ssh = nil
+        @tag = nil
       end
 
       # Validates format of deploy targets
