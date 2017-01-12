@@ -43,7 +43,7 @@ module Broadside
       @env_vars = {}
       @instance = DEFAULT_INSTANCE
       @predeploy_commands = @config[:predeploy_commands] || DEFAULT_PREDEPLOY_COMMANDS
-      @scale = @config[:scale]
+      @scale = @config[:scale] || 1
       @service_config = @config[:service_config]
       @task_definition_config = @config[:task_definition_config]
 
