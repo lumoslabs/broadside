@@ -2,11 +2,13 @@ require 'logger'
 
 module Broadside
   class Configuration
+    extend Gem::Deprecate
     include VerifyInstanceVariables
     include Utils
 
-    attr_accessor :ecs, :aws, :file
-    attr_accessor :application, :docker_image, :logger, :prehook, :posthook, :ssh, :type
+    # Sub configs
+    attr_accessor :ecs, :aws
+    attr_accessor :application, :docker_image, :file, :logger, :prehook, :posthook, :ssh, :type
     attr_reader :targets
 
     def initialize
@@ -29,8 +31,12 @@ module Broadside
 
     # Maintain backward compatibility
     def base
-      warn("config.base is deprecated; configure those options directly")
       self
+    end
+    deprecate :base, 'config.base.option should be configured directly as config.option', 2017, 4
+
+    def deploy
+      raise ArgumentError, 'config.deploy '
     end
 
     def verify

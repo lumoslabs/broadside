@@ -3,19 +3,22 @@ module Broadside
     include Utils
     include VerifyInstanceVariables
 
-    attr_reader :target
+    attr_reader(
+      :command,
+      :instance,
+      :lines,
+      :tag,
+      :target
+    )
 
     def initialize(target, opts = {})
-      @target = target
-      @tag = opts[:tag]
-      @scale = opts[:scale]       || @target.scale
+      @target   = target
+      @command  = opts[:command]
+      @instance = opts[:instance] || @target.instance
+      @lines    = opts[:lines]    || 10
       @rollback = opts[:rollback] || 1
-      @instance = opts[:instance] || @target.instance
-      @command = opts[:command]   || @target.command
-      @lines = opts[:lines]       || 10
-      @instance = opts[:instance] || @target.instance
-
-      raise ArgumentError, 'No tag provided' unless @tag
+      @scale    = opts[:scale]    || @target.scale
+      @tag      = opts[:tag]
     end
 
     def short

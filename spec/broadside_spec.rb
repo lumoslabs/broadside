@@ -1,7 +1,6 @@
 require 'spec_helper'
 
 describe Broadside do
-
   describe '#load_config' do
     let(:bad_path) { 'path_does_not_exist' }
     let(:system_config_path) { File.join(FIXTURES_PATH, 'broadside_system_example.conf.rb') }
@@ -34,7 +33,7 @@ describe Broadside do
     end
 
     let(:ssh_system_user) { { user: 'system-default-user' } }
-    let(:ssh_app_user) { { user: 'app-default-user' } }
+    let(:ssh_app_user)    { { user: 'app-default-user' } }
 
     it 'loads the app-specific config with a higher precedence than the system-level config' do
       Broadside.load_config(app_config_path)

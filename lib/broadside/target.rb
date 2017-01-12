@@ -21,7 +21,6 @@ module Broadside
     )
 
     DEFAULT_INSTANCE = 0
-    DEFAULT_PREDEPLOY_COMMANDS = ['bundle', 'exec', 'rake', '--trace', 'db:migrate']
 
     TARGET_ATTRIBUTE_VALIDATIONS = {
       command: ->(target_attribute) { validate_types([Array, NilClass], target_attribute) },
@@ -32,23 +31,27 @@ module Broadside
       task_definition_config: ->(target_attribute) { validate_types([Hash, NilClass], target_attribute) }
     }
 
-    def initialize(name, config)
+    def initialize(name, _config)
       @name = name
-      @type = 'ecs'
-      @config = config
+      @config = _config
 
       @bootstrap_commands = @config[:bootstrap_commands] || []
+      @cluster = _config[:cluster]
       @command = @config[:command]
       @env_files = [*@config[:env_files]]
       @env_vars = {}
       @instance = DEFAULT_INSTANCE
-      @predeploy_commands = @config[:predeploy_commands] || DEFAULT_PREDEPLOY_COMMANDS
+      @predeploy_commands = @config[:predeploy_commands]
       @scale = @config[:scale] || 1
       @service_config = @config[:service_config]
       @task_definition_config = @config[:task_definition_config]
 
       validate!
       load_env_vars!
+    end
+
+    def cluster
+      @cluster || config.ecs.cluster
     end
 
     private

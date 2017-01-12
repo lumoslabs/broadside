@@ -25,10 +25,8 @@ shared_context 'deploy configuration' do
 
   before(:each) do
     Broadside.configure do |c|
+      c.ssh = { user: 'test-user' }
       c.targets = { test_target => test_target_config }
-      c.ssh = {
-        user: 'test-user',
-      }
     end
   end
 end
@@ -47,7 +45,6 @@ shared_context 'ecs configuration' do
 end
 
 shared_context 'full configuration' do
-  include_context 'base configuration'
   include_context 'deploy configuration'
   include_context 'ecs configuration'
 end

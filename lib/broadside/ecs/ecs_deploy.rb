@@ -285,7 +285,7 @@ module Broadside
 
       (configured_containers.try(:first) || {}).merge(
         name: family,
-        command: @target.command,
+        command: @command,
         environment: @target.env_vars,
         image: image_tag
       )

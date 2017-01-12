@@ -1,8 +1,9 @@
 # 2.0.0
+- **BREAKING CHANGE** There is no more `deploy` configuration - most of that is handled in the main `Configuration` object and in `targets=`
+- **BREAKING CHANGE** `rake db:migrate` is no longer the default `predeploy_command`
 - `Target` is a first class object
 - `Deploy` is composed of a `Target` plus command line options
-- There is no more `base` configuration - the main `Configuration` object holds all the `base` config
-- There is no more `deploy` configuration - most of that is handled in the main `Configuration` object and in `targets=`
+- There is no more `base` configuration - the main `Configuration` object holds all the `base` config.  You can still call Broadside.config.base though you will get a deprecation warning.
 
 # 1.4.0
 - [#42](https://github.com/lumoslabs/broadside/pull/42/files): Update the task definition when running bootstrap
