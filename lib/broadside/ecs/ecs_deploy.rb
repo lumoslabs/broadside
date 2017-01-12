@@ -12,6 +12,11 @@ module Broadside
       memory: 1000
     }
 
+    def initialize(target, opts = {})
+      super
+      config.ecs.verify(:cluster, :poll_frequency)
+    end
+
     def deploy
       super do
         unless EcsManager.service_exists?(config.ecs.cluster, family)
