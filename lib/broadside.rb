@@ -1,6 +1,6 @@
 require 'broadside/error'
 require 'broadside/utils'
-require 'broadside/configuration/config_struct'
+require 'broadside/configuration/verify_instance_variables'
 require 'broadside/configuration'
 require 'broadside/configuration/aws_config'
 require 'broadside/configuration/ecs_config'
