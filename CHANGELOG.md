@@ -2,6 +2,7 @@
 - `Target` is a first class object
 - `Deploy` is composed of a `Target` plus command line options
 - There is no more `base` configuration - the main `Configuration` object holds all the `base` config
+- There is no more `deploy` configuration - most of that is handled in the main `Configuration` object and in `targets=`
 
 # 1.4.0
 - [#42](https://github.com/lumoslabs/broadside/pull/42/files): Update the task definition when running bootstrap
