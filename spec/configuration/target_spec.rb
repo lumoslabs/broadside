@@ -21,20 +21,20 @@ describe Broadside::Target do
     it_behaves_like 'valid_configuration?', true,  scale: 100
 
     it_behaves_like 'valid_configuration?', false, env_files: nil
-    it_behaves_like 'valid_configuration?', true, {}
+    it_behaves_like 'valid_configuration?', true,  {}
 
     it_behaves_like 'valid_configuration?', false, command: 'bundle exec rails s'
     it_behaves_like 'valid_configuration?', true,  command: nil
     it_behaves_like 'valid_configuration?', true,  command: ['bundle', 'exec', 'resque:work']
 
-    it_behaves_like 'valid_configuration?', true,  predeploy_commands: [Broadside::Predeploy::RAKE_DB_MIGRATE]
-    it_behaves_like 'valid_configuration?', true,  predeploy_commands: [
-      Broadside::Predeploy::RAKE_DB_MIGRATE,
+    it_behaves_like 'valid_configuration?', true,   predeploy_commands: nil
+    it_behaves_like 'valid_configuration?', false,  predeploy_commands: Broadside::PredeployCommands::RAKE_DB_MIGRATE
+    it_behaves_like 'valid_configuration?', false,  predeploy_commands: 'bundle exec rake db:migrate'
+    it_behaves_like 'valid_configuration?', true,   predeploy_commands: [Broadside::PredeployCommands::RAKE_DB_MIGRATE]
+    it_behaves_like 'valid_configuration?', true,   predeploy_commands: [
+      Broadside::PredeployCommands::RAKE_DB_MIGRATE,
       ['bundle', 'exec', 'rake' 'assets:precompile']
     ]
-    it_behaves_like 'valid_configuration?', true,  predeploy_commands: nil
-    it_behaves_like 'valid_configuration?', false,  predeploy_commands: ['bundle', 'exec', 'rake' 'db:migrate']
-    it_behaves_like 'valid_configuration?', false,  predeploy_commands: 'bundle exec rake db:migrate'
 
     it_behaves_like 'valid_configuration?', false, command: 'bundle exec rails s'
     it_behaves_like 'valid_configuration?', true,  command: nil
