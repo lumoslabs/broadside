@@ -38,8 +38,8 @@ describe Broadside do
 
     it 'loads the app-specific config with a higher precedence than the system-level config' do
       Broadside.load_config(app_config_path)
-      expect(Broadside.config.deploy.ssh).to eq(ssh_app_user)
-      expect(Broadside.config.deploy.ssh).not_to eq(ssh_system_user)
+      expect(Broadside.config.ssh).to eq(ssh_app_user)
+      expect(Broadside.config.ssh).not_to eq(ssh_system_user)
     end
 
     it 'verfies the configuration after loading' do

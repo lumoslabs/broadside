@@ -7,7 +7,7 @@ Broadside.configure do |c|
     TEST_TARGET: {
       scale: 1,
       command: ['sleep', 'infinity'],
-      env_file: './.env.test'
+      env_files: './.env.test'
     }
   }
 end
