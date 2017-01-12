@@ -47,18 +47,18 @@ module Broadside
         @lines = 10
         @poll_frequency = 2
         @predeploy_commands = DEFAULT_PREDEPLOY_COMMANDS
+        @rollback = 1
         @timeout = 600
         @type = 'ecs'
-        @rollback = 1
 
         @cluster = nil
-        @scale = nil
-        @env_vars = nil
         @command = nil
+        @env_vars = nil
+        @scale = nil
         @service_config = nil
-        @task_definition_config = nil
         @ssh = nil
         @tag = nil
+        @task_definition_config = nil
       end
 
       # Validates format of deploy targets
