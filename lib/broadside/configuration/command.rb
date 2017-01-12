@@ -2,7 +2,9 @@ require 'dotenv'
 require 'pathname'
 
 module Broadside
-  class Command < ConfigStruct
+  class Command
+    include ConfigStruct
+
     attr_accessor(
       :tag,
       :rollback,

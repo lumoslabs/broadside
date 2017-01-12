@@ -1,7 +1,9 @@
 require 'aws-sdk'
 
 module Broadside
-  class AwsConfig < ConfigStruct
+  class AwsConfig
+    include ConfigStruct
+
     attr_accessor :region, :credentials
 
     def initialize

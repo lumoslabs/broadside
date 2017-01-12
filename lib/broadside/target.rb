@@ -2,7 +2,8 @@ require 'dotenv'
 require 'pathname'
 
 module Broadside
-  class Target < Broadside::ConfigStruct
+  class Target
+    include ConfigStruct
     include Utils
 
     attr_accessor(

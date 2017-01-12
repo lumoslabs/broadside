@@ -1,5 +1,5 @@
 module Broadside
-  class ConfigStruct
+  module ConfigStruct
     def verify(*args)
       args.each do |var|
         if self.send(var).nil?

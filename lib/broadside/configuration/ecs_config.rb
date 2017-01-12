@@ -1,5 +1,7 @@
 module Broadside
-  class EcsConfig < ConfigStruct
+  class EcsConfig
+    include ConfigStruct
+
     attr_accessor :cluster, :poll_frequency
 
     def initialize

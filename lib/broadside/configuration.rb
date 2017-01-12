@@ -1,7 +1,8 @@
 require 'logger'
 
 module Broadside
-  class Configuration < ConfigStruct
+  class Configuration
+    include ConfigStruct
     include Utils
 
     attr_accessor :ecs, :aws, :file
