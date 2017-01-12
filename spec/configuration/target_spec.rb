@@ -2,22 +2,14 @@ require 'spec_helper'
 
 describe Broadside::Target do
   shared_examples 'valid_configuration?' do |succeeds, config_hash|
-    let(:config) do
-      config = described_class.new
-      config.targets = {
-        test_target: {
-          scale: 1,
-          env_files: 'some_environment_file'
-        }
-      }
-      config.target = :test_target
-      config
-    end
+    let(:target) { described_class.new(config_hash) }
 
-    it 'validates deploy_target configuration' do
-      config.targets[:test_target].merge!(config_hash)
-      expect { config.validate_targets! }.to_not raise_error if succeeds
-      expect { config.validate_targets! }.to raise_error(ArgumentError) unless succeeds
+    it 'validates target configuration' do
+      if succeeds
+        expect { target.send(:validate_targets!) }.to_not raise_error
+      else
+        expect {  target.send(:validate_targets!) }.to raise_error(ArgumentError)
+      end
     end
   end
 
