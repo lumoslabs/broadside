@@ -45,7 +45,6 @@ shared_context 'ecs configuration' do
       c.deploy.type = 'ecs'
       c.deploy.application = 'TEST_APP'
       c.deploy.docker_image = 'rails'
-      c.deploy.cluster = 'cluster'
     end
   end
 end
