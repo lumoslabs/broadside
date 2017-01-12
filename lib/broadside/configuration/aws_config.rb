@@ -2,7 +2,7 @@ require 'aws-sdk'
 
 module Broadside
   class AwsConfig
-    include ConfigStruct
+    include VerifyInstanceVariables
 
     attr_accessor :region, :credentials
 

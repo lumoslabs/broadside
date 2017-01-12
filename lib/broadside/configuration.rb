@@ -2,7 +2,7 @@ require 'logger'
 
 module Broadside
   class Configuration
-    include ConfigStruct
+    include VerifyInstanceVariables
     include Utils
 
     attr_accessor :ecs, :aws, :file

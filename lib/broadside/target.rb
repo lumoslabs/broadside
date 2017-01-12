@@ -3,7 +3,7 @@ require 'pathname'
 
 module Broadside
   class Target
-    include ConfigStruct
+    include VerifyInstanceVariables
     include Utils
 
     attr_accessor(

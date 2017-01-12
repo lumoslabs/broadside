@@ -1,6 +1,6 @@
 module Broadside
   class EcsConfig
-    include ConfigStruct
+    include VerifyInstanceVariables
 
     attr_accessor :cluster, :poll_frequency
 
