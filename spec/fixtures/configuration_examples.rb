@@ -11,10 +11,6 @@ shared_context 'base configuration' do
   end
 end
 
-shared_context 'aws configuration' do
-  include_context 'base configuration'
-end
-
 shared_context 'deploy configuration' do
   include_context 'base configuration'
 
@@ -51,7 +47,7 @@ shared_context 'ecs configuration' do
 end
 
 shared_context 'full configuration' do
-  include_context 'aws configuration'
+  include_context 'base configuration'
   include_context 'deploy configuration'
   include_context 'ecs configuration'
 end
