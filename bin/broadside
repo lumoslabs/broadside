@@ -27,7 +27,8 @@ def add_shared_deploy_configs(subcmd)
 
   subcmd.action do |global_options, options, args|
     _DeployObj = Kernel.const_get("Broadside::#{Broadside.config.type.capitalize}Deploy")
-    _DeployObj.new(options).public_send(subcmd.name)
+    _target = Broadside.config.targets.select { |t| t.name == options[:target] }.first
+    _DeployObj.new(target, options).public_send(subcmd.name)
   end
 end
 
