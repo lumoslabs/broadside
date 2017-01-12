@@ -48,6 +48,7 @@ module Broadside
     def bootstrap
       if EcsManager.get_latest_task_definition_arn(family)
         info("Task definition for #{family} already exists.")
+        run_bootstrap_commands
       else
         unless @deploy_config.task_definition_config
           raise ArgumentError, "No first task definition and no :task_definition_config in '#{family}' configuration"
@@ -61,6 +62,8 @@ module Broadside
             container_definitions: [DEFAULT_CONTAINER_DEFINITION.merge(container_definition)]
           )
         )
+
+        run_bootstrap_commands
       end
 
       if EcsManager.service_exists?(config.ecs.cluster, family)
@@ -73,8 +76,16 @@ module Broadside
         info "Service '#{family}' doesn't exist, creating..."
         EcsManager.create_service(config.ecs.cluster, family, @deploy_config.service_config)
       end
+    end
 
-      @deploy_config.bootstrap_commands.each { |command| run_command(command) }
+    def run_bootstrap_commands
+      update_task_revision
+
+      begin
+        @deploy_config.bootstrap_commands.each { |command| run_command(command) }
+      ensure
+        EcsManager.deregister_last_n_tasks_definitions(family, 1)
+      end
     end
 
     def rollback(count = @deploy_config.rollback)

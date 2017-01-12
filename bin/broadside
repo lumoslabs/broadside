@@ -44,6 +44,10 @@ end
 
 desc 'Bootstrap your service and task definition from the configured definition.'
 command :bootstrap do |b|
+  subcmd.desc 'Docker tag for application container'
+  subcmd.arg_name 'TAG'
+  subcmd.flag [:tag]
+
   add_shared_deploy_configs(b)
 end
 
