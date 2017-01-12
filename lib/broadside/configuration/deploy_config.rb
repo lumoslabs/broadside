@@ -32,6 +32,8 @@ module Broadside
       )
 
       TARGET_ATTRIBUTE_VALIDATIONS = {
+        poll_frequency: ->(target_attribute) { validate_types([Fixnum, NilClass], target_attribute) },
+        cluster: ->(target_attribute) { validate_types([String], target_attribute) },
         scale: ->(target_attribute) { validate_types([Fixnum], target_attribute) },
         env_file: ->(target_attribute) { validate_types([String, Array], target_attribute) },
         command: ->(target_attribute) { validate_types([Array, NilClass], target_attribute) },
@@ -42,23 +44,24 @@ module Broadside
       }
 
       def initialize
-        @bootstrap_commands = []
-        @instance = 0
-        @lines = 10
-        @poll_frequency = 2
-        @predeploy_commands = DEFAULT_PREDEPLOY_COMMANDS
-        @rollback = 1
-        @timeout = 600
         @type = 'ecs'
-
-        @cluster = nil
-        @command = nil
-        @env_vars = nil
-        @scale = nil
-        @service_config = nil
         @ssh = nil
         @tag = nil
+        @rollback = 1
+        @timeout = 600
+        @target = nil
+        @targets = nil
+        @scale = nil
+        @env_vars = nil
+        @command = nil
+        @predeploy_commands = DEFAULT_PREDEPLOY_COMMANDS
+        @bootstrap_commands = []
+        @instance = 0
+        @service_config = nil
         @task_definition_config = nil
+        @lines = 10
+        @cluster = nil
+        @poll_frequency = 2
       end
 
       # Validates format of deploy targets
@@ -91,6 +94,8 @@ module Broadside
         @bootstrap_commands = @targets[@target][:bootstrap_commands] if @targets[@target][:bootstrap_commands]
         @service_config = @targets[@target][:service_config]
         @task_definition_config = @targets[@target][:task_definition_config]
+        @cluster = @targets[@target][:cluster]
+        @poll_frequency ||= @targets[@target][:poll_frequency]
       end
 
       def load_env_vars!

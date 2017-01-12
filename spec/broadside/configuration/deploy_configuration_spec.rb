@@ -9,7 +9,8 @@ module Broadside
           config.targets = {
             test_target: {
               scale: 1,
-              env_file: 'some_environment_file'
+              env_file: 'some_environment_file',
+              cluster: 'cluster'
             }
           }
           config.target = :test_target
