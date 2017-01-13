@@ -39,11 +39,12 @@ module Broadside
       @bootstrap_commands = @config[:bootstrap_commands] || []
       @cluster = @config[:cluster]
       @command = @config[:command]
-      @env_files = @config[:env_files] ? [*@config[:env_files]] : [*@config[:env_file]]
+      _env_files = @config[:env_files] || @config[:env_file]
+      @env_files = _env_files ? [*_env_files] : nil
       @env_vars = {}
       @instance = DEFAULT_INSTANCE || @config[:instance]
       @predeploy_commands = @config[:predeploy_commands]
-      @scale = @config[:scale] || 1
+      @scale = @config[:scale]
       @service_config = @config[:service_config]
       @tag = @config[:tag]
       @task_definition_config = @config[:task_definition_config]
