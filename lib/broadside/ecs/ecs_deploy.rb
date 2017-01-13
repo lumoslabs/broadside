@@ -75,7 +75,7 @@ module Broadside
       end
     end
 
-    def rollback(count = @target.rollback)
+    def rollback(count = @rollback)
       super do
         begin
           EcsManager.deregister_last_n_tasks_definitions(family, count)
