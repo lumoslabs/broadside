@@ -17,8 +17,7 @@ module Broadside
       :scale,
       :service_config,
       :tag,
-      :task_definition_config,
-      :timeout
+      :task_definition_config
     )
 
     DEFAULT_INSTANCE = 0

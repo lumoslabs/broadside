@@ -220,7 +220,7 @@ module Broadside
       end
 
       EcsManager.ecs.wait_until(:services_stable, { cluster: config.ecs.cluster, services: [family] }) do |w|
-        w.max_attempts = @target.timeout ? @target.timeout / config.ecs.poll_frequency : nil
+        w.max_attempts = config.timeout ? config.timeout / config.ecs.poll_frequency : nil
         w.delay = config.ecs.poll_frequency
         seen_event = nil
 
