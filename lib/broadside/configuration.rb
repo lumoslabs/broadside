@@ -36,6 +36,7 @@ module Broadside
     end
 
     def targets=(_targets)
+      raise ArgumentError, "Targets must be a hash" unless _targets.is_a?(Hash)
       @targets = _targets.map { |name, config| Target.new(name, config) }
     end
 

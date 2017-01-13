@@ -36,7 +36,6 @@ module Broadside
 
       @bootstrap_commands = @config[:bootstrap_commands] || []
       @cluster = @config[:cluster]
-      @command = @config[:command]
       _env_files = @config[:env_files] || @config[:env_file]
       @env_files = _env_files ? [*_env_files] : nil
       @env_vars = {}

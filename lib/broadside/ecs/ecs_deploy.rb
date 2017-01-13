@@ -99,13 +99,6 @@ module Broadside
       end
     end
 
-    # runs before deploy commands using the latest task definition
-    def run_predeploy
-      super do
-        run_commands(@target.predeploy_commands)
-      end
-    end
-
     def status
       super do
         ips = EcsManager.get_running_instance_ips(@target.cluster, family)
