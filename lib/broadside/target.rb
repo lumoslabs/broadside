@@ -8,7 +8,6 @@ module Broadside
 
     attr_accessor(
       :bootstrap_commands,
-      :command,
       :env_files,
       :env_vars,
       :instance,
@@ -24,7 +23,6 @@ module Broadside
 
     TARGET_ATTRIBUTE_VALIDATIONS = {
       bootstrap_commands:     ->(target_attribute) { validate_commands(target_attribute) },
-      command:                ->(target_attribute) { validate_types([Array, NilClass], target_attribute) },
       env_files:              ->(target_attribute) { validate_types([String, Array], target_attribute) },
       predeploy_commands:     ->(target_attribute) { validate_commands(target_attribute) },
       scale:                  ->(target_attribute) { validate_types([Integer], target_attribute) },
@@ -61,7 +59,7 @@ module Broadside
 
     def validate!
       invalid_messages = TARGET_ATTRIBUTE_VALIDATIONS.map do |var, validation|
-        message = validation.call(send(var))
+        message = validation.call(instance_variable_get('@' + var.to_s))
         message.nil? ? nil : "Deploy target '#{@name}' parameter '#{var}' is invalid: #{message}"
       end.compact
 

@@ -110,12 +110,13 @@ describe Broadside::EcsDeploy do
         end
 
         context 'and some configured bootstrap commands' do
+          let(:commands) { [%w(foo bar baz)] }
           let(:target) do
-            Broadside::Target.new(test_target, test_target_config.merge(bootstrap_commands: [%w(foo bar baz)]))
+            Broadside::Target.new(test_target, test_target_config.merge(bootstrap_commands: commands))
           end
 
           it 'runs bootstrap commands' do
-            expect(deploy).to receive(:run_command).with(%w(foo bar baz))
+            expect(deploy).to receive(:run_commands).with(commands)
             deploy.bootstrap
           end
         end

@@ -19,7 +19,7 @@ module Broadside
 
     def deploy
       super do
-        unless EcsManager.service_exists?(config.ecs.cluster, family)
+        unless EcsManager.service_exists?(@target.cluster, family)
           exception "No service for #{family}! Please bootstrap or manually configure the service."
         end
         unless EcsManager.get_latest_task_definition_arn(family)
@@ -46,9 +46,7 @@ module Broadside
     end
 
     def bootstrap
-      if EcsManager.get_latest_task_definition_arn(family)
-        run_bootstrap_commands
-      else
+      unless EcsManager.get_latest_task_definition_arn(family)
         unless @target.task_definition_config
           raise ArgumentError, "No first task definition and no :task_definition_config in '#{family}' configuration"
         end
@@ -61,11 +59,11 @@ module Broadside
             container_definitions: [DEFAULT_CONTAINER_DEFINITION.merge(container_definition)]
           )
         )
-
-        run_bootstrap_commands
       end
 
-      if EcsManager.service_exists?(config.ecs.cluster, family)
+      run_commands(@target.bootstrap_commands)
+
+      if EcsManager.service_exists?(@target.cluster, family)
         info("Service for #{family} already exists.")
       else
         unless @target.service_config
@@ -73,19 +71,7 @@ module Broadside
         end
 
         info "Service '#{family}' doesn't exist, creating..."
-        EcsManager.create_service(config.ecs.cluster, family, @target.service_config)
-      end
-    end
-
-    def run_bootstrap_commands
-      return if @target.bootstrap_commands.nil? || @target.bootstrap_commands.empty?
-
-      update_task_revision
-
-      begin
-        @target.bootstrap_commands.each { |command| run_command(command) }
-      ensure
-        EcsManager.deregister_last_n_tasks_definitions(family, 1)
+        EcsManager.create_service(@target.cluster, family, @target.service_config)
       end
     end
 
@@ -109,34 +95,20 @@ module Broadside
 
     def run
       super do
-        update_task_revision
-
-        begin
-          run_command(@command)
-        ensure
-          EcsManager.deregister_last_n_tasks_definitions(family, 1)
-        end
+        run_commands(@command)
       end
     end
 
     # runs before deploy commands using the latest task definition
     def run_predeploy
       super do
-        return if @target.predeploy_commands.nil? || @target.predeploy_commands.empty?
-
-        update_task_revision
-
-        begin
-          @target.predeploy_commands.each { |command| run_command(command) }
-        ensure
-          EcsManager.deregister_last_n_tasks_definitions(family, 1)
-        end
+        run_commands(@target.predeploy_commands)
       end
     end
 
     def status
       super do
-        ips = EcsManager.get_running_instance_ips(config.ecs.cluster, family)
+        ips = EcsManager.get_running_instance_ips(@target.cluster, family)
         info "\n---------------",
           "\nDeployed task definition information:\n",
           Rainbow(PP.pp(EcsManager.get_latest_task_definition(family), '')).blue,
@@ -180,7 +152,7 @@ module Broadside
     private
 
     def get_running_instance_ip
-      EcsManager.get_running_instance_ips(config.ecs.cluster, family).fetch(@target.instance)
+      EcsManager.get_running_instance_ips(@target.cluster, family).fetch(@target.instance)
     end
 
     # Creates a new task revision using current directory's env vars, provided tag, and configured options.
@@ -209,7 +181,7 @@ module Broadside
       debug "Updating #{family} with scale=#{@target.scale} using task #{task_definition_arn}..."
 
       update_service_response = EcsManager.ecs.update_service({
-        cluster: config.ecs.cluster,
+        cluster: @target.cluster,
         desired_count: @target.scale,
         service: family,
         task_definition: task_definition_arn
@@ -219,7 +191,7 @@ module Broadside
         exception('Failed to update service during deploy.', update_service_response.pretty_inspect)
       end
 
-      EcsManager.ecs.wait_until(:services_stable, { cluster: config.ecs.cluster, services: [family] }) do |w|
+      EcsManager.ecs.wait_until(:services_stable, { cluster: @target.cluster, services: [family] }) do |w|
         w.max_attempts = config.timeout ? config.timeout / config.ecs.poll_frequency : nil
         w.delay = config.ecs.poll_frequency
         seen_event = nil
@@ -235,36 +207,46 @@ module Broadside
       end
     end
 
-    def run_command(command)
-      command_name = command.join(' ')
-      run_task_response = EcsManager.run_task(config.ecs.cluster, family, command)
+    def run_commands(commands)
+      return if commands.nil? || commands.empty?
 
-      unless run_task_response.successful? && run_task_response.tasks.try(:[], 0)
-        exception("Failed to run #{command_name} task.", run_task_response.pretty_inspect)
-      end
+      update_task_revision
 
-      task_arn = run_task_response.tasks[0].task_arn
-      debug "Launched #{command_name} task #{task_arn}, waiting for completion..."
+      begin
+        Array.wrap(commands).each do |command|
+          command_name = command.join(' ')
+          run_task_response = EcsManager.run_task(@target.cluster, family, command)
 
-      EcsManager.ecs.wait_until(:tasks_stopped, { cluster: config.ecs.cluster, tasks: [task_arn] }) do |w|
-        w.max_attempts = nil
-        w.delay = config.ecs.poll_frequency
-        w.before_attempt do |attempt|
-          debug "Attempt #{attempt}: waiting for #{command_name} to complete..."
+          unless run_task_response.successful? && run_task_response.tasks.try(:[], 0)
+            exception("Failed to run #{command_name} task.", run_task_response.pretty_inspect)
+          end
+
+          task_arn = run_task_response.tasks[0].task_arn
+          debug "Launched #{command_name} task #{task_arn}, waiting for completion..."
+
+          EcsManager.ecs.wait_until(:tasks_stopped, { cluster: @target.cluster, tasks: [task_arn] }) do |w|
+            w.max_attempts = nil
+            w.delay = config.ecs.poll_frequency
+            w.before_attempt do |attempt|
+              debug "Attempt #{attempt}: waiting for #{command_name} to complete..."
+            end
+          end
+
+          info "#{command_name} task container logs:\n#{get_container_logs(task_arn)}"
+
+          if (code = EcsManager.get_task_exit_code(@target.cluster, task_arn, family)) == 0
+            debug "#{command_name} task #{task_arn} exited with status code 0"
+          else
+            exception "#{command_name} task #{task_arn} exited with a non-zero status code #{code}!"
+          end
         end
-      end
-
-      info "#{command_name} task container logs:\n#{get_container_logs(task_arn)}"
-
-      if (code = EcsManager.get_task_exit_code(config.ecs.cluster, task_arn, family)) == 0
-        debug "#{command_name} task #{task_arn} exited with status code 0"
-      else
-        exception "#{command_name} task #{task_arn} exited with a non-zero status code #{code}!"
+      ensure
+        EcsManager.deregister_last_n_tasks_definitions(family, 1)
       end
     end
 
     def get_container_logs(task_arn)
-      ip = EcsManager.get_running_instance_ips(config.ecs.cluster, family, task_arn).first
+      ip = EcsManager.get_running_instance_ips(@target.cluster, family, task_arn).first
       debug "Found ip of container instance: #{ip}"
 
       find_container_id_cmd = "#{gen_ssh_cmd(ip)} \"docker ps -aqf 'label=com.amazonaws.ecs.task-arn=#{task_arn}'\""

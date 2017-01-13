@@ -23,7 +23,6 @@ describe Broadside::Target do
     it_behaves_like 'valid_configuration?', false, env_files: nil
     it_behaves_like 'valid_configuration?', true,  {}
 
-    it_behaves_like 'valid_configuration?', false, command: 'bundle exec rails s'
     it_behaves_like 'valid_configuration?', true,  command: nil
     it_behaves_like 'valid_configuration?', true,  command: ['bundle', 'exec', 'resque:work']
 
@@ -35,10 +34,6 @@ describe Broadside::Target do
       Broadside::PredeployCommands::RAKE_DB_MIGRATE,
       ['bundle', 'exec', 'rake' 'assets:precompile']
     ]
-
-    it_behaves_like 'valid_configuration?', false, command: 'bundle exec rails s'
-    it_behaves_like 'valid_configuration?', true,  command: nil
-    it_behaves_like 'valid_configuration?', true,  command: ['bundle', 'exec', 'resque:work']
   end
 
   describe '#load_env_vars!' do

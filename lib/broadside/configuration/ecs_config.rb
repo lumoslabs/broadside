@@ -1,3 +1,5 @@
+require 'dry-struct'
+
 module Broadside
   class EcsConfig
     include VerifyInstanceVariables
