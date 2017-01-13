@@ -19,7 +19,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'activesupport', '>= 3', '< 5'
   spec.add_dependency 'aws-sdk', '~> 2.3'
-  spec.add_dependency 'dotenv', '~> 2.1'
+  spec.add_dependency 'dotenv', '>= 0.9.0'
   spec.add_dependency 'gli', '~> 2.13'
   spec.add_dependency 'rainbow', '~> 2.1'
 
