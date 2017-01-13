@@ -8,6 +8,7 @@ module Broadside
 
     attr_accessor(
       :bootstrap_commands,
+      :command,
       :env_files,
       :env_vars,
       :instance,
@@ -23,6 +24,7 @@ module Broadside
 
     TARGET_ATTRIBUTE_VALIDATIONS = {
       bootstrap_commands:     ->(target_attribute) { validate_commands(target_attribute) },
+      command:                ->(target_attribute) { validate_types([Array, NilClass], target_attribute) },
       env_files:              ->(target_attribute) { validate_types([String, Array], target_attribute) },
       predeploy_commands:     ->(target_attribute) { validate_commands(target_attribute) },
       scale:                  ->(target_attribute) { validate_types([Integer], target_attribute) },
@@ -36,6 +38,7 @@ module Broadside
 
       @bootstrap_commands = @config[:bootstrap_commands] || []
       @cluster = @config[:cluster]
+      @command = @config[:command]
       _env_files = @config[:env_files] || @config[:env_file]
       @env_files = _env_files ? [*_env_files] : nil
       @env_vars = {}
