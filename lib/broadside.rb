@@ -29,8 +29,8 @@ module Broadside
     end
 
     begin
-      load config_file
       config.file = config_file
+      load config_file
     rescue LoadError => e
       error "Encountered an error loading required configuration file '#{config_file}' !"
       raise e

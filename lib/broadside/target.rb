@@ -9,6 +9,7 @@ module Broadside
     attr_accessor(
       :bootstrap_commands,
       :command,
+      :env_files,
       :env_vars,
       :instance,
       :name,
@@ -39,7 +40,7 @@ module Broadside
       @bootstrap_commands = @config[:bootstrap_commands] || []
       @cluster = @config[:cluster]
       @command = @config[:command]
-      @env_files = [*@config[:env_files]]
+      @env_files = @config[:env_files] ? [*@config[:env_files]] : [*@config[:env_file]]
       @env_vars = {}
       @instance = DEFAULT_INSTANCE || @config[:instance]
       @predeploy_commands = @config[:predeploy_commands]
@@ -60,7 +61,7 @@ module Broadside
 
     def validate!
       invalid_messages = TARGET_ATTRIBUTE_VALIDATIONS.map do |var, validation|
-        message = validation.call(@config[var])
+        message = validation.call(send(var))
         message.nil? ? nil : "Deploy target '#{@name}' parameter '#{var}' is invalid: #{message}"
       end.compact
 

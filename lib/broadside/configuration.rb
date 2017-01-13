@@ -6,7 +6,7 @@ module Broadside
     include VerifyInstanceVariables
     include Utils
 
-    attr_accessor :application, :docker_image, :file, :logger, :prehook, :posthook, :ssh, :type
+    attr_accessor :application, :docker_image, :file, :git_repo, :logger, :prehook, :posthook, :ssh, :type
     attr_reader :targets
 
     def initialize
