@@ -1,16 +1,15 @@
 Broadside.configure do |c|
-  c.base.application = 'TEST_APP'
-  c.base.docker_image = 'rails'
-  c.base.logger.level = Logger::ERROR
-  c.deploy.tag = 'TEST_TAG'
-  c.deploy.targets = {
+  c.application = 'TEST_APP'
+  c.docker_image = 'rails'
+  c.logger.level = Logger::ERROR
+  c.targets = {
     TEST_TARGET: {
       scale: 1,
       command: ['sleep', 'infinity'],
-      env_file: './.env.test'
+      env_files: File.join(FIXTURES_PATH, 'sample_dotenv')
     }
   }
-  c.deploy.ssh = {
+  c.ssh = {
     user: 'app-default-user'
   }
 end

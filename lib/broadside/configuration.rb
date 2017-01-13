@@ -1,15 +1,30 @@
+require 'logger'
+
 module Broadside
   class Configuration
+    extend Gem::Deprecate
+    include VerifyInstanceVariables
     include Utils
 
-    attr_accessor :base, :deploy, :ecs, :aws, :file
+    attr_accessor(
+      :application,
+      :docker_image,
+      :file,
+      :git_repo,
+      :logger,
+      :prehook,
+      :posthook,
+      :ssh,
+      :timeout,
+      :type
+    )
+    attr_reader :targets
 
     def initialize
-      @base = BaseConfig.new
-    end
-
-    def deploy
-      @deploy ||= DeployConfig.new
+      @logger = ::Logger.new(STDOUT)
+      @logger.level = ::Logger::DEBUG
+      @logger.datetime_format = '%Y-%m-%d_%H:%M:%S'
+      @timeout = 600
     end
 
     def aws
@@ -20,13 +35,24 @@ module Broadside
       @ecs ||= EcsConfig.new
     end
 
-    def verify
-      @base.verify(:application, :docker_image)
+    def targets=(_targets)
+      raise ArgumentError, "Targets must be a hash" unless _targets.is_a?(Hash)
+      @targets = _targets.map { |name, config| Target.new(name, config) }
     end
 
-    def method_missing(m, *args, &block)
-      warn "Unknown configuration '#{m}' provided, ignoring. Check your version of broadside?"
-      ConfigStruct.new
+    def verify(*args)
+      super(*([:application, :docker_image] + args))
     end
+
+    # Maintain backward compatibility
+    def deploy
+      self
+    end
+    deprecate :deploy, 'config.deploy.option should be configured directly as config.option', 2017, 4
+
+    def base
+      self
+    end
+    deprecate :base, 'config.base.option should be configured directly as config.option', 2017, 4
   end
 end

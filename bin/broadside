@@ -26,8 +26,10 @@ def add_shared_deploy_configs(subcmd)
   subcmd.flag [:t, :target], type: Symbol
 
   subcmd.action do |global_options, options, args|
-    _DeployObj = Kernel.const_get("Broadside::#{Broadside.config.deploy.type.capitalize}Deploy")
-    _DeployObj.new(options).public_send(subcmd.name)
+    _DeployObj = Kernel.const_get("Broadside::#{Broadside.config.type.capitalize}Deploy")
+    _target = Broadside.config.targets.select { |t| t.name == options[:target] }.first
+    raise "Bad target: #{options[:target]}" unless _target
+    _DeployObj.new(_target, options).public_send(subcmd.name)
   end
 end
 
@@ -44,9 +46,9 @@ end
 
 desc 'Bootstrap your service and task definition from the configured definition.'
 command :bootstrap do |b|
-  subcmd.desc 'Docker tag for application container'
-  subcmd.arg_name 'TAG'
-  subcmd.flag [:tag]
+  b.desc 'Docker tag for application container'
+  b.arg_name 'TAG'
+  b.flag [:tag]
 
   add_shared_deploy_configs(b)
 end
@@ -144,7 +146,8 @@ command :deploy do |d|
 end
 
 def call_hook(type, command)
-  hook = Broadside.config.base.send(type)
+  hook = Broadside.config.send(type)
+
   if hook.is_a?(Proc)
     hook_args =
       if command.parent.is_a?(GLI::Command)

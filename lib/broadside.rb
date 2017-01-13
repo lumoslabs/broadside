@@ -1,14 +1,14 @@
 require 'broadside/error'
 require 'broadside/utils'
+require 'broadside/configuration/verify_instance_variables'
 require 'broadside/configuration'
-require 'broadside/configuration/config_struct'
 require 'broadside/configuration/aws_config'
-require 'broadside/configuration/base_config'
-require 'broadside/configuration/deploy_config'
 require 'broadside/configuration/ecs_config'
+require 'broadside/target'
 require 'broadside/deploy'
-require 'broadside/deploy/ecs_deploy'
-require 'broadside/deploy/ecs_manager'
+require 'broadside/predeploy_commands'
+require 'broadside/ecs/ecs_deploy'
+require 'broadside/ecs/ecs_manager'
 require 'broadside/version'
 
 module Broadside
@@ -29,8 +29,8 @@ module Broadside
     end
 
     begin
-      load config_file
       config.file = config_file
+      load config_file
     rescue LoadError => e
       error "Encountered an error loading required configuration file '#{config_file}' !"
       raise e
