@@ -40,8 +40,8 @@ module Broadside
       @targets = _targets.map { |name, config| Target.new(name, config) }
     end
 
-    def verify
-      super(:application, :docker_image)
+    def verify(*args)
+      super(*([:application, :docker_image] + args))
     end
 
     # Maintain backward compatibility
