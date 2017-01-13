@@ -23,28 +23,29 @@ module Broadside
     DEFAULT_INSTANCE = 0
 
     TARGET_ATTRIBUTE_VALIDATIONS = {
-      command: ->(target_attribute) { validate_types([Array, NilClass], target_attribute) },
-      env_files: ->(target_attribute) { validate_types([String, Array], target_attribute) },
-      bootstrap_commands: ->(target_attribute) { validate_commands(target_attribute) },
-      predeploy_commands: ->(target_attribute) { validate_commands(target_attribute) },
-      scale: ->(target_attribute) { validate_types([Integer], target_attribute) },
-      service_config: ->(target_attribute) { validate_types([Hash, NilClass], target_attribute) },
+      bootstrap_commands:     ->(target_attribute) { validate_commands(target_attribute) },
+      command:                ->(target_attribute) { validate_types([Array, NilClass], target_attribute) },
+      env_files:              ->(target_attribute) { validate_types([String, Array], target_attribute) },
+      predeploy_commands:     ->(target_attribute) { validate_commands(target_attribute) },
+      scale:                  ->(target_attribute) { validate_types([Integer], target_attribute) },
+      service_config:         ->(target_attribute) { validate_types([Hash, NilClass], target_attribute) },
       task_definition_config: ->(target_attribute) { validate_types([Hash, NilClass], target_attribute) }
     }
 
-    def initialize(name, _config)
+    def initialize(name, options = {})
       @name = name
-      @config = _config
+      @config = options
 
       @bootstrap_commands = @config[:bootstrap_commands] || []
       @cluster = @config[:cluster]
       @command = @config[:command]
       @env_files = [*@config[:env_files]]
       @env_vars = {}
-      @instance = DEFAULT_INSTANCE
+      @instance = DEFAULT_INSTANCE || @config[:instance]
       @predeploy_commands = @config[:predeploy_commands]
       @scale = @config[:scale] || 1
       @service_config = @config[:service_config]
+      @tag = @config[:tag]
       @task_definition_config = @config[:task_definition_config]
 
       validate!

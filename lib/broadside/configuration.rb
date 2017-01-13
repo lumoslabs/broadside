@@ -6,8 +6,6 @@ module Broadside
     include VerifyInstanceVariables
     include Utils
 
-    # Sub configs
-    attr_accessor :ecs, :aws
     attr_accessor :application, :docker_image, :file, :logger, :prehook, :posthook, :ssh, :type
     attr_reader :targets
 
@@ -29,18 +27,19 @@ module Broadside
       @targets = _targets.map { |name, config| Target.new(name, config) }
     end
 
+    def verify
+      super(:application, :docker_image)
+    end
+
     # Maintain backward compatibility
+    def deploy
+      self
+    end
+    deprecate :deploy, 'config.deploy.option should be configured directly as config.option', 2017, 4
+
     def base
       self
     end
     deprecate :base, 'config.base.option should be configured directly as config.option', 2017, 4
-
-    def deploy
-      raise ArgumentError, 'config.deploy was removed in Broadside 2.0'
-    end
-
-    def verify
-      super(:application, :docker_image)
-    end
   end
 end
