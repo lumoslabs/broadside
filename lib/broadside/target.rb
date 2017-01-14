@@ -22,16 +22,6 @@ module Broadside
 
     DEFAULT_INSTANCE = 0
 
-    TARGET_ATTRIBUTE_VALIDATIONS = {
-      bootstrap_commands:     ->(target_attribute) { validate_commands(target_attribute) },
-      command:                ->(target_attribute) { validate_types([Array, NilClass], target_attribute) },
-      env_files:              ->(target_attribute) { validate_types([String, Array], target_attribute) },
-      predeploy_commands:     ->(target_attribute) { validate_commands(target_attribute) },
-      scale:                  ->(target_attribute) { validate_types([Integer], target_attribute) },
-      service_config:         ->(target_attribute) { validate_types([Hash, NilClass], target_attribute) },
-      task_definition_config: ->(target_attribute) { validate_types([Hash, NilClass], target_attribute) }
-    }
-
     def initialize(name, options = {})
       @name = name
       @config = options
@@ -59,6 +49,16 @@ module Broadside
 
     private
 
+    TARGET_ATTRIBUTE_VALIDATIONS = {
+      bootstrap_commands:     ->(target_attribute) { validate_commands(target_attribute) },
+      command:                ->(target_attribute) { validate_types([Array, NilClass], target_attribute) },
+      env_files:              ->(target_attribute) { validate_types([String, Array], target_attribute) },
+      predeploy_commands:     ->(target_attribute) { validate_commands(target_attribute) },
+      scale:                  ->(target_attribute) { validate_types([Integer], target_attribute) },
+      service_config:         ->(target_attribute) { validate_types([Hash, NilClass], target_attribute) },
+      task_definition_config: ->(target_attribute) { validate_types([Hash, NilClass], target_attribute) }
+    }.freeze
+
     def validate!
       invalid_messages = TARGET_ATTRIBUTE_VALIDATIONS.map do |var, validation|
         message = validation.call(instance_variable_get('@' + var.to_s))
@@ -75,13 +75,12 @@ module Broadside
         env_file = Pathname.new(env_path)
 
         unless env_file.absolute?
-          dir = config.file.nil? ? Dir.pwd : Pathname.new(config.file).dirname
+          dir = config.config_file.nil? ? Dir.pwd : Pathname.new(config.config_file).dirname
           env_file = env_file.expand_path(dir)
         end
 
         if env_file.exist?
-          vars = Dotenv.load(env_file)
-          @env_vars.merge!(vars)
+          @env_vars.merge!(Dotenv.load(env_file))
         else
           raise ArgumentError, "Could not find file '#{env_file}' for loading environment variables !"
         end
@@ -93,7 +92,6 @@ module Broadside
 
     def self.validate_types(types, target_attribute)
       return nil if types.any? { |type| target_attribute.is_a?(type) }
-
       "'#{target_attribute}' must be of type [#{types.join('|')}], got '#{target_attribute.class}' !"
     end
 

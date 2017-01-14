@@ -6,11 +6,11 @@ module Broadside
     include VerifyInstanceVariables
     include Utils
 
+    attr_reader :targets
     attr_accessor(
       :application,
+      :config_file,
       :docker_image,
-      :file,
-      :git_repo,
       :logger,
       :prehook,
       :posthook,
@@ -18,7 +18,6 @@ module Broadside
       :timeout,
       :type
     )
-    attr_reader :targets
 
     def initialize
       @logger = ::Logger.new(STDOUT)
@@ -42,6 +41,10 @@ module Broadside
 
     def verify(*args)
       super(*([:application, :docker_image] + args))
+    end
+
+    def git_repo=
+      @logger.warn("Assigning :git_repo does nothing.")
     end
 
     # Maintain backward compatibility
