@@ -33,6 +33,16 @@ def add_target_configs(subcmd)
   end
 end
 
+# Commands like bash, ssh, and logtail require an instance
+def add_instance_config(cmd)
+  cmd.desc '0-based index into the array of running instances'
+  cmd.default_value 0
+  cmd.arg_name 'INSTANCE'
+  cmd.flag [:n, :instance], type: Fixnum
+
+  add_target_configs(cmd)
+end
+
 # GLI type coercions
 accept Symbol do |val|
   val.to_sym
@@ -110,39 +120,24 @@ command :run do |run|
   add_target_configs(run)
 end
 
-desc 'Tail the logs inside the running container.'
+desc 'Tail the logs inside a running container.'
 command :logtail do |logtail|
-  logtail.desc '0-based instance index'
-  logtail.default_value 0
-  logtail.arg_name 'INSTANCE'
-  logtail.flag [:n, :instance], type: Fixnum
-
   logtail.desc 'Number of lines to tail'
   logtail.default_value 10
   logtail.arg_name 'TAIL_LINES'
   logtail.flag [:l, :lines], type: Fixnum
 
-  add_target_configs(logtail)
+  add_instance_config(logtail)
 end
 
-desc 'Establish a secure shell on the instance running the container.'
+desc 'Establish a secure shell on an instance running the container.'
 command :ssh do |ssh|
-  ssh.desc '0-based instance index'
-  ssh.default_value 0
-  ssh.arg_name 'INSTANCE'
-  ssh.flag [:n, :instance], type: Fixnum
-
-  add_target_configs(ssh)
+  add_instance_config(ssh)
 end
 
-desc 'Establish a shell inside the running container.'
+desc 'Establish a shell inside a running container.'
 command :bash do |bash|
-  bash.desc '0-based instance index'
-  bash.default_value 0
-  bash.arg_name 'INSTANCE'
-  bash.flag [:n, :instance], type: Fixnum
-
-  add_target_configs(bash)
+  add_instance_config(bash)
 end
 
 def call_hook(type, command)
