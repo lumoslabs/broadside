@@ -263,7 +263,7 @@ module Broadside
         raise ArgumentError, 'Creating > 1 container definition not supported yet'
       end
 
-      (configured_containers.first || {}).merge(
+      (configured_containers.try(:first) || {}).merge(
         name: family,
         command: @command,
         environment: @target.env_vars,
