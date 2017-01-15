@@ -90,11 +90,11 @@ command :deploy do |d|
 
     add_target_configs(rollback)
   end
+end
 
-  desc 'Gets information about what is currently deployed.'
-  d.command :status do |status|
-    add_target_configs(status)
-  end
+desc 'Gets information about what is currently deployed.'
+command :status do |status|
+  add_target_configs(status)
 end
 
 desc 'Creates a single instance of the application to run a command.'
