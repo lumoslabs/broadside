@@ -104,7 +104,6 @@ command :run do |run|
   add_target_configs(run)
 end
 
-command
 desc 'Tail the logs inside the running container.'
 command :logtail do |logtail|
   logtail.desc '0-based instance index'
@@ -168,7 +167,6 @@ post do |global, command, options, args|
   call_hook(:posthook, command)
   true
 end
-
 
 on_error do |exception|
   # false skips default error handling
