@@ -43,7 +43,7 @@ module Broadside
       super(*([:application, :docker_image] + args))
     end
 
-    def git_repo=
+    def git_repo=(_)
       @logger.warn("Assigning :git_repo does nothing.")
     end
 

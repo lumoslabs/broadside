@@ -34,9 +34,15 @@ def add_target_configs(subcmd)
 end
 
 # GLI type coercions
-accept Symbol { |val| val.to_sym }
-accept Array  { |val| val.split(' ') }
-accept Fixnum { |val| val.to_i }
+accept Symbol do |val|
+  val.to_sym
+end
+accept Array do |val|
+  val.split(' ')
+end
+accept Fixnum do |val|
+  val.to_i
+end
 
 desc 'Bootstrap your service and task definition from the configured definition.'
 command :bootstrap do |bootstrap|

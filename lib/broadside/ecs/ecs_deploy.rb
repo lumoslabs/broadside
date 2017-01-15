@@ -190,7 +190,7 @@ module Broadside
         seen_event = nil
 
         w.before_wait do |attempt, response|
-          debug "(#{attempt}/#{w.max_attempts ? w.max_attempt : Float::INFINITY}) Polling ECS for events..."
+          debug "(#{attempt}/#{w.max_attempts ? w.max_attempts : Float::INFINITY}) Polling ECS for events..."
           # skip first event since it doesn't apply to current request
           if response.services[0].events.first && response.services[0].events.first.id != seen_event && attempt > 1
             seen_event = response.services[0].events.first.id
