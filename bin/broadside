@@ -20,7 +20,7 @@ arg_name 'FILE'
 flag [:c, :config]
 
 def add_target_configs(subcmd)
-  # deployment always requires target
+  # Everything requires a target
   subcmd.desc 'Deployment target to use, e.g. production_web'
   subcmd.arg_name 'TARGET'
   subcmd.flag [:t, :target], type: Symbol
