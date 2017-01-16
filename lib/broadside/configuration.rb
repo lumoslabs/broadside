@@ -24,6 +24,7 @@ module Broadside
       @logger.level = ::Logger::DEBUG
       @logger.datetime_format = '%Y-%m-%d_%H:%M:%S'
       @timeout = 600
+      @type = 'ecs'
     end
 
     def aws

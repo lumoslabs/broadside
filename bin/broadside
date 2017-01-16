@@ -141,7 +141,7 @@ command :bash do |bash|
 end
 
 def call_hook(type, command)
-  hook = Broadside.config.send(type)
+  hook = Broadside.config.public_send(type)
 
   if hook.is_a?(Proc)
     hook_args =
