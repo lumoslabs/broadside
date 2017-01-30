@@ -15,7 +15,7 @@ Broadside.configure do |config|
   config.docker_image = 'lumoslabs/hello_world'
   config.type = 'ecs'
   config.ecs.cluster = 'micro-cluster'
-  config.deploy.targets = {
+  config.targets = {
     production_web: {
       scale: 7,
       command: ['bundle', 'exec', 'unicorn', '-c', 'config/unicorn.conf.rb'],
