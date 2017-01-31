@@ -31,11 +31,6 @@ Broadside.configure do |config|
       env_file: '../.env.staging',
       tag: 'latest_staging' # Either configure the tag per target or pass --tag to the deploy command
     },
-    staging_worker: {
-      scale: 1,
-      command: ['bundle', 'exec', 'rake', 'resque:work'],
-      env_file: '../.env.staging'
-    },
     # Example with a task_definition and service configuration which you use to bootstrap a service and
     # initial task definition.  Accepts all the options AWS does - read their documentation for details:
     #
