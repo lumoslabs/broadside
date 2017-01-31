@@ -177,7 +177,7 @@ module Broadside
 
       update_service_response = EcsManager.ecs.update_service({
         cluster: @target.cluster,
-        desired_count: @target.scale,
+        desired_count: @target.scale.to_i,
         service: family,
         task_definition: task_definition_arn
       }.deep_merge(@target.service_config || {}))

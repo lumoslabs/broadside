@@ -38,10 +38,10 @@ module Broadside
     end
 
     validates_each :command do |record, attr, v|
-      record.errors.add(attr, 'must be a string or array of strings') unless v.nil? || v.is_a?(Array)
+      record.errors.add(attr, 'must be an array') unless v.nil? || v.is_a?(Array)
     end
 
-    validates :scale, numericality: true
+    validates :scale, numericality: { only_integer: true }
 
     def initialize(name, options = {})
       @name = name

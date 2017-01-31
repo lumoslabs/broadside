@@ -6,7 +6,7 @@ module Broadside
     include LoggingUtils
     include VerifyInstanceVariables
 
-    validates :instance, :lines, :rollback, :scale, numericality: true
+    #validates :instance, :lines, :scale, numericality: true
 
     attr_reader(
       :command,

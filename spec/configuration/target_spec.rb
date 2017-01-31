@@ -18,7 +18,6 @@ describe Broadside::Target do
 
   describe '#validate_targets!' do
     it_behaves_like 'valid_configuration?', false, scale: 1.1
-    it_behaves_like 'valid_configuration?', false, scale: '1'
     it_behaves_like 'valid_configuration?', false, scale: nil
     it_behaves_like 'valid_configuration?', true,  scale: 100
 
