@@ -169,9 +169,9 @@ describe Broadside::EcsDeploy do
 
       before(:each) do
         ecs_stub.stub_responses(:list_tasks, task_arns: [task_arn])
-        ecs_stub.stub_responses(:describe_tasks, tasks: [container_instance_arn: container_arn])
+        ecs_stub.stub_responses(:describe_tasks, tasks: [{ container_instance_arn: container_arn }])
         ecs_stub.stub_responses(:describe_container_instances, container_instances: [{ ec2_instance_id: instance_id }])
-        ec2_stub.stub_responses(:describe_instances, { reservations: [ instances: [ { private_ip_address: ip } ] ] })
+        ec2_stub.stub_responses(:describe_instances, reservations: [ instances: [ { private_ip_address: ip } ] ])
 
         allow(deploy).to receive(:exec).with("ssh -o StrictHostKeyChecking=no -t -t #{user}@#{ip} 'docker exec -i -t `docker ps -n 1 --quiet --filter name=#{family}` bash'")
       end

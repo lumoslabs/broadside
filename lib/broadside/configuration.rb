@@ -42,7 +42,7 @@ module Broadside
     end
 
     def verify(*args)
-      super(*([:application, :docker_image] + args))
+      super(*([:application] + args))
     end
   end
 end

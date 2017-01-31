@@ -181,7 +181,7 @@ module Broadside
       }.deep_merge(@target.service_config || {}))
 
       unless update_service_response.successful?
-        raise Error, "Failed to update service during deploy:\n #{update_service_response.pretty_inspect}"
+        raise Error, "Failed to update service during deploy:\n#{update_service_response.pretty_inspect}"
       end
 
       EcsManager.ecs.wait_until(:services_stable, { cluster: @target.cluster, services: [family] }) do |w|
