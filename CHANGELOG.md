@@ -3,6 +3,7 @@
 - **BREAKING CHANGE**: `config.git_repo` was removed.  `config.base` and `config.deploy` also are no longer backwards compatible
 - Put back per target `tag:` config
 - Only load `env_files` for the selected target (AKA don't preload everything when you aren't using it)
+- Add `list_targets` command to display all the targets' deployed images and CPU/memory allocations
 
 # 2.0.0
 - **BREAKING CHANGE**: `rake db:migrate` is no longer the default `predeploy_command`
