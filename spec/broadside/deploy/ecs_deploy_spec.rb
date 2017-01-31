@@ -9,6 +9,9 @@ describe Broadside::EcsDeploy do
   let(:deploy) { described_class.new(target, tag: 'tag_the_bag') }
   let(:desired_count) { 2 }
   let(:minimum_healthy_percent) { 40 }
+  let(:cpu) { 1 }
+  let(:memory) { 2000 }
+  let(:arn) { 'arn:aws:ecs:us-east-1:1234' }
   let(:service_config) do
     {
       desired_count: desired_count,
@@ -17,9 +20,6 @@ describe Broadside::EcsDeploy do
       }
     }
   end
-
-  let(:cpu) { 1 }
-  let(:memory) { 2000 }
   let(:task_definition_config) do
     {
       container_definitions: [
@@ -30,8 +30,6 @@ describe Broadside::EcsDeploy do
       ]
     }
   end
-
-  let(:arn) { 'arn:aws:ecs:us-east-1:1234' }
   let(:existing_service) do
     {
       service_name: test_target.to_s,
@@ -90,9 +88,7 @@ describe Broadside::EcsDeploy do
 
         context 'and some configured bootstrap commands' do
           let(:commands) { [%w(foo bar baz)] }
-          let(:target) do
-            Broadside::Target.new(test_target, test_target_config.merge(bootstrap_commands: commands))
-          end
+          let(:target) { Broadside::Target.new(test_target, test_target_config.merge(bootstrap_commands: commands)) }
 
           it 'runs bootstrap commands' do
             expect(deploy).to receive(:run_commands).with(commands)
@@ -105,7 +101,7 @@ describe Broadside::EcsDeploy do
 
   context 'deploy' do
     it 'fails without an existing service' do
-      expect { deploy.deploy }.to raise_error(/No service for '#{family}'!/)
+      expect { deploy.short }.to raise_error(/No service for '#{family}'!/)
     end
 
     context 'with an existing service' do
@@ -114,7 +110,7 @@ describe Broadside::EcsDeploy do
       end
 
       it 'fails without an existing task_definition' do
-        expect { deploy.deploy }.to raise_error(/No task definition for/)
+        expect { deploy.short }.to raise_error(/No task definition for/)
       end
 
       context 'with an existing task definition' do
@@ -170,7 +166,7 @@ describe Broadside::EcsDeploy do
       let(:container_arn) { 'some_container_arn' }
       let(:instance_id) { 'i-xxxxxxxx' }
       let(:ip) { '123.123.123.123' }
-      
+
       before(:each) do
         ecs_stub.stub_responses(:list_tasks, task_arns: [task_arn])
         ecs_stub.stub_responses(:describe_tasks, tasks: [container_instance_arn: container_arn])
