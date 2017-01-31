@@ -14,16 +14,16 @@ module Broadside
 
     def initialize(target, opts = {})
       super
-      Broadside.config.ecs.verify(:cluster, :poll_frequency)
+      Broadside.config.ecs.verify(:poll_frequency)
     end
 
     def deploy
       super do
         unless EcsManager.service_exists?(@target.cluster, family)
-          raise ArgumentError, "No service for '#{family}'! Please bootstrap or manually configure one."
+          raise Error, "No service for '#{family}'! Please bootstrap or manually configure one."
         end
         unless EcsManager.get_latest_task_definition_arn(family)
-          raise ArgumentError, "No task definition for '#{family}'! Please bootstrap or manually configure one."
+          raise Error, "No task definition for '#{family}'! Please bootstrap or manually configure one."
         end
 
         update_task_revision
