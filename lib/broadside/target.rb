@@ -66,6 +66,16 @@ module Broadside
 
     private
 
+    TARGET_ATTRIBUTE_VALIDATIONS = {
+      bootstrap_commands:     ->(target_attribute) { validate_commands(target_attribute) },
+      command:                ->(target_attribute) { validate_types([Array, NilClass], target_attribute) },
+      env_files:              ->(target_attribute) { validate_types([String, Array], target_attribute) },
+      predeploy_commands:     ->(target_attribute) { validate_commands(target_attribute) },
+      scale:                  ->(target_attribute) { validate_types([Integer], target_attribute) },
+      service_config:         ->(target_attribute) { validate_types([Hash, NilClass], target_attribute) },
+      task_definition_config: ->(target_attribute) { validate_types([Hash, NilClass], target_attribute) }
+    }.freeze
+
     def validate!
       invalid_messages = TARGET_ATTRIBUTE_VALIDATIONS.map do |var, validation|
         message = validation.call(instance_variable_get('@' + var.to_s))
