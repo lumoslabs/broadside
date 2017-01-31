@@ -7,11 +7,11 @@ module Broadside
     include VerifyInstanceVariables
     include LoggingUtils
 
-    attr_reader :env_vars
-    attr_accessor(
+    attr_reader(
       :bootstrap_commands,
       :command,
       :env_files,
+      :env_vars,
       :name,
       :predeploy_commands,
       :scale,

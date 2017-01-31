@@ -57,7 +57,9 @@ describe Broadside::EcsDeploy do
     }
   end
 
-  before(:each) { Broadside::EcsManager.instance_variable_set(:@ecs_client, ecs_stub) }
+  before(:each) do
+    Broadside::EcsManager.instance_variable_set(:@ecs_client, ecs_stub)
+  end
 
   it 'should instantiate an object' do
     expect { deploy }.to_not raise_error
@@ -75,8 +77,7 @@ describe Broadside::EcsDeploy do
       end
 
       it 'fails without service_config' do
-        deploy.target.task_definition_config = task_definition_config
-
+        deploy.target.instance_variable_set(:@task_definition_config, task_definition_config)
         expect { deploy.bootstrap }.to raise_error(/Service doesn't exist and no :service_config/)
       end
 
@@ -86,8 +87,8 @@ describe Broadside::EcsDeploy do
         end
 
         it 'succeeds' do
-          deploy.target.service_config = service_config
-          deploy.target.task_definition_config = task_definition_config
+          deploy.target.instance_variable_set(:@service_config, service_config)
+          deploy.target.instance_variable_set(:@task_definition_config, task_definition_config)
 
           expect { deploy.bootstrap }.to_not raise_error
         end
@@ -132,7 +133,7 @@ describe Broadside::EcsDeploy do
         end
 
         it 'should reconfigure the task definition' do
-          deploy.target.task_definition_config = task_definition_config
+          deploy.target.instance_variable_set(:@task_definition_config, task_definition_config)
           deploy.short
 
           register_requests = api_request_log.select { |cmd| cmd.keys.first == :register_task_definition }
@@ -143,7 +144,7 @@ describe Broadside::EcsDeploy do
         end
 
         it 'should reconfigure the service definition' do
-          deploy.target.service_config = service_config
+          deploy.target.instance_variable_set(:@service_config, service_config)
           deploy.short
 
           service_requests = api_request_log.select { |cmd| cmd.keys.first == :update_service }
