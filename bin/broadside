@@ -182,6 +182,9 @@ on_error do |exception|
   when Broadside::MissingVariableError
     error exception.message, "Run your last command with --help for more information."
     false
+  when Dotenv::FormatError
+    error exception.message, "Error parsing .env files"
+    false
   else
     true
   end
