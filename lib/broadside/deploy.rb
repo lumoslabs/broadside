@@ -14,7 +14,7 @@ module Broadside
     def initialize(target, opts = {})
       @target   = target
       @command  = opts[:command]  || @target.command
-      @instance = opts[:instance] || @target.instance
+      @instance = opts[:instance] || 0
       @lines    = opts[:lines]    || 10
       @rollback = opts[:rollback] || 1
       @scale    = opts[:scale]    || @target.scale

@@ -12,15 +12,12 @@ module Broadside
       :bootstrap_commands,
       :command,
       :env_files,
-      :instance,
       :name,
       :predeploy_commands,
       :scale,
       :service_config,
       :task_definition_config
     )
-
-    DEFAULT_INSTANCE = 0
 
     def initialize(name, options = {})
       @name = name
@@ -31,7 +28,6 @@ module Broadside
       @command = @config[:command]
       @env_files = Array.wrap(@config[:env_files] || @config[:env_file])
       @env_vars = {}
-      @instance = DEFAULT_INSTANCE || @config[:instance]
       @predeploy_commands = @config[:predeploy_commands]
       @scale = @config[:scale]
       @service_config = @config[:service_config]
