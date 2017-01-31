@@ -69,21 +69,17 @@ module Broadside
     def status
       info "Getting status information about #{family}"
       yield
-      info 'Complete.'
     end
 
     def logtail
-      verify(:instance)
       yield
     end
 
     def ssh
-      verify(:instance)
       yield
     end
 
     def bash
-      verify(:instance)
       yield
     end
 
