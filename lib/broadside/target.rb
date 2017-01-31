@@ -1,3 +1,4 @@
+require 'active_support/core_ext/array'
 require 'dotenv'
 require 'pathname'
 
@@ -28,8 +29,7 @@ module Broadside
       @bootstrap_commands = @config[:bootstrap_commands]
       @cluster = @config[:cluster]
       @command = @config[:command]
-      _env_files = @config[:env_files] || @config[:env_file]
-      @env_files = _env_files ? [*_env_files] : nil
+      @env_files = Array.wrap(@config[:env_files] || @config[:env_file])
       @env_vars = {}
       @instance = DEFAULT_INSTANCE || @config[:instance]
       @predeploy_commands = @config[:predeploy_commands]
@@ -71,7 +71,7 @@ module Broadside
     TARGET_ATTRIBUTE_VALIDATIONS = {
       bootstrap_commands:     ->(target_attribute) { validate_commands(target_attribute) },
       command:                ->(target_attribute) { validate_types([Array, NilClass], target_attribute) },
-      env_files:              ->(target_attribute) { validate_types([String, Array], target_attribute) },
+      env_files:              ->(target_attribute) { validate_types([String, Array, NilClass], target_attribute) },
       predeploy_commands:     ->(target_attribute) { validate_commands(target_attribute) },
       scale:                  ->(target_attribute) { validate_types([Integer], target_attribute) },
       service_config:         ->(target_attribute) { validate_types([Hash, NilClass], target_attribute) },
