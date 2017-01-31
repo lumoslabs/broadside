@@ -1,5 +1,4 @@
 require 'broadside'
-require 'fakefs/spec_helpers'
 require 'pry-byebug'
 require 'shared_contexts'
 
@@ -27,7 +26,6 @@ RSpec.configure do |config|
     Broadside.reset!
   end
 
-  config.include FakeFS::SpecHelpers, fakefs: true
   config.include AwsStubHelper
 
   config.expect_with :rspec do |expectations|
