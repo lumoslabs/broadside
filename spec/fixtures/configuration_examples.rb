@@ -26,26 +26,11 @@ shared_context 'deploy configuration' do
 
   before(:each) do
     Broadside.configure do |c|
-      c.ssh = { user: 'test-user' }
-      c.targets = { test_target => test_target_config }
-    end
-  end
-end
-
-shared_context 'ecs configuration' do
-  include_context 'base configuration'
-
-  before(:each) do
-    Broadside.configure do |c|
-      c.type = 'ecs'
       c.application = 'TEST_APP'
       c.docker_image = 'rails'
       c.ecs.cluster = 'cluster'
+      c.ssh = { user: 'test-user' }
+      c.targets = { test_target => test_target_config }      
     end
   end
-end
-
-shared_context 'full configuration' do
-  include_context 'deploy configuration'
-  include_context 'ecs configuration'
 end
