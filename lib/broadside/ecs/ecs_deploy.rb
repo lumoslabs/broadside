@@ -14,7 +14,7 @@ module Broadside
 
     def initialize(target, opts = {})
       super
-      config.ecs.verify(:cluster, :poll_frequency)
+      Broadside.config.ecs.verify(:cluster, :poll_frequency)
     end
 
     def deploy
@@ -185,8 +185,9 @@ module Broadside
       end
 
       EcsManager.ecs.wait_until(:services_stable, { cluster: @target.cluster, services: [family] }) do |w|
-        w.max_attempts = config.timeout ? config.timeout / config.ecs.poll_frequency : nil
-        w.delay = config.ecs.poll_frequency
+        timeout = Broadside.config.timeout
+        w.delay = Broadside.config.ecs.poll_frequency
+        w.max_attempts = timeout ? timeout / w.delay : nil
         seen_event = nil
 
         w.before_wait do |attempt, response|
@@ -219,7 +220,7 @@ module Broadside
 
           EcsManager.ecs.wait_until(:tasks_stopped, { cluster: @target.cluster, tasks: [task_arn] }) do |w|
             w.max_attempts = nil
-            w.delay = config.ecs.poll_frequency
+            w.delay = Broadside.config.ecs.poll_frequency
             w.before_attempt do |attempt|
               debug "Attempt #{attempt}: waiting for #{command_name} to complete..."
             end

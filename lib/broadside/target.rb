@@ -42,7 +42,7 @@ module Broadside
     end
 
     def cluster
-      @cluster || config.ecs.cluster
+      @cluster || Broadside.config.ecs.cluster
     end
 
     private

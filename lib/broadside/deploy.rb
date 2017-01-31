@@ -26,7 +26,7 @@ module Broadside
     end
 
     def full
-      config.verify(:ssh)
+      Broadside.config.verify(:ssh)
       verify(:tag)
 
       info "Running predeploy commands for #{family}..."
@@ -57,7 +57,7 @@ module Broadside
     end
 
     def run
-      config.verify(:ssh)
+      Broadside.config.verify(:ssh)
       verify(:tag, :command)
       info "Running command [#{@command}] for #{family}..."
       yield
@@ -88,16 +88,16 @@ module Broadside
     private
 
     def family
-      "#{config.application}_#{@target.name}"
+      "#{Broadside.config.application}_#{@target.name}"
     end
 
     def image_tag
       raise ArgumentError, "Missing tag" unless @tag
-      "#{config.docker_image}:#{@tag}"
+      "#{Broadside.config.docker_image}:#{@tag}"
     end
 
     def gen_ssh_cmd(ip, options = { tty: false })
-      opts = config.ssh || {}
+      opts = Broadside.config.ssh || {}
       cmd = 'ssh -o StrictHostKeyChecking=no'
       cmd << ' -t -t' if options[:tty]
       cmd << " -i #{opts[:keyfile]}" if opts[:keyfile]
