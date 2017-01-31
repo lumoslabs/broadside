@@ -52,11 +52,11 @@ module Broadside
           cluster: cluster,
           container_instances: tasks.map(&:container_instance_arn),
         ).container_instances
-        ec2_instance_ids = container_instances.map(&:ec2_instance_id)
 
+        ec2_instance_ids = container_instances.map(&:ec2_instance_id)
         reservations = ec2_client.describe_instances(instance_ids: ec2_instance_ids).reservations
-        instances = reservations.map(&:instances).flatten
-        instances.map(&:private_ip_address)
+        
+        reservations.map(&:instances).flatten.map(&:private_ip_address)
       end
 
       def get_task_arns(cluster, family)
@@ -121,8 +121,8 @@ module Broadside
 
       def ec2_client
         @ec2_client ||= Aws::EC2::Client.new(
-          region: config.aws.region,
-          credentials: config.aws.credentials
+          region: Broadside.config.aws.region,
+          credentials: Broadside.config.aws.credentials
         )
       end
     end

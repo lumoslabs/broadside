@@ -14,8 +14,10 @@ end
 shared_context 'deploy configuration' do
   include_context 'base configuration'
 
+  let(:cluster) { 'cluster' }
   let(:test_target) { :test_target }
   let(:env_file)    { '.env.rspec' }
+  let(:user) { 'test-user' }
   let(:test_target_config) do
     {
       scale: 1,
@@ -26,7 +28,7 @@ shared_context 'deploy configuration' do
 
   before(:each) do
     Broadside.configure do |c|
-      c.ecs.cluster = 'cluster'
+      c.ecs.cluster = cluster
       c.ssh = { user: 'test-user' }
       c.targets = { test_target => test_target_config }
     end

@@ -6,7 +6,6 @@ describe Broadside::EcsDeploy do
   let(:family) { "#{test_app}_#{test_target}" }
   let(:target) { Broadside::Target.new(test_target, test_target_config) }
   let(:deploy) { described_class.new(target, tag: 'tag_the_bag') }
-
   let(:api_request_log) { [] }
 
   let(:ecs_stub) do
@@ -177,6 +176,54 @@ describe Broadside::EcsDeploy do
             :describe_services
           ])
         end
+      end
+    end
+  end
+
+  context 'bash' do
+    it 'fails without a running task' do
+      expect { deploy.bash }.to raise_error(Broadside::Error, /No running tasks found/)
+    end
+
+    context 'with a running task' do
+      let(:task_arn) { 'some_task_arn'}
+      let(:container_arn) { 'some_container_arn' }
+      let(:instance_id) { 'i-xxxxxxxx' }
+      let(:ip) { '123.123.123.123' }
+      let(:ec2_stub) do
+        requests = api_request_log
+        client = Aws::EC2::Client.new(
+          region: Broadside.config.aws.region,
+          credentials: Aws::Credentials.new('access', 'secret'),
+          stub_responses: true
+        )
+
+        client.handle do |context|
+          requests << { context.operation_name => context.params }
+          @handler.call(context)
+        end
+
+        client
+      end
+
+      before(:each) do
+        Broadside::EcsManager.instance_variable_set(:@ec2_client, ec2_stub)
+        ecs_stub.stub_responses(:list_tasks, task_arns: [task_arn])
+        ecs_stub.stub_responses(:describe_tasks, tasks: [container_instance_arn: container_arn])
+        ecs_stub.stub_responses(:describe_container_instances, container_instances: [{ ec2_instance_id: instance_id }])
+        ec2_stub.stub_responses(:describe_instances, { reservations: [ instances: [ { private_ip_address: ip } ] ] })
+
+        allow(deploy).to receive(:exec).with("ssh -o StrictHostKeyChecking=no -t -t #{user}@#{ip} 'docker exec -i -t `docker ps -n 1 --quiet --filter name=#{family}` bash'").and_return(true)
+      end
+
+      it 'bashes' do
+        expect { deploy.bash }.to_not raise_error
+        expect(api_request_log).to eq([
+          { list_tasks: { cluster: cluster, family: family } },
+          { describe_tasks: { cluster: cluster, tasks: ["some_task_arn"] } },
+          { describe_container_instances: { cluster: cluster, container_instances: ["some_container_arn"] } },
+          { describe_instances: { instance_ids: ["i-xxxxxxxx"] } }
+        ])
       end
     end
   end
