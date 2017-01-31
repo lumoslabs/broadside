@@ -112,10 +112,6 @@ module Broadside
       end
     end
 
-    def container_definitions
-      EcsManager.get_latest_task_definition(family)[:container_definitions]
-    end
-
     def logtail
       super do
         ip = get_running_instance_ip

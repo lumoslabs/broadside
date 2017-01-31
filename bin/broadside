@@ -73,7 +73,8 @@ command :list_targets do |list_targets|
 
     Broadside.config.targets.each do |target|
       deploy = _DeployObj.new(target)
-      deploy.container_definitions.each do |image|
+      container_definitions = Broadside::EcsManager.get_latest_task_definition(deploy.family)[:container_definitions]
+      container_definitions.each do |image|
         image_tag, version = image[:image].split(':')
         task_arns = Broadside::EcsManager.get_task_arns(target.cluster, deploy.family)
         Broadside::EcsManager.ecs.describe_tasks(cluster: target.cluster, tasks: task_arns).tasks.each_with_index do |task, i|
