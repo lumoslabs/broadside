@@ -120,7 +120,7 @@ module Broadside
         search_pattern = Shellwords.shellescape(family)
         cmd = "docker logs -f --tail=#{@lines} `docker ps -n 1 --quiet --filter name=#{search_pattern}`"
         tail_cmd = gen_ssh_cmd(ip) + " '#{cmd}'"
-        exec tail_cmd
+        exec(tail_cmd)
       end
     end
 
@@ -128,7 +128,7 @@ module Broadside
       super do
         ip = get_running_instance_ip
         debug "Establishing an SSH connection to IP #{ip}..."
-        exec gen_ssh_cmd(ip)
+        exec(gen_ssh_cmd(ip))
       end
     end
 
@@ -138,7 +138,7 @@ module Broadside
         debug "Running bash for running container at IP #{ip}..."
         search_pattern = Shellwords.shellescape(family)
         cmd = "docker exec -i -t `docker ps -n 1 --quiet --filter name=#{search_pattern}` bash"
-        exec gen_ssh_cmd(ip, tty: true) + " '#{cmd}'"
+        exec(gen_ssh_cmd(ip, tty: true) + " '#{cmd}'")
       end
     end
 
