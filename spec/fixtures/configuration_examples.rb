@@ -15,11 +15,12 @@ shared_context 'deploy configuration' do
   include_context 'base configuration'
 
   let(:test_target) { :test_target }
+  let(:env_file)    { 'sample_dotenv' }
   let(:test_target_config) do
     {
       scale: 1,
       command: ['sleep', 'infinity'],
-      env_files: File.join(FIXTURES_PATH, '.env.test')
+      env_files: File.join(FIXTURES_PATH, env_file)
     }
   end
 

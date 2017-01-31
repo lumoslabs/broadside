@@ -1,8 +1,10 @@
 require 'spec_helper'
 
 describe Broadside::Target do
+  let(:sample_dotenv) { File.join(FIXTURES_PATH, 'sample_dotenv') }
+
   shared_examples 'valid_configuration?' do |succeeds, config_hash|
-    let(:valid_options) { { scale: 100, env_files: File.join(FIXTURES_PATH, 'sample_dotenv') } }
+    let(:valid_options) { { scale: 100, env_files: sample_dotenv } }
     let(:target) { described_class.new('tarbaby_target', valid_options.merge(config_hash) )}
 
     it 'validates target configuration' do
@@ -46,7 +48,7 @@ describe Broadside::Target do
     end
 
     context 'with a single environment file' do
-      let(:env_files) { File.join(FIXTURES_PATH, 'sample_dotenv') }
+      let(:env_files) { sample_dotenv }
       let(:expected_env_vars) do
         [
           { 'name' => 'TEST_KEY1', 'value' => 'TEST_VALUE1'},
@@ -60,15 +62,12 @@ describe Broadside::Target do
     end
 
     context 'with multiple environment files' do
-      let(:env_files) { [File.join(FIXTURES_PATH, 'sample_dotenv_a'), File.join(FIXTURES_PATH, 'sample_dotenv_b')] }
+      let(:env_files) { [sample_dotenv, File.join(FIXTURES_PATH, 'sample_dotenv_override')] }
       let(:expected_env_vars) do
         [
-          {'name'=>'SHARED_KEY_1', 'value'=>'SHARED_VALUE_1b'},
-          {'name'=>'SHARED_KEY_2', 'value'=>'SHARED_VALUE_2b'},
-          {'name'=>'UNIQUE_KEY_1a', 'value'=>'UNIQUE_VALUE_1a'},
-          {'name'=>'UNIQUE_KEY_2a', 'value'=>'UNIQUE_VALUE_1a'},
-          {'name'=>'UNIQUE_KEY_1b', 'value'=>'UNIQUE_VALUE_1b'},
-          {'name'=>'UNIQUE_KEY_2b', 'value'=>'UNIQUE_VALUE_1b'},
+          { 'name' => 'TEST_KEY1', 'value' => 'TEST_VALUE1' },
+          { 'name' => 'TEST_KEY2', 'value' => 'TEST_VALUE_OVERRIDE'},
+          { 'name' => 'TEST_KEY3', 'value' => 'TEST_VALUE3'}
         ]
       end
 

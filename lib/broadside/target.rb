@@ -54,7 +54,7 @@ module Broadside
         begin
           @env_vars.merge!(Dotenv.load(env_file))
         rescue Dotenv::FormatError => e
-          raise Dotenv::FormatError, "Dotenv error: '#{e.message}' while parsing #{env_file}", e.backtrace
+          raise e.class, "Dotenv error: '#{e.message}' while parsing #{env_file}", e.backtrace
         end
       end
 
