@@ -2,11 +2,13 @@ require 'logger'
 
 module Broadside
   class Configuration
-    extend Gem::Deprecate
     include VerifyInstanceVariables
     include LoggingUtils
 
-    attr_reader :targets
+    attr_reader(
+      :targets,
+      :type
+    )
     attr_accessor(
       :application,
       :config_file,
@@ -15,8 +17,7 @@ module Broadside
       :prehook,
       :posthook,
       :ssh,
-      :timeout,
-      :type
+      :timeout
     )
 
     def initialize

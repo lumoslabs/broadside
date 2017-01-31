@@ -36,7 +36,6 @@ shared_context 'ecs configuration' do
 
   before(:each) do
     Broadside.configure do |c|
-      c.type = 'ecs'
       c.application = 'TEST_APP'
       c.docker_image = 'rails'
       c.ecs.cluster = 'cluster'
