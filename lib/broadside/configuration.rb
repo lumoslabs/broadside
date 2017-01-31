@@ -43,20 +43,5 @@ module Broadside
     def verify(*args)
       super(*([:application, :docker_image] + args))
     end
-
-    def git_repo=(_)
-      @logger.warn("Assigning :git_repo does nothing.")
-    end
-
-    # Maintain backward compatibility
-    def deploy
-      self
-    end
-    deprecate :deploy, 'config.deploy.option should be configured directly as config.option', 2017, 4
-
-    def base
-      self
-    end
-    deprecate :base, 'config.base.option should be configured directly as config.option', 2017, 4
   end
 end
