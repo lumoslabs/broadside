@@ -1,5 +1,23 @@
+# 3.0.0
+- **BREAKING CHANGE**: `ssh`, `bash`, `logtail`, `status`, and `run` are now top level commands, not subcommands of `deploy`
+- **BREAKING CHANGE**: `config.git_repo` was removed.  `config.base` and `config.deploy` also are no longer backwards compatible
+- Only load `env_files` for the selected target (AKA don't preload everything when you aren't using it)
+- Add `list_targets` command to display all the targets' deployed images
+
+# 2.0.0
+- **BREAKING CHANGE**: `rake db:migrate` is no longer the default `predeploy_command`
+- *NEW FEATURE*: `:cluster` can be configured on a per target basis to overload `config.ecs.cluster`
+- There is no more `base` configuration - the main `Configuration` object holds all the `base` config.  You can still call `Broadside.config.base` though you will get a deprecation warning.
+- There is no more `deploy` configuration - most of that is handled in the main `Configuration` object and in `targets=`. You can still call `Broadside.config.deploy` though you will get a deprecation warning.
+- `Target` is a first class object
+- `Deploy` is composed of a `Target` plus command line options
+
+# 1.4.0
+- [#42](https://github.com/lumoslabs/broadside/pull/42/files): Update the task definition when running bootstrap
+
 # 1.3.0
-- Add `show_images` command to display all the targets' deployed images
+- [#41](https://github.com/lumoslabs/broadside/pull/41/files): Introduce the concept of bootstrap commands, which are designed to be run when setting up a new server or environment.
+>>>>>>> master
 
 # 1.2.1
 - [#35](https://github.com/lumoslabs/broadside/pull/35/files): Allows logtail to display more than 10 lines

@@ -1,20 +1,20 @@
 require 'broadside/error'
 require 'broadside/utils'
+require 'broadside/configuration/verify_instance_variables'
 require 'broadside/configuration'
-require 'broadside/configuration/config_struct'
 require 'broadside/configuration/aws_config'
-require 'broadside/configuration/base_config'
-require 'broadside/configuration/deploy_config'
 require 'broadside/configuration/ecs_config'
+require 'broadside/target'
 require 'broadside/deploy'
-require 'broadside/deploy/ecs_deploy'
-require 'broadside/deploy/ecs_manager'
+require 'broadside/predeploy_commands'
+require 'broadside/ecs/ecs_deploy'
+require 'broadside/ecs/ecs_manager'
 require 'broadside/version'
 
 module Broadside
   extend Utils
 
-  SYSTEM_CONFIG_FILE = "#{Dir.home}/.broadside/config.rb"
+  USER_CONFIG_FILE = "#{Dir.home}/.broadside/config.rb"
 
   def self.configure
     yield config
@@ -22,15 +22,15 @@ module Broadside
 
   def self.load_config(config_file)
     begin
-      load SYSTEM_CONFIG_FILE if File.exists?(SYSTEM_CONFIG_FILE)
+      load USER_CONFIG_FILE if File.exists?(USER_CONFIG_FILE)
     rescue LoadError => e
-      error "Encountered an error loading system configuration file '#{SYSTEM_CONFIG_FILE}' !"
+      error "Encountered an error loading system configuration file '#{USER_CONFIG_FILE}' !"
       raise e
     end
 
     begin
+      config.config_file = config_file
       load config_file
-      config.file = config_file
     rescue LoadError => e
       error "Encountered an error loading required configuration file '#{config_file}' !"
       raise e

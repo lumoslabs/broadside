@@ -19,16 +19,30 @@ default_value 'config/broadside.conf.rb'
 arg_name 'FILE'
 flag [:c, :config]
 
-def add_shared_deploy_configs(subcmd)
-  # deployment always requires target
+def add_target_configs(subcmd)
+  # Everything requires a target
   subcmd.desc 'Deployment target to use, e.g. production_web'
   subcmd.arg_name 'TARGET'
   subcmd.flag [:t, :target], type: Symbol
 
   subcmd.action do |global_options, options, args|
-    _DeployObj = Kernel.const_get("Broadside::#{Broadside.config.deploy.type.capitalize}Deploy")
-    _DeployObj.new(options).public_send(subcmd.name)
+    _DeployObj = Kernel.const_get("Broadside::#{Broadside.config.type.capitalize}Deploy")
+    _target = Broadside.config.targets.select { |t| t.name == options[:target] }.first
+    raise "Target ':#{options[:target]}' not configured. " unless _target
+
+    _target.load_env_vars!
+    _DeployObj.new(_target, options).public_send(subcmd.name)
   end
+end
+
+# Commands like bash, ssh, and logtail require an instance
+def add_instance_config(cmd)
+  cmd.desc '0-based index into the array of running instances'
+  cmd.default_value 0
+  cmd.arg_name 'INSTANCE'
+  cmd.flag [:n, :instance], type: Fixnum
+
+  add_target_configs(cmd)
 end
 
 # GLI type coercions
@@ -43,18 +57,22 @@ accept Fixnum do |val|
 end
 
 desc 'Bootstrap your service and task definition from the configured definition.'
-command :bootstrap do |b|
-  add_shared_deploy_configs(b)
+command :bootstrap do |bootstrap|
+  bootstrap.desc 'Docker tag for application container'
+  bootstrap.arg_name 'TAG'
+  bootstrap.flag [:tag]
+
+  add_target_configs(bootstrap)
 end
 
-desc 'List the targets and images'
-command :show_images do |show|
-  show.action do |global_options, options, args|
+desc 'List the targets and deployed images'
+command :list_targets do |list_targets|
+  list_targets.action do |global_options, options, args|
     _DeployObj = Kernel.const_get("Broadside::#{Broadside.config.deploy.type.capitalize}Deploy")
     printf("%-40s %-50s %-25s %-10s\n", 'Target', 'Container Name', 'Image', 'Version')
 
-    Broadside.config.deploy.targets.each do |k, v|
-      _DeployObj.new(target: k).container_definitions.each do |image|
+    Broadside.config.deploy.targets.each do |target|
+      _DeployObj.new(target).container_definitions.each do |image|
         image_tag, version = image[:image].split(':')
         printf("%-40s %-50s %-25s %-10s\n", k, image[:name], image_tag, version)
       end
@@ -64,98 +82,84 @@ end
 
 desc 'Deploy your application.'
 command :deploy do |d|
-  d.desc 'Deploys without running migrations'
-  d.command :short do |subcmd|
-    subcmd.desc 'Docker tag for application container'
-    subcmd.arg_name 'TAG'
-    subcmd.flag [:tag]
+  d.desc 'Deploys WITHOUT running predeploy commands'
+  d.command :short do |short|
+    short.desc 'Docker tag for application container'
+    short.arg_name 'TAG'
+    short.flag [:tag]
 
-    add_shared_deploy_configs(subcmd)
+    add_target_configs(short)
   end
 
-  d.desc 'Performs a full deployment (with migration)'
-  d.command :full do |subcmd|
-    subcmd.desc 'Docker tag for application container'
-    subcmd.arg_name 'TAG'
-    subcmd.flag [:tag]
+  d.desc 'Deploys WITH running predeploy commands'
+  d.command :full do |full|
+    full.desc 'Docker tag for application container'
+    full.arg_name 'TAG'
+    full.flag [:tag]
 
-    add_shared_deploy_configs(subcmd)
+    add_target_configs(full)
   end
 
   d.desc 'Scales application to a given count'
-  d.command :scale do |subcmd|
-    subcmd.desc 'Specify a new scale for application'
-    subcmd.arg_name 'NUM'
-    subcmd.flag [:s, :scale], type: Fixnum
+  d.command :scale do |scale|
+    scale.desc 'Specify a new scale for application'
+    scale.arg_name 'NUM'
+    scale.flag [:s, :scale], type: Fixnum
 
-    add_shared_deploy_configs(subcmd)
-  end
-
-  d.desc 'Creates a single instance of the application to run a command.'
-  d.command :run do |subcmd|
-    subcmd.desc 'Docker tag for application container'
-    subcmd.arg_name 'TAG'
-    subcmd.flag [:tag]
-
-    subcmd.desc 'Command to run (wrap argument in quotes)'
-    subcmd.arg_name 'COMMAND'
-    subcmd.flag [:command], type: Array
-
-    add_shared_deploy_configs(subcmd)
+    add_target_configs(scale)
   end
 
   d.desc 'Rolls back n releases and deploys'
-  d.command :rollback do |subcmd|
-    subcmd.desc 'Number of releases to rollback'
-    subcmd.arg_name 'COUNT'
-    subcmd.flag [:r, :rollback], type: Fixnum
+  d.command :rollback do |rollback|
+    rollback.desc 'Number of releases to rollback'
+    rollback.arg_name 'COUNT'
+    rollback.flag [:r, :rollback], type: Fixnum
 
-    add_shared_deploy_configs(subcmd)
-  end
-
-  d.desc 'Gets information about what is currently deployed.'
-  d.command :status do |subcmd|
-    add_shared_deploy_configs(subcmd)
-  end
-
-  d.desc 'Tail the logs inside the running container.'
-  d.command :logtail do |subcmd|
-    subcmd.desc '0-based instance index'
-    subcmd.default_value 0
-    subcmd.arg_name 'INSTANCE'
-    subcmd.flag [:n, :instance], type: Fixnum
-
-    subcmd.desc 'Number of lines to tail'
-    subcmd.default_value 10
-    subcmd.arg_name 'TAIL_LINES'
-    subcmd.flag [:l, :lines], type: Fixnum
-
-    add_shared_deploy_configs(subcmd)
-  end
-
-  d.desc 'Establish a secure shell on the instance running the container.'
-  d.command :ssh do |subcmd|
-    subcmd.desc '0-based instance index'
-    subcmd.default_value 0
-    subcmd.arg_name 'INSTANCE'
-    subcmd.flag [:n, :instance], type: Fixnum
-
-    add_shared_deploy_configs(subcmd)
-  end
-
-  d.desc 'Establish a shell inside the running container.'
-  d.command :bash do |subcmd|
-    subcmd.desc '0-based instance index'
-    subcmd.default_value 0
-    subcmd.arg_name 'INSTANCE'
-    subcmd.flag [:n, :instance], type: Fixnum
-
-    add_shared_deploy_configs(subcmd)
+    add_target_configs(rollback)
   end
 end
 
+desc 'Gets information about what is currently deployed.'
+command :status do |status|
+  add_target_configs(status)
+end
+
+desc 'Creates a single instance of the application to run a command.'
+command :run do |run|
+  run.desc 'Docker tag for application container'
+  run.arg_name 'TAG'
+  run.flag [:tag]
+
+  run.desc 'Command to run (wrap argument in quotes)'
+  run.arg_name 'COMMAND'
+  run.flag [:command], type: Array
+
+  add_target_configs(run)
+end
+
+desc 'Tail the logs inside a running container.'
+command :logtail do |logtail|
+  logtail.desc 'Number of lines to tail'
+  logtail.default_value 10
+  logtail.arg_name 'TAIL_LINES'
+  logtail.flag [:l, :lines], type: Fixnum
+
+  add_instance_config(logtail)
+end
+
+desc 'Establish a secure shell on an instance running the container.'
+command :ssh do |ssh|
+  add_instance_config(ssh)
+end
+
+desc 'Establish a shell inside a running container.'
+command :bash do |bash|
+  add_instance_config(bash)
+end
+
 def call_hook(type, command)
-  hook = Broadside.config.base.send(type)
+  hook = Broadside.config.public_send(type)
+
   if hook.is_a?(Proc)
     hook_args =
       if command.parent.is_a?(GLI::Command)

@@ -6,7 +6,7 @@ require 'broadside/version'
 Gem::Specification.new do |spec|
   spec.name          = 'broadside'
   spec.version       = Broadside::VERSION
-  spec.authors       = ['Matthew Leung']
+  spec.authors       = ['Matthew Leung', 'Lumos Labs, Inc.']
   spec.email         = ['leung.mattp@gmail.com']
 
   spec.summary       = 'A command-line tool for EC2 Container Service deployment.'
@@ -19,11 +19,11 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'activesupport', '>= 3', '< 5'
   spec.add_dependency 'aws-sdk', '~> 2.3'
-  spec.add_dependency 'dotenv', '>= 0.9.0'
+  spec.add_dependency 'dotenv', '>= 0.9.0', '< 3.0'
   spec.add_dependency 'gli', '~> 2.13'
   spec.add_dependency 'rainbow', '~> 2.1'
 
-  spec.add_development_dependency 'rspec'
+  spec.add_development_dependency 'rspec', '~> 3.4.0'
   spec.add_development_dependency 'bundler', '~> 1.9'
-  spec.add_development_dependency 'fakefs'
+  spec.add_development_dependency 'fakefs', '~> 0.9'
 end

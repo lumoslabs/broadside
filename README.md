@@ -11,17 +11,16 @@ Broadside offers a simple command-line interface to perform deployments on ECS. 
 
 ```ruby
 Broadside.configure do |config|
-  config.base.application = 'hello_world'
-  config.base.docker_image = 'lumoslabs/hello_world'
-  config.deploy.type = 'ecs'
+  config.application = 'hello_world'
+  config.docker_image = 'lumoslabs/hello_world'
   config.ecs.cluster = 'micro-cluster'
-  config.deploy.targets = {
+  config.targets = {
     production_web: {
       scale: 7,
       command: ['bundle', 'exec', 'unicorn', '-c', 'config/unicorn.conf.rb'],
       env_file: '../.env.production'
       predeploy_commands: [
-        ['bundle', 'exec', 'rake', 'db:migrate'],
+        Broadside::Predeploy::RAKE_DB_MIGRATE,     # RAKE_DB_MIGRATE is just a constant for your convenience
         ['bundle', 'exec', 'rake', 'data:migrate']
       ]
     },
@@ -31,6 +30,7 @@ Broadside.configure do |config|
       env_file: '../.env.production'
     },
     staging_web: {
+      cluster: 'staging-cluster', # Overrides config.ecs.cluster
       scale: 1,
       command: ['bundle', 'exec', 'puma'],
       env_file: '../.env.staging'
@@ -68,13 +68,16 @@ end
 ```
 
 From here, developers can use broadside's command-line interface to initiate a basic deployment:
-```
+
+```bash
 broadside deploy short --target production_web --tag $GIT_SHA
 ```
 or run
-```
+
+```bash
 broadside deploy full --target production_web --tag $GIT_SHA
 ```
+
 which will run the listed `predeploy_commands` listed in the config above prior to the deployment.
 
 In the case of an error or timeout during a deploy, broadside will automatically rollback to the latest stable version. You can perform manual rollbacks as well through the command-line.
@@ -84,12 +87,12 @@ See the complete command-line reference in the wiki.
 
 ## Setup
 First, install broadside by adding it to your application gemfile:
-```
+```ruby
 gem 'broadside'
 ```
 
 Then run
-```
+```bash
 bundle install
 bundle binstubs broadside
 ```
@@ -97,7 +100,7 @@ bundle binstubs broadside
 It's recommended that you specify broadside as a development gem so it doesn't inflate your production image.
 
 You can now run the executable in your app directory:
-```
+```bash
 bin/broadside --help
 ```
 

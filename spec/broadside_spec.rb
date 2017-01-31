@@ -1,7 +1,6 @@
 require 'spec_helper'
 
 describe Broadside do
-
   describe '#load_config' do
     let(:bad_path) { 'path_does_not_exist' }
     let(:system_config_path) { File.join(FIXTURES_PATH, 'broadside_system_example.conf.rb') }
@@ -11,7 +10,7 @@ describe Broadside do
       allow(Broadside).to receive(:load)
       # stub out verify from erroring since load is stubbed
       allow(Broadside.config).to receive(:verify)
-      stub_const('Broadside::SYSTEM_CONFIG_FILE', system_config_path)
+      stub_const('Broadside::USER_CONFIG_FILE', system_config_path)
       Broadside.load_config(app_config_path)
       expect(Broadside).to have_received(:load).with(system_config_path)
     end
@@ -20,7 +19,7 @@ describe Broadside do
       allow(Broadside).to receive(:load)
       # stub out verify from erroring since load is stubbed
       allow(Broadside.config).to receive(:verify)
-      stub_const('Broadside::SYSTEM_CONFIG_FILE', bad_path)
+      stub_const('Broadside::USER_CONFIG_FILE', bad_path)
       Broadside.load_config(app_config_path)
       expect(Broadside).not_to have_received(:load).with(bad_path)
     end
@@ -33,13 +32,15 @@ describe Broadside do
       expect(Broadside).to have_received(:load).with(app_config_path)
     end
 
-    let(:ssh_system_user) { { user: 'system-default-user' } }
-    let(:ssh_app_user) { { user: 'app-default-user' } }
+    context 'with a system config' do
+      let(:ssh_system_user) { { user: 'system-default-user' } }
+      let(:ssh_app_user)    { { user: 'app-default-user' } }
 
-    it 'loads the app-specific config with a higher precedence than the system-level config' do
-      Broadside.load_config(app_config_path)
-      expect(Broadside.config.deploy.ssh).to eq(ssh_app_user)
-      expect(Broadside.config.deploy.ssh).not_to eq(ssh_system_user)
+      it 'loads the app-specific config with a higher precedence than the system-level config' do
+        Broadside.load_config(app_config_path)
+        expect(Broadside.config.ssh).to eq(ssh_app_user)
+        expect(Broadside.config.ssh).not_to eq(ssh_system_user)
+      end
     end
 
     it 'verfies the configuration after loading' do
