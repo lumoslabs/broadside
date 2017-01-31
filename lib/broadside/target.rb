@@ -49,14 +49,12 @@ module Broadside
           env_file = env_file.expand_path(dir)
         end
 
-        if env_file.exist?
-          begin
-            @env_vars.merge!(Dotenv.load(env_file))
-          rescue Dotenv::FormatError => e
-            raise Dotenv::FormatError, "Dotenv error: '#{e.message}' while parsing #{env_file}", e.backtrace
-          end
-        else
-          raise ArgumentError, "Could not find file '#{env_file}' for loading environment variables !"
+        raise ArgumentError, "Could not find env_file '#{env_file}'!" unless env_file.exist?
+
+        begin
+          @env_vars.merge!(Dotenv.load(env_file))
+        rescue Dotenv::FormatError => e
+          raise Dotenv::FormatError, "Dotenv error: '#{e.message}' while parsing #{env_file}", e.backtrace
         end
       end
 

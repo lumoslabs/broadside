@@ -41,6 +41,10 @@ describe Broadside::Target do
     let(:valid_options) { { scale: 100, env_files: env_files } }
     let(:target) { described_class.new('tarbaby_target', valid_options) }
 
+    before do
+      target.load_env_vars!
+    end
+
     context 'with a single environment file' do
       let(:env_files) { File.join(FIXTURES_PATH, 'sample_dotenv') }
       let(:expected_env_vars) do
