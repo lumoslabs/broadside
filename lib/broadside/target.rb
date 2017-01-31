@@ -58,7 +58,7 @@ module Broadside
     # Convert env files to key/value format ECS expects
     def env_vars
       @env_vars ||= @env_files.inject({}) do |memo, env_file|
-        raise "#{env_file} does not exist!" unless env_file.exist?
+        raise ArgumentError, "#{env_file} does not exist!" unless env_file.exist?
 
         begin
           memo.merge(Dotenv.load(env_file))

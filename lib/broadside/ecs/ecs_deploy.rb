@@ -245,15 +245,18 @@ module Broadside
 
       find_container_id_cmd = "#{gen_ssh_cmd(ip)} \"docker ps -aqf 'label=com.amazonaws.ecs.task-arn=#{task_arn}'\""
       debug "Running command to find container id:\n#{find_container_id_cmd}"
-      container_id = `#{find_container_id_cmd}`.strip
+      container_ids = `#{find_container_id_cmd}`.strip.split
 
-      get_container_logs_cmd = "#{gen_ssh_cmd(ip)} \"docker logs #{container_id}\""
-      debug "Running command to get logs of container #{container_id}:\n#{get_container_logs_cmd}"
+      logs = ''
+      container_ids.each do |container_id|
+        get_container_logs_cmd = "#{gen_ssh_cmd(ip)} \"docker logs #{container_id}\""
+        debug "Running command to get logs of container #{container_id}:\n#{get_container_logs_cmd}"
 
-      logs = nil
-      Open3.popen3(get_container_logs_cmd) do |_, stdout, stderr, _|
-        logs = "STDOUT:--\n#{stdout.read}\nSTDERR:--\n#{stderr.read}"
+        Open3.popen3(get_container_logs_cmd) do |_, stdout, stderr, _|
+          logs << "STDOUT (#{container_id}):--\n#{stdout.read}\nSTDERR (#{container_id}):--\n#{stderr.read}\n"
+        end
       end
+
       logs
     end
 
