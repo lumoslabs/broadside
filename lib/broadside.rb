@@ -45,5 +45,6 @@ module Broadside
 
   def self.reset!
     @config = nil
+    EcsManager.instance_variable_set(:@ecs_client, nil)
   end
 end
