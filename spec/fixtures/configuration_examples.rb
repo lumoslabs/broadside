@@ -1,19 +1,5 @@
-shared_context 'base configuration' do
-  let(:test_app) { 'TEST_APP' }
-
-  before(:each) do
-    Broadside.configure do |c|
-      c.config_file = __FILE__
-      c.application = test_app
-      c.docker_image = 'rails'
-      c.logger.level = Logger::ERROR
-    end
-  end
-end
-
 shared_context 'deploy configuration' do
-  include_context 'base configuration'
-
+  let(:test_app) { 'TEST_APP' }
   let(:cluster) { 'cluster' }
   let(:test_target) { :test_target }
   let(:env_file)    { '.env.rspec' }
@@ -28,6 +14,9 @@ shared_context 'deploy configuration' do
 
   before(:each) do
     Broadside.configure do |c|
+      c.application = test_app
+      c.docker_image = 'rails'
+      c.logger.level = Logger::ERROR
       c.ecs.cluster = cluster
       c.ssh = { user: 'test-user' }
       c.targets = { test_target => test_target_config }
