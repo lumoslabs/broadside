@@ -220,9 +220,9 @@ describe Broadside::EcsDeploy do
         expect { deploy.bash }.to_not raise_error
         expect(api_request_log).to eq([
           { list_tasks: { cluster: cluster, family: family } },
-          { describe_tasks: { cluster: cluster, tasks: ["some_task_arn"] } },
-          { describe_container_instances: { cluster: cluster, container_instances: ["some_container_arn"] } },
-          { describe_instances: { instance_ids: ["i-xxxxxxxx"] } }
+          { describe_tasks: { cluster: cluster, tasks: [task_arn] } },
+          { describe_container_instances: { cluster: cluster, container_instances: [container_arn] } },
+          { describe_instances: { instance_ids: [instance_id] } }
         ])
       end
     end
