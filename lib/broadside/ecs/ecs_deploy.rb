@@ -243,7 +243,7 @@ module Broadside
 
     def get_container_logs(task_arn)
       ip = EcsManager.get_running_instance_ips(@target.cluster, family, task_arn).first
-      debug "Found ip of container instance: #{ip}"
+      debug "Found IP of container instance: #{ip}"
 
       find_container_id_cmd = "#{gen_ssh_cmd(ip)} \"docker ps -aqf 'label=com.amazonaws.ecs.task-arn=#{task_arn}'\""
       debug "Running command to find container id:\n#{find_container_id_cmd}"
@@ -260,6 +260,7 @@ module Broadside
     end
 
     def container_definition
+      @target.load_env_vars! unless @target.env_vars
       configured_containers = (@target.task_definition_config || {})[:container_definitions]
 
       if configured_containers && configured_containers.size > 1
