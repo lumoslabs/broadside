@@ -2,6 +2,7 @@
 - **BREAKING CHANGE**: `ssh`, `bash`, `logtail`, `status`, and `run` are now top level commands, not subcommands of `deploy`
 - **BREAKING CHANGE**: `config.git_repo` was removed.  `config.base` and `config.deploy` also are no longer backwards compatible
 - Only load `env_files` for the selected target (AKA don't preload everything when you aren't using it)
+- Make `env_files` configuration optional
 - No more `Utils` module, just `LoggingUtils`
 
 # 2.0.0
