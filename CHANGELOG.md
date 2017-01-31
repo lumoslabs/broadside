@@ -6,12 +6,12 @@
 
 # 2.0.0
 - **BREAKING CHANGE**: `rake db:migrate` is no longer the default `predeploy_command`
+- **BREAKING CHANGE**: Remove per target `tag:` config - `--tag` must be passed on the command line
 - *NEW FEATURE*: `:cluster` can be configured on a per target basis to overload `config.ecs.cluster`
 - There is no more `base` configuration - the main `Configuration` object holds all the `base` config.  You can still call `Broadside.config.base` though you will get a deprecation warning.
 - There is no more `deploy` configuration - most of that is handled in the main `Configuration` object and in `targets=`. You can still call `Broadside.config.deploy` though you will get a deprecation warning.
 - `Target` is a first class object
 - `Deploy` is composed of a `Target` plus command line options
-- Remove per target `tag:` config - `--tag` must be passed on the command line
 
 # 1.4.0
 - [#42](https://github.com/lumoslabs/broadside/pull/42/files): Update the task definition when running bootstrap
