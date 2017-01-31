@@ -19,12 +19,15 @@ describe Broadside::Target do
   end
 
   describe '#validate_targets!' do
+    it_behaves_like 'valid_configuration?', true, {}
+
     it_behaves_like 'valid_configuration?', false, scale: 1.1
     it_behaves_like 'valid_configuration?', false, scale: nil
     it_behaves_like 'valid_configuration?', true,  scale: 100
 
-    it_behaves_like 'valid_configuration?', true, env_files: nil
-    it_behaves_like 'valid_configuration?', true, {}
+    it_behaves_like 'valid_configuration?', true,  env_files: nil
+    it_behaves_like 'valid_configuration?', true,  env_files: 'file'
+    it_behaves_like 'valid_configuration?', true,  env_files: ['file', 'file2']
 
     it_behaves_like 'valid_configuration?', true,  command: nil
     it_behaves_like 'valid_configuration?', true,  command: ['bundle', 'exec', 'resque:work']
