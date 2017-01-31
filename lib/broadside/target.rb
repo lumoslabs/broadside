@@ -21,6 +21,7 @@ module Broadside
       :task_definition_config
     )
 
+    validates :cluster, :name, presence: true
     validates :scale, numericality: { only_integer: true }
 
     validates_each :bootstrap_commands, :predeploy_commands, allow_nil: true do |record, attr, val|
@@ -31,14 +32,12 @@ module Broadside
       record.errors.add(attr, 'must be a hash') unless val.is_a?(Hash)
     end
 
-    validates_each :command, allow_nil: true do |record, attr, v|
-      record.errors.add(attr, 'must be an array') unless v.is_a?(Array)
+    validates_each :command, allow_nil: true do |record, attr, val|
+      record.errors.add(attr, 'must be an array') unless val.is_a?(Array)
     end
 
-    validates_each :env_files, allow_nil: true do |record, attr, v|
-      unless v.is_a?(String) || (v.is_a?(Array) && v.all? { |file| file.is_a?(String) })
-        record.errors.add(attr, 'must be a string or array of strings')
-      end
+    validates_each :env_files, allow_nil: true do |record, attr, val|
+      record.errors.add(attr, ':env_file does not exist') unless val.all? { |env_file| env_file.exist? }
     end
 
     def initialize(name, options = {})
@@ -48,8 +47,16 @@ module Broadside
       @bootstrap_commands = @config[:bootstrap_commands]
       @cluster = @config[:cluster]
       @command = @config[:command]
-      @env_files = Array.wrap(@config[:env_files] || @config[:env_file])
-      @env_vars = {}
+      @env_files = Array.wrap(@config[:env_files] || @config[:env_file]).map do |env_path|
+        env_file = Pathname.new(env_path)
+
+        unless env_file.absolute?
+          dir = Broadside.config.config_file ? Pathname.new(config.config_file).dirname : Dir.pwd
+          env_file = env_file.expand_path(dir)
+        end
+
+        env_file
+      end
       @predeploy_commands = @config[:predeploy_commands]
       @scale = @config[:scale]
       @service_config = @config[:service_config]
@@ -58,26 +65,15 @@ module Broadside
       raise ArgumentError, errors.full_messages unless valid?
     end
 
+    # Convert env files to key/value format ECS expects
     def load_env_vars!
-      @env_files.flatten.each do |env_path|
-        env_file = Pathname.new(env_path)
-
-        unless env_file.absolute?
-          dir = config.config_file.nil? ? Dir.pwd : Pathname.new(config.config_file).dirname
-          env_file = env_file.expand_path(dir)
-        end
-
-        raise ArgumentError, "Could not find env_file '#{env_file}'!" unless env_file.exist?
-
+      @env_vars = @env_files.inject({}) do |memo, env_path|
         begin
-          @env_vars.merge!(Dotenv.load(env_file))
+          memo.merge(Dotenv.load(env_path))
         rescue Dotenv::FormatError => e
-          raise e.class, "Dotenv gem error: '#{e.message}' while parsing #{env_file}", e.backtrace
+          raise e.class, "Dotenv gem error: '#{e.message}' while parsing #{env_path}", e.backtrace
         end
-      end
-
-      # convert env vars to format ecs expects
-      @env_vars = @env_vars.map { |k, v| { 'name' => k, 'value' => v } }
+      end.map { |k, v| { 'name' => k, 'value' => v } }
     end
 
     def cluster

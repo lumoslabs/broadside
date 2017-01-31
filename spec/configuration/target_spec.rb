@@ -1,6 +1,7 @@
 require 'spec_helper'
 
 describe Broadside::Target do
+  include_context 'deploy configuration'
   let(:sample_dotenv) { File.join(FIXTURES_PATH, '.env.rspec') }
 
   shared_examples 'valid_configuration?' do |succeeds, config_hash|
