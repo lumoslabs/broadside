@@ -13,22 +13,22 @@ Applications using broadside employ a configuration file that looks something li
 Broadside.configure do |config|
   config.application = 'hello_world'
   config.docker_image = 'lumoslabs/hello_world'
-  config.ecs.cluster = 'micro-cluster'
+  config.ecs.cluster = 'production-cluster'
   config.targets = {
     production_web: {
       scale: 7,
       command: ['bundle', 'exec', 'unicorn', '-c', 'config/unicorn.conf.rb'],
-      env_file: '../.env.production'
+      env_file: '.env.production'
       predeploy_commands: [
         Broadside::Predeploy::RAKE_DB_MIGRATE, # RAKE_DB_MIGRATE is just a constant for your convenience
         ['bundle', 'exec', 'rake', 'assets:precompile']
       ]
     },
     staging_web: {
-      cluster: 'staging-cluster', # Overrides config.ecs.cluster
+      cluster: 'staging-cluster', # Overrides config.ecs.cluster for this target
       scale: 1,
       command: ['bundle', 'exec', 'puma'],
-      env_file: '../.env.staging'
+      env_file: '.env.staging'
     },
     # Example with a task_definition and service configuration which you use to bootstrap a service and
     # initial task definition.  Accepts all the options AWS does - read their documentation for details:
