@@ -7,7 +7,6 @@ module Broadside
   class Target
     include ActiveModel::Model
     include LoggingUtils
-    include VerifyInstanceVariables
 
     attr_reader(
       :bootstrap_commands,
@@ -37,23 +36,21 @@ module Broadside
 
     def initialize(name, options = {})
       @name = name
-      @config = options
-
-      @bootstrap_commands = @config[:bootstrap_commands]
-      @cluster = @config[:cluster]
-      @command = @config[:command]
-      @docker_image = @config[:docker_image]
-      @env_files = Array.wrap(@config[:env_files] || @config[:env_file]).map do |env_path|
+      @bootstrap_commands = options[:bootstrap_commands]
+      @cluster = options[:cluster]
+      @command = options[:command]
+      @docker_image = options[:docker_image]
+      @env_files = Array.wrap(options[:env_files] || options[:env_file]).map do |env_path|
         env_file = Pathname.new(env_path)
         next env_file if env_file.absolute?
 
         dir = Broadside.config.config_file ? Pathname.new(Broadside.config.config_file).dirname : Dir.pwd
         env_file.expand_path(dir)
       end
-      @predeploy_commands = @config[:predeploy_commands]
-      @scale = @config[:scale]
-      @service_config = @config[:service_config]
-      @task_definition_config = @config[:task_definition_config]
+      @predeploy_commands = options[:predeploy_commands]
+      @scale = options[:scale]
+      @service_config = options[:service_config]
+      @task_definition_config = options[:task_definition_config]
 
       raise ArgumentError, errors.full_messages unless valid?
     end

@@ -35,12 +35,6 @@ module Broadside
       deploy
     end
 
-    def deploy
-      info "Deploying #{image_tag} to #{family}..."
-      yield
-      info 'Deployment complete.'
-    end
-
     def rollback(count = @rollback)
       info "Rolling back #{count} release for #{family}..."
       yield
@@ -76,6 +70,12 @@ module Broadside
     end
 
     private
+
+    def deploy
+      info "Deploying #{image_tag} to #{family}..."
+      yield
+      info 'Deployment complete.'
+    end
 
     def family
       "#{Broadside.config.application}_#{@target.name}"
