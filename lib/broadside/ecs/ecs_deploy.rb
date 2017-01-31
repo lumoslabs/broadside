@@ -245,7 +245,7 @@ module Broadside
 
       find_container_id_cmd = "#{gen_ssh_cmd(ip)} \"docker ps -aqf 'label=com.amazonaws.ecs.task-arn=#{task_arn}'\""
       debug "Running command to find container id:\n#{find_container_id_cmd}"
-      container_ids = `#{find_container_id_cmd}`.strip.split
+      container_ids = `#{find_container_id_cmd}`.split
 
       logs = ''
       container_ids.each do |container_id|
