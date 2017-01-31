@@ -7,23 +7,7 @@ describe Broadside::EcsDeploy do
   let(:target) { Broadside::Target.new(test_target, test_target_config) }
   let(:deploy) { described_class.new(target, tag: 'tag_the_bag') }
   let(:api_request_log) { [] }
-
-  let(:ecs_stub) do
-    requests = api_request_log
-    client = Aws::ECS::Client.new(
-      region: Broadside.config.aws.region,
-      credentials: Aws::Credentials.new('access', 'secret'),
-      stub_responses: true
-    )
-
-    client.handle do |context|
-      requests << { context.operation_name => context.params }
-      @handler.call(context)
-    end
-
-    client
-  end
-
+  let(:ecs_stub) { build_stub_aws_client(Aws::ECS::Client, api_request_log) }
   let(:desired_count) { 2 }
   let(:minimum_healthy_percent) { 40 }
   let(:service_config) do
@@ -190,21 +174,7 @@ describe Broadside::EcsDeploy do
       let(:container_arn) { 'some_container_arn' }
       let(:instance_id) { 'i-xxxxxxxx' }
       let(:ip) { '123.123.123.123' }
-      let(:ec2_stub) do
-        requests = api_request_log
-        client = Aws::EC2::Client.new(
-          region: Broadside.config.aws.region,
-          credentials: Aws::Credentials.new('access', 'secret'),
-          stub_responses: true
-        )
-
-        client.handle do |context|
-          requests << { context.operation_name => context.params }
-          @handler.call(context)
-        end
-
-        client
-      end
+      let(:ec2_stub) { build_stub_aws_client(Aws::EC2::Client, api_request_log) }
 
       before(:each) do
         Broadside::EcsManager.instance_variable_set(:@ec2_client, ec2_stub)
