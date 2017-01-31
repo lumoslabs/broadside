@@ -21,27 +21,25 @@ module Broadside
       :task_definition_config
     )
 
-    validates_each :bootstrap_commands, :predeploy_commands do |record, attr, val|
-      unless val.nil? || (val.is_a?(Array) && val.all? { |v| v.is_a?(Array) })
-        record.errors.add(attr, 'must be an array of arrays')
-      end
+    validates :scale, numericality: { only_integer: true }
+
+    validates_each :bootstrap_commands, :predeploy_commands, allow_nil: true do |record, attr, val|
+      record.errors.add(attr, 'must be an array of arrays') unless val.is_a?(Array) && val.all? { |v| v.is_a?(Array) }
     end
 
-    validates_each :service_config, :task_definition_config do |record, attr, val|
-      record.errors.add(attr, 'must be a hash') unless val.nil? || val.is_a?(Hash)
+    validates_each :service_config, :task_definition_config, allow_nil: true do |record, attr, val|
+      record.errors.add(attr, 'must be a hash') unless val.is_a?(Hash)
     end
 
-    validates_each :env_files do |record, attr, v|
-      unless v.nil? || v.is_a?(String) || (v.is_a?(Array) && v.all? { |file| file.is_a?(String) })
+    validates_each :command, allow_nil: true do |record, attr, v|
+      record.errors.add(attr, 'must be an array') unless v.is_a?(Array)
+    end
+
+    validates_each :env_files, allow_nil: true do |record, attr, v|
+      unless v.is_a?(String) || (v.is_a?(Array) && v.all? { |file| file.is_a?(String) })
         record.errors.add(attr, 'must be a string or array of strings')
       end
     end
-
-    validates_each :command do |record, attr, v|
-      record.errors.add(attr, 'must be an array') unless v.nil? || v.is_a?(Array)
-    end
-
-    validates :scale, numericality: { only_integer: true }
 
     def initialize(name, options = {})
       @name = name
