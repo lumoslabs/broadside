@@ -3,7 +3,6 @@ A command-line tool for deploying applications on AWS EC2 Container Service (ECS
 
 This tool is primarily intended for use with ruby applications.
 
-
 ## Overview
 Amazon ECS presents a low barrier to entry for production-level docker applications. Combined with ECS's built-in blue-green deployment, Elastic Load Balancers, Autoscale Groups, and CloudWatch, one can set up a robust cluster that can scale to serve any number of applications in a short amount of time. Broadside seeks to leverage these benefits and improve the deployment process for developers.
 
