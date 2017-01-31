@@ -24,7 +24,7 @@ describe Broadside::Target do
     it_behaves_like 'valid_configuration?', true,  scale: 100
 
     it_behaves_like 'valid_configuration?', true, env_files: nil
-    it_behaves_like 'valid_configuration?', true,  {}
+    it_behaves_like 'valid_configuration?', true, {}
 
     it_behaves_like 'valid_configuration?', true,  command: nil
     it_behaves_like 'valid_configuration?', true,  command: ['bundle', 'exec', 'resque:work']

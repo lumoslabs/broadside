@@ -2,6 +2,9 @@ require 'broadside'
 require 'fakefs/spec_helpers'
 require 'pry-byebug'
 
+FIXTURES_PATH = File.join(File.dirname(__FILE__), 'fixtures')
+require File.join(FIXTURES_PATH, 'configuration_context')
+
 module AwsStubHelper
   def build_stub_aws_client(klass, api_request_log = [])
     client = klass.new(
@@ -35,7 +38,3 @@ RSpec.configure do |config|
     mocks.verify_partial_doubles = true
   end
 end
-
-FIXTURES_PATH = File.join(File.dirname(__FILE__), 'fixtures')
-
-require File.join(FIXTURES_PATH, 'configuration_examples')

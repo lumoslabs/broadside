@@ -6,16 +6,11 @@ describe Broadside::EcsManager do
   let(:service_name) { 'service' }
   let(:cluster) { 'cluster' }
   let(:name) { 'job' }
+  let(:ecs_stub) { build_stub_aws_client(Aws::ECS::Client) }
 
-  let(:ecs_stub) do
-    Aws::ECS::Client.new(
-      region: Broadside.config.aws.region,
-      credentials: Aws::Credentials.new('access', 'secret'),
-      stub_responses: true
-    )
+  before(:each) do
+    Broadside::EcsManager.instance_variable_set(:@ecs_client, ecs_stub)
   end
-
-  before(:each) { Broadside::EcsManager.instance_variable_set(:@ecs_client, ecs_stub) }
 
   it 'create_service' do
     expect { described_class.create_service(cluster, service_name) }.to_not raise_error
