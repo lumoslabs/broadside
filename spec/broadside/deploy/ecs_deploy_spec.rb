@@ -216,7 +216,7 @@ describe Broadside::EcsDeploy do
         allow(deploy).to receive(:exec).with("ssh -o StrictHostKeyChecking=no -t -t #{user}@#{ip} 'docker exec -i -t `docker ps -n 1 --quiet --filter name=#{family}` bash'").and_return(true)
       end
 
-      it 'bashes' do
+      it 'executes correct system command' do
         expect { deploy.bash }.to_not raise_error
         expect(api_request_log).to eq([
           { list_tasks: { cluster: cluster, family: family } },
