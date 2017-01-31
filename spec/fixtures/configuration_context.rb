@@ -23,3 +23,14 @@ shared_context 'deploy configuration' do
     end
   end
 end
+
+shared_context 'ecs stubs' do
+  let(:api_request_log) { [] }
+  let(:ecs_stub) { build_stub_aws_client(Aws::ECS::Client, api_request_log) }
+  let(:ec2_stub) { build_stub_aws_client(Aws::EC2::Client, api_request_log) }
+
+  before(:each) do
+    Broadside::EcsManager.instance_variable_set(:@ecs_client, ecs_stub)
+    Broadside::EcsManager.instance_variable_set(:@ec2_client, ec2_stub)
+  end
+end

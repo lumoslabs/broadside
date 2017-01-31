@@ -3,14 +3,11 @@ require 'spec_helper'
 # Hitting the stubbed Aws::ECS::Client object will validate the request format
 
 describe Broadside::EcsManager do
+  include_context 'ecs stubs'
+  
   let(:service_name) { 'service' }
   let(:cluster) { 'cluster' }
   let(:name) { 'job' }
-  let(:ecs_stub) { build_stub_aws_client(Aws::ECS::Client) }
-
-  before(:each) do
-    Broadside::EcsManager.instance_variable_set(:@ecs_client, ecs_stub)
-  end
 
   it 'create_service' do
     expect { described_class.create_service(cluster, service_name) }.to_not raise_error

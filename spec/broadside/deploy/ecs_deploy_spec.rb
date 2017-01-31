@@ -2,12 +2,11 @@ require 'spec_helper'
 
 describe Broadside::EcsDeploy do
   include_context 'deploy configuration'
+  include_context 'ecs stubs'
 
   let(:family) { "#{test_app}_#{test_target}" }
   let(:target) { Broadside::Target.new(test_target, test_target_config) }
   let(:deploy) { described_class.new(target, tag: 'tag_the_bag') }
-  let(:api_request_log) { [] }
-  let(:ecs_stub) { build_stub_aws_client(Aws::ECS::Client, api_request_log) }
   let(:desired_count) { 2 }
   let(:minimum_healthy_percent) { 40 }
   let(:service_config) do
@@ -55,10 +54,6 @@ describe Broadside::EcsDeploy do
         family: family
       }
     }
-  end
-
-  before(:each) do
-    Broadside::EcsManager.instance_variable_set(:@ecs_client, ecs_stub)
   end
 
   it 'should instantiate an object' do
@@ -175,10 +170,8 @@ describe Broadside::EcsDeploy do
       let(:container_arn) { 'some_container_arn' }
       let(:instance_id) { 'i-xxxxxxxx' }
       let(:ip) { '123.123.123.123' }
-      let(:ec2_stub) { build_stub_aws_client(Aws::EC2::Client, api_request_log) }
-
+      
       before(:each) do
-        Broadside::EcsManager.instance_variable_set(:@ec2_client, ec2_stub)
         ecs_stub.stub_responses(:list_tasks, task_arns: [task_arn])
         ecs_stub.stub_responses(:describe_tasks, tasks: [container_instance_arn: container_arn])
         ecs_stub.stub_responses(:describe_container_instances, container_instances: [{ ec2_instance_id: instance_id }])
