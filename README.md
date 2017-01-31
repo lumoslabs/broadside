@@ -20,8 +20,8 @@ Broadside.configure do |config|
       command: ['bundle', 'exec', 'unicorn', '-c', 'config/unicorn.conf.rb'],
       env_file: '../.env.production'
       predeploy_commands: [
-        Broadside::Predeploy::RAKE_DB_MIGRATE,     # RAKE_DB_MIGRATE is just a constant for your convenience
-        ['bundle', 'exec', 'rake', 'data:migrate']
+        Broadside::Predeploy::RAKE_DB_MIGRATE, # RAKE_DB_MIGRATE is just a constant for your convenience
+        ['bundle', 'exec', 'rake', 'assets:precompile']
       ]
     },
     staging_web: {
@@ -35,10 +35,9 @@ Broadside.configure do |config|
     #
     # Service config: https://docs.aws.amazon.com/sdkforruby/api/Aws/ECS/Client.html#create_service-instance_method
     # Task Definition Config: https://docs.aws.amazon.com/sdkforruby/api/Aws/ECS/Client.html#register_task_definition-instance_method
-    game_save_as_json_blob_stream: {
+    json_blob_stream: {
       scale: 1,
       command: ['java', '-cp', '*:.', 'path.to.MyClass'],
-      env_file: '.env.production',
       service_config: {
         deployment_configuration: {
           minimum_healthy_percent: 0.5,
@@ -60,15 +59,16 @@ end
 From here, developers can use broadside's command-line interface to initiate a basic deployment:
 
 ```bash
-broadside deploy short --target production_web --tag $GIT_SHA
+broadside deploy short --target production_web --tag $GIT_TAG
 ```
-or run
+
+If you run:
 
 ```bash
-broadside deploy full --target production_web --tag $GIT_SHA
+broadside deploy full --target production_web --tag $GIT_TAG
 ```
 
-The `full` deploy will run the listed `predeploy_commands` listed in the config above prior to the deployment.
+the `deploy full` will run the configured `predeploy_commands` prior to the actual deployment.
 
 In the case of an error or timeout during a deploy, broadside will automatically rollback to the latest stable version. You can perform manual rollbacks as well through the command-line.
 
@@ -76,7 +76,7 @@ In the case of an error or timeout during a deploy, broadside will automatically
 
 
 ## Setup
-First, install broadside by adding it to your application gemfile:
+First, install broadside by adding it to your application `Gemfile`:
 
 ```ruby
 gem 'broadside'
@@ -85,14 +85,11 @@ gem 'broadside'
 Then run
 ```bash
 bundle install
-bundle binstubs broadside
 ```
-
-It's recommended that you specify broadside as a development gem so it doesn't inflate your production image.
 
 You can now run the executable in your app directory:
 ```bash
-bin/broadside --help
+bundle exec broadside --help
 ```
 
 For a full application setup, see the [detailed instructions in the wiki](https://github.com/lumoslabs/broadside/wiki/Setup).
@@ -101,9 +98,4 @@ For a full application setup, see the [detailed instructions in the wiki](https:
 Broadside is pretty terse with its error output; you can get a full stacktrace with `export GLI_DEBUG=true`
 
 ## Contributing
-Pull requests, bug reports, and feature suggestions are welcome! Before starting on a contribution, I recommend opening an issue or replying to an existing one to give others some initial context on the work needing to be done.
-
-1. Create your feature branch (`git checkout -b my-new-feature`)
-2. Commit your changes (`git commit -am 'Add some feature'`)
-3. Push to the branch (`git push origin my-new-feature`)
-4. Create a new Pull Request
+Pull requests, bug reports, and feature suggestions are welcome! Before starting on a contribution, we recommend opening an issue or replying to an existing one to give others some initial context on the work needing to be done.
