@@ -6,7 +6,7 @@ Broadside.configure do |c|
     TEST_TARGET: {
       scale: 1,
       command: ['sleep', 'infinity'],
-      env_files: File.join(FIXTURES_PATH, 'sample_dotenv')
+      env_files: File.join(FIXTURES_PATH, '.env.rspec')
     }
   }
   c.ssh = {

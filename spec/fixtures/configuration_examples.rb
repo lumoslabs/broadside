@@ -15,7 +15,7 @@ shared_context 'deploy configuration' do
   include_context 'base configuration'
 
   let(:test_target) { :test_target }
-  let(:env_file)    { 'sample_dotenv' }
+  let(:env_file)    { '.env.rspec' }
   let(:test_target_config) do
     {
       scale: 1,
