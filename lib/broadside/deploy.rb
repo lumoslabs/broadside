@@ -18,7 +18,7 @@ module Broadside
       @lines    = opts[:lines]    || 10
       @rollback = opts[:rollback] || 1
       @scale    = opts[:scale]    || @target.scale
-      @tag      = opts[:tag]
+      @tag      = opts[:tag]      || @target.tag
     end
 
     def short

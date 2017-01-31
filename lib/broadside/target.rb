@@ -16,6 +16,7 @@ module Broadside
       :predeploy_commands,
       :scale,
       :service_config,
+      :tag,
       :task_definition_config
     )
 
@@ -35,6 +36,7 @@ module Broadside
       @predeploy_commands = @config[:predeploy_commands]
       @scale = @config[:scale]
       @service_config = @config[:service_config]
+      @tag = @config[:tag]
       @task_definition_config = @config[:task_definition_config]
 
       validate!
