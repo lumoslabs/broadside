@@ -15,12 +15,10 @@ describe Broadside do
     it 'calls load for both the system and app config files' do
       expect(Broadside).to receive(:load).with(system_config_path)
       expect(Broadside).to receive(:load).with(app_config_path)
-
       Broadside.load_config(app_config_path)
     end
 
     it 'loads the app-specific config with a higher precedence than the system-level config' do
-      #expect(Broadside.config).to receive(:verify)
       Broadside.load_config(app_config_path)
       expect(Broadside.config.ssh).to eq(ssh_app_user)
     end
