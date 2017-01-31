@@ -190,7 +190,7 @@ module Broadside
         seen_event = nil
 
         w.before_wait do |attempt, response|
-          debug "(#{attempt}/#{w.max_attempts}) Polling ECS for events..."
+          debug "(#{attempt}/#{w.max_attempts ? w.max_attempts : Float::INFINITY}) Polling ECS for events..."
           # skip first event since it doesn't apply to current request
           if response.services[0].events.first && response.services[0].events.first.id != seen_event && attempt > 1
             seen_event = response.services[0].events.first.id
@@ -258,6 +258,7 @@ module Broadside
 
     def container_definition
       configured_containers = (@target.task_definition_config || {})[:container_definitions]
+
       if configured_containers && configured_containers.size > 1
         raise ArgumentError, 'Creating > 1 container definition not supported yet'
       end

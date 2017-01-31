@@ -3,7 +3,7 @@ shared_context 'base configuration' do
 
   before(:each) do
     Broadside.configure do |c|
-      c.file = __FILE__
+      c.config_file = __FILE__
       c.application = test_app
       c.docker_image = 'rails'
       c.logger.level = Logger::ERROR

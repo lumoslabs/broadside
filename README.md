@@ -13,7 +13,6 @@ Broadside offers a simple command-line interface to perform deployments on ECS. 
 Broadside.configure do |config|
   config.application = 'hello_world'
   config.docker_image = 'lumoslabs/hello_world'
-  config.type = 'ecs'
   config.ecs.cluster = 'micro-cluster'
   config.targets = {
     production_web: {
