@@ -1,3 +1,5 @@
+require 'active_model'
+
 module Broadside
   class Deploy
     include LoggingUtils
