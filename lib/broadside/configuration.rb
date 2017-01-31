@@ -4,7 +4,7 @@ module Broadside
   class Configuration
     extend Gem::Deprecate
     include VerifyInstanceVariables
-    include Utils
+    include LoggingUtils
 
     attr_reader :targets
     attr_accessor(

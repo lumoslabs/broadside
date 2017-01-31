@@ -4,7 +4,7 @@ require 'pathname'
 module Broadside
   class Target
     include VerifyInstanceVariables
-    include Utils
+    include LoggingUtils
 
     attr_accessor(
       :bootstrap_commands,

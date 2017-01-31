@@ -1,6 +1,6 @@
 module Broadside
   class Deploy
-    include Utils
+    include LoggingUtils
     include VerifyInstanceVariables
 
     attr_reader(

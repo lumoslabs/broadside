@@ -20,10 +20,10 @@ module Broadside
     def deploy
       super do
         unless EcsManager.service_exists?(@target.cluster, family)
-          exception "No service for #{family}! Please bootstrap or manually configure the service."
+          raise ArgumentError, "No service for #{family}! Please bootstrap or manually configure the service."
         end
         unless EcsManager.get_latest_task_definition_arn(family)
-          exception "No task definition for '#{family}'! Please bootstrap or manually configure the task definition."
+          raise ArgumentError, "No task definition for '#{family}'! Please bootstrap or configure the task definition."
         end
 
         update_task_revision
@@ -181,7 +181,7 @@ module Broadside
       }.deep_merge(@target.service_config || {}))
 
       unless update_service_response.successful?
-        exception('Failed to update service during deploy.', update_service_response.pretty_inspect)
+        raise Broadside::Error, "Failed to update service during deploy:\n #{update_service_response.pretty_inspect}"
       end
 
       EcsManager.ecs.wait_until(:services_stable, { cluster: @target.cluster, services: [family] }) do |w|
@@ -212,7 +212,7 @@ module Broadside
           run_task_response = EcsManager.run_task(@target.cluster, family, command)
 
           unless run_task_response.successful? && run_task_response.tasks.try(:[], 0)
-            exception("Failed to run #{command_name} task.", run_task_response.pretty_inspect)
+            raise Broadside::Error, "Failed to run #{command_name} task:\n#{run_task_response.pretty_inspect}"
           end
 
           task_arn = run_task_response.tasks[0].task_arn

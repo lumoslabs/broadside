@@ -1,5 +1,5 @@
 require 'broadside/error'
-require 'broadside/utils'
+require 'broadside/logging_utils'
 require 'broadside/configuration/verify_instance_variables'
 require 'broadside/configuration'
 require 'broadside/configuration/aws_config'
@@ -12,7 +12,7 @@ require 'broadside/ecs/ecs_manager'
 require 'broadside/version'
 
 module Broadside
-  extend Utils
+  extend LoggingUtils
 
   USER_CONFIG_FILE = "#{Dir.home}/.broadside/config.rb"
 

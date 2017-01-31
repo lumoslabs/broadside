@@ -4,7 +4,7 @@ require 'gli'
 require 'broadside'
 
 include GLI::App
-include Broadside::Utils
+include Broadside::LoggingUtils
 
 program_desc 'A command-line tool for deployment and development of docker applications.'
 

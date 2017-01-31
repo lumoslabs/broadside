@@ -6,7 +6,7 @@ module Broadside
     DEFAULT_DESIRED_COUNT = 0
 
     class << self
-      include Utils
+      include LoggingUtils
 
       def ecs
         @ecs_client ||= Aws::ECS::Client.new(

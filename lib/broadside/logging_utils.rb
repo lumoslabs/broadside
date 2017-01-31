@@ -1,5 +1,5 @@
 module Broadside
-  module Utils
+  module LoggingUtils
     def debug(*args)
       Broadside.config.logger.debug(args.join(' '))
     end
@@ -14,10 +14,6 @@ module Broadside
 
     def error(*args)
       Broadside.config.logger.error(args.join(' '))
-    end
-
-    def exception(*args)
-      raise Broadside::Error, args.join("\n")
     end
   end
 end
