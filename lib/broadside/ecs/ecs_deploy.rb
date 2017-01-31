@@ -20,10 +20,10 @@ module Broadside
     def deploy
       super do
         unless EcsManager.service_exists?(@target.cluster, family)
-          raise ArgumentError, "No service for #{family}! Please bootstrap or manually configure the service."
+          raise ArgumentError, "No service for '#{family}'! Please bootstrap or manually configure one."
         end
         unless EcsManager.get_latest_task_definition_arn(family)
-          raise ArgumentError, "No task definition for '#{family}'! Please bootstrap or configure the task definition."
+          raise ArgumentError, "No task definition for '#{family}'! Please bootstrap or manually configure one."
         end
 
         update_task_revision
