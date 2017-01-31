@@ -10,7 +10,9 @@ module Broadside
 
     attr_reader(
       :bootstrap_commands,
+      :cluster,
       :command,
+      :docker_image,
       :env_files,
       :name,
       :predeploy_commands,
@@ -37,9 +39,9 @@ module Broadside
     def initialize(name, options = {})
       @name = name
       @bootstrap_commands = options[:bootstrap_commands]
-      @cluster = options[:cluster]
+      @cluster = options[:cluster] || Broadside.config.ecs.cluster
       @command = options[:command]
-      @docker_image = options[:docker_image]
+      @docker_image = options[:docker_image] || Broadside.config.docker_image
       @env_files = Array.wrap(options[:env_files] || options[:env_file]).map do |env_path|
         env_file = Pathname.new(env_path)
         next env_file if env_file.absolute?
@@ -66,14 +68,6 @@ module Broadside
           raise e.class, "Error parsing #{env_file}: #{e.message}", e.backtrace
         end
       end.map { |k, v| { 'name' => k, 'value' => v } }
-    end
-
-    def cluster
-      @cluster || Broadside.config.ecs.cluster
-    end
-
-    def docker_image
-      @docker_image || Broadside.config.docker_image
     end
   end
 end

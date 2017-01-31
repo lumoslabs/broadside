@@ -18,7 +18,7 @@ shared_context 'deploy configuration' do
       c.docker_image = 'rails'
       c.logger.level = Logger::ERROR
       c.ecs.cluster = cluster
-      c.ssh = { user: 'test-user' }
+      c.ssh = { user: user }
       c.targets = { test_target => test_target_config }
     end
   end
