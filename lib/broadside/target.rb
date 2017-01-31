@@ -18,6 +18,7 @@ module Broadside
       :predeploy_commands,
       :scale,
       :service_config,
+      :tag,
       :task_definition_config
     )
 

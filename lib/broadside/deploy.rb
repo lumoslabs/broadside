@@ -20,7 +20,7 @@ module Broadside
       @lines    = options[:lines]    || 10
       @rollback = options[:rollback] || 1
       @scale    = options[:scale]    || @target.scale
-      @tag      = options[:tag]
+      @tag      = options[:tag]      || @target.tag
     end
 
     def short

@@ -25,10 +25,11 @@ Broadside.configure do |config|
       ]
     },
     staging_web: {
-      cluster: 'staging-cluster', # Overrides config.ecs.cluster for this target
+      cluster: 'staging-cluster', # Overrides config.ecs.cluster for this target only
       scale: 1,
       command: ['bundle', 'exec', 'puma'],
-      env_file: '.env.staging'
+      env_file: '../.env.staging',
+      tag: 'latest_staging' # Either configure the tag per target or pass --tag to the deploy command
     },
     # Example with a task_definition and service configuration which you use to bootstrap a service and
     # initial task definition.  Accepts all the options AWS does - read their documentation for details:

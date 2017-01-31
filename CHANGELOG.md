@@ -2,6 +2,7 @@
 - **BREAKING CHANGE**: `ssh`, `bash`, `logtail`, `status`, and `run` are now top level commands, not subcommands of `deploy`
 - **BREAKING CHANGE**: `config.git_repo` was removed.  `config.base` and `config.deploy` also are no longer backwards compatible
 - **BREAKING CHANGE**: `instance` can no longer be configured on a per `Target` basis
+- Put back per target `tag:` config
 - Only load `env_files` for the selected target (AKA don't preload everything when you aren't using it)
 - Make `env_files` configuration optional
 - No more `Utils` module, just `LoggingUtils`
@@ -9,6 +10,7 @@
 
 # 2.0.0
 - **BREAKING CHANGE**: `rake db:migrate` is no longer the default `predeploy_command`
+- **BREAKING CHANGE**: Remove per target `tag:` config - `--tag` must be passed on the command line
 - *NEW FEATURE*: `:cluster` can be configured on a per target basis to overload `config.ecs.cluster`
 - There is no more `base` configuration - the main `Configuration` object holds all the `base` config.  You can still call `Broadside.config.base` though you will get a deprecation warning.
 - There is no more `deploy` configuration - most of that is handled in the main `Configuration` object and in `targets=`. You can still call `Broadside.config.deploy` though you will get a deprecation warning.
