@@ -28,7 +28,9 @@ def add_shared_deploy_configs(subcmd)
   subcmd.action do |global_options, options, args|
     _DeployObj = Kernel.const_get("Broadside::#{Broadside.config.type.capitalize}Deploy")
     _target = Broadside.config.targets.select { |t| t.name == options[:target] }.first
-    raise "Bad target: #{options[:target]}" unless _target
+    raise "Target ':#{options[:target]}' not configured. " unless _target
+
+    _target.load_env_vars!
     _DeployObj.new(_target, options).public_send(subcmd.name)
   end
 end

@@ -50,7 +50,26 @@ module Broadside
       @task_definition_config = @config[:task_definition_config]
 
       validate!
-      load_env_vars!
+    end
+
+    def load_env_vars!
+      @env_files.flatten.each do |env_path|
+        env_file = Pathname.new(env_path)
+
+        unless env_file.absolute?
+          dir = config.config_file.nil? ? Dir.pwd : Pathname.new(config.config_file).dirname
+          env_file = env_file.expand_path(dir)
+        end
+
+        if env_file.exist?
+          @env_vars.merge!(Dotenv.load(env_file))
+        else
+          raise ArgumentError, "Could not find file '#{env_file}' for loading environment variables !"
+        end
+      end
+
+      # convert env vars to format ecs expects
+      @env_vars = @env_vars.map { |k, v| { 'name' => k, 'value' => v } }
     end
 
     def cluster
