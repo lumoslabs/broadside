@@ -5,10 +5,10 @@ describe Broadside::EcsDeploy do
   include_context 'ecs stubs'
 
   let(:family) { "#{test_app}_#{test_target}" }
-  let(:target) { Broadside::Target.new(test_target, test_target_config) }
+  let(:target) { Broadside::Target.new(test_target, test_target_config.merge(local_target_config)) }
+  let(:local_target_config) { {} }
   let(:deploy) { described_class.new(target, tag: 'tag_the_bag') }
   let(:desired_count) { 2 }
-  let(:minimum_healthy_percent) { 40 }
   let(:cpu) { 1 }
   let(:memory) { 2000 }
   let(:arn) { 'arn:aws:ecs:us-east-1:1234' }
@@ -16,7 +16,7 @@ describe Broadside::EcsDeploy do
     {
       desired_count: desired_count,
       deployment_configuration: {
-        minimum_healthy_percent: minimum_healthy_percent,
+        minimum_healthy_percent: 40,
       }
     }
   end
@@ -30,14 +30,18 @@ describe Broadside::EcsDeploy do
       ]
     }
   end
-  let(:existing_service) do
+  let(:stub_service_response) do
     {
-      service_name: test_target.to_s,
-      service_arn: "#{arn}:service/#{test_target}",
-      deployments: [{ desired_count: 1, running_count: 1 }]
+      services: [
+        {
+          service_name: test_target.to_s,
+          service_arn: "#{arn}:service/#{test_target}",
+          deployments: [{ desired_count: 1, running_count: 1 }]
+        }
+      ],
+      failures: []
     }
   end
-  let(:stub_service_response) { { services: [existing_service], failures: [] } }
   let(:task_definition_arn) { "#{arn}:task-definition/#{test_target}:1" }
   let(:stub_task_definition_response) { { task_definition_arns: [task_definition_arn] } }
   let(:stub_describe_task_definition_response) do
@@ -60,7 +64,7 @@ describe Broadside::EcsDeploy do
 
   context 'bootstrap' do
     it 'fails without task_definition_config' do
-      expect { deploy.bootstrap }.to raise_error(//)
+      expect { deploy.bootstrap }.to raise_error(/No first task definition and no :task_definition_config/)
     end
 
     context 'with an existing task definition' do
@@ -70,7 +74,6 @@ describe Broadside::EcsDeploy do
       end
 
       it 'fails without service_config' do
-        deploy.target.instance_variable_set(:@task_definition_config, task_definition_config)
         expect { deploy.bootstrap }.to raise_error(/Service doesn't exist and no :service_config/)
       end
 
@@ -80,15 +83,12 @@ describe Broadside::EcsDeploy do
         end
 
         it 'succeeds' do
-          deploy.target.instance_variable_set(:@service_config, service_config)
-          deploy.target.instance_variable_set(:@task_definition_config, task_definition_config)
-
           expect { deploy.bootstrap }.to_not raise_error
         end
 
         context 'and some configured bootstrap commands' do
           let(:commands) { [%w(foo bar baz)] }
-          let(:target) { Broadside::Target.new(test_target, test_target_config.merge(bootstrap_commands: commands)) }
+          let(:local_target_config) { { bootstrap_commands: commands } }
 
           it 'runs bootstrap commands' do
             expect(deploy).to receive(:run_commands).with(commands)
@@ -123,23 +123,30 @@ describe Broadside::EcsDeploy do
           expect { deploy.short }.to_not raise_error
         end
 
-        it 'should reconfigure the task definition' do
-          deploy.target.instance_variable_set(:@task_definition_config, task_definition_config)
-          deploy.short
+        context 'updating service and task definitions' do
+          let(:local_target_config) do
+            {
+              task_definition_config: task_definition_config,
+              service_config: service_config
+            }
+          end
 
-          register_requests = api_request_log.select { |cmd| cmd.keys.first == :register_task_definition }
-          expect(register_requests.size).to eq(1)
+          it 'should reconfigure the task definition' do
+            deploy.short
 
-          expect(register_requests.first.values.first[:container_definitions].first[:cpu]).to eq(cpu)
-          expect(register_requests.first.values.first[:container_definitions].first[:memory]).to eq(memory)
-        end
+            register_requests = api_request_log.select { |cmd| cmd.keys.first == :register_task_definition }
+            expect(register_requests.size).to eq(1)
 
-        it 'should reconfigure the service definition' do
-          deploy.target.instance_variable_set(:@service_config, service_config)
-          deploy.short
+            expect(register_requests.first.values.first[:container_definitions].first[:cpu]).to eq(cpu)
+            expect(register_requests.first.values.first[:container_definitions].first[:memory]).to eq(memory)
+          end
 
-          service_requests = api_request_log.select { |cmd| cmd.keys.first == :update_service }
-          expect(service_requests.first.values.first[:desired_count]).to eq(desired_count)
+          it 'should reconfigure the service definition' do
+            deploy.short
+
+            service_requests = api_request_log.select { |cmd| cmd.keys.first == :update_service }
+            expect(service_requests.first.values.first[:desired_count]).to eq(desired_count)
+          end
         end
 
         it 'can rollback' do
