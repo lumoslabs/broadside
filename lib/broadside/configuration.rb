@@ -6,11 +6,11 @@ module Broadside
     include VerifyInstanceVariables
     include Utils
 
+    attr_reader :targets
     attr_accessor(
       :application,
+      :config_file,
       :docker_image,
-      :file,
-      :git_repo,
       :logger,
       :prehook,
       :posthook,
@@ -18,13 +18,13 @@ module Broadside
       :timeout,
       :type
     )
-    attr_reader :targets
 
     def initialize
       @logger = ::Logger.new(STDOUT)
       @logger.level = ::Logger::DEBUG
       @logger.datetime_format = '%Y-%m-%d_%H:%M:%S'
       @timeout = 600
+      @type = 'ecs'
     end
 
     def aws
@@ -43,16 +43,5 @@ module Broadside
     def verify(*args)
       super(*([:application, :docker_image] + args))
     end
-
-    # Maintain backward compatibility
-    def deploy
-      self
-    end
-    deprecate :deploy, 'config.deploy.option should be configured directly as config.option', 2017, 4
-
-    def base
-      self
-    end
-    deprecate :base, 'config.base.option should be configured directly as config.option', 2017, 4
   end
 end

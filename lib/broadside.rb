@@ -14,7 +14,7 @@ require 'broadside/version'
 module Broadside
   extend Utils
 
-  SYSTEM_CONFIG_FILE = "#{Dir.home}/.broadside/config.rb"
+  USER_CONFIG_FILE = "#{Dir.home}/.broadside/config.rb"
 
   def self.configure
     yield config
@@ -22,14 +22,14 @@ module Broadside
 
   def self.load_config(config_file)
     begin
-      load SYSTEM_CONFIG_FILE if File.exists?(SYSTEM_CONFIG_FILE)
+      load USER_CONFIG_FILE if File.exists?(USER_CONFIG_FILE)
     rescue LoadError => e
-      error "Encountered an error loading system configuration file '#{SYSTEM_CONFIG_FILE}' !"
+      error "Encountered an error loading system configuration file '#{USER_CONFIG_FILE}' !"
       raise e
     end
 
     begin
-      config.file = config_file
+      config.config_file = config_file
       load config_file
     rescue LoadError => e
       error "Encountered an error loading required configuration file '#{config_file}' !"

@@ -10,7 +10,7 @@ describe Broadside do
       allow(Broadside).to receive(:load)
       # stub out verify from erroring since load is stubbed
       allow(Broadside.config).to receive(:verify)
-      stub_const('Broadside::SYSTEM_CONFIG_FILE', system_config_path)
+      stub_const('Broadside::USER_CONFIG_FILE', system_config_path)
       Broadside.load_config(app_config_path)
       expect(Broadside).to have_received(:load).with(system_config_path)
     end
@@ -19,7 +19,7 @@ describe Broadside do
       allow(Broadside).to receive(:load)
       # stub out verify from erroring since load is stubbed
       allow(Broadside.config).to receive(:verify)
-      stub_const('Broadside::SYSTEM_CONFIG_FILE', bad_path)
+      stub_const('Broadside::USER_CONFIG_FILE', bad_path)
       Broadside.load_config(app_config_path)
       expect(Broadside).not_to have_received(:load).with(bad_path)
     end

@@ -1,3 +1,7 @@
+# 3.0.0
+- **BREAKING CHANGE**: `ssh`, `bash`, `logtail`, `status`, and `run` are now top level commands, not subcommands of `deploy`
+- **BREAKING CHANGE**: `config.git_repo` was removed.  `config.base` and `config.deploy` also are no longer backwards compatible
+
 # 2.0.0
 - **BREAKING CHANGE**: `rake db:migrate` is no longer the default `predeploy_command`
 - *NEW FEATURE*: `:cluster` can be configured on a per target basis to overload `config.ecs.cluster`
