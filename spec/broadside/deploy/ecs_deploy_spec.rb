@@ -183,7 +183,7 @@ describe Broadside::EcsDeploy do
         ecs_stub.stub_responses(:describe_container_instances, container_instances: [{ ec2_instance_id: instance_id }])
         ec2_stub.stub_responses(:describe_instances, { reservations: [ instances: [ { private_ip_address: ip } ] ] })
 
-        allow(deploy).to receive(:exec).with("ssh -o StrictHostKeyChecking=no -t -t #{user}@#{ip} 'docker exec -i -t `docker ps -n 1 --quiet --filter name=#{family}` bash'").and_return(true)
+        allow(deploy).to receive(:exec).with("ssh -o StrictHostKeyChecking=no -t -t #{user}@#{ip} 'docker exec -i -t `docker ps -n 1 --quiet --filter name=#{family}` bash'")
       end
 
       it 'executes correct system command' do
