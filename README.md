@@ -1,13 +1,13 @@
 # Broadside [![Build Status](https://travis-ci.org/lumoslabs/broadside.svg?branch=master)](https://travis-ci.org/lumoslabs/broadside)
+
 A command-line tool for deploying applications on AWS EC2 Container Service (ECS)
-
-This tool is primarily intended for use with ruby applications.
-
 
 ## Overview
 Amazon ECS presents a low barrier to entry for production-level docker applications. Combined with ECS's built-in blue-green deployment, Elastic Load Balancers, Autoscale Groups, and CloudWatch, one can set up a robust cluster that can scale to serve any number of applications in a short amount of time. Broadside seeks to leverage these benefits and improve the deployment process for developers.
 
-Broadside offers a simple command-line interface to perform deployments on ECS. It does not attempt to handle operational tasks like infrastructure setup and configuration, which are better suited for tools like [terraform](https://www.terraform.io/). This allows applications using broadside to employ a clean configuration file that looks something like:
+Broadside offers a simple command-line interface to perform deployments on ECS. It does not attempt to handle operational tasks like infrastructure setup and configuration, which are better suited for tools like [terraform](https://www.terraform.io/).
+
+Applications using broadside employ a configuration file that looks something like:
 
 ```ruby
 Broadside.configure do |config|
@@ -24,20 +24,10 @@ Broadside.configure do |config|
         ['bundle', 'exec', 'rake', 'data:migrate']
       ]
     },
-    production_worker: {
-      scale: 15,
-      command: ['bundle', 'exec', 'rake', 'resque:work'],
-      env_file: '../.env.production'
-    },
     staging_web: {
       cluster: 'staging-cluster', # Overrides config.ecs.cluster
       scale: 1,
       command: ['bundle', 'exec', 'puma'],
-      env_file: '../.env.staging'
-    },
-    staging_worker: {
-      scale: 1,
-      command: ['bundle', 'exec', 'rake', 'resque:work'],
       env_file: '../.env.staging'
     },
     # Example with a task_definition and service configuration which you use to bootstrap a service and
@@ -78,15 +68,16 @@ or run
 broadside deploy full --target production_web --tag $GIT_SHA
 ```
 
-which will run the listed `predeploy_commands` listed in the config above prior to the deployment.
+The `full` deploy will run the listed `predeploy_commands` listed in the config above prior to the deployment.
 
 In the case of an error or timeout during a deploy, broadside will automatically rollback to the latest stable version. You can perform manual rollbacks as well through the command-line.
 
-See the complete command-line reference in the wiki.
+[See the complete command-line reference in the wiki](https://github.com/lumoslabs/broadside/wiki/CLI-reference).
 
 
 ## Setup
 First, install broadside by adding it to your application gemfile:
+
 ```ruby
 gem 'broadside'
 ```
@@ -104,8 +95,10 @@ You can now run the executable in your app directory:
 bin/broadside --help
 ```
 
-For a full application setup, see the detailed instructions in the wiki.
+For a full application setup, see the [detailed instructions in the wiki](https://github.com/lumoslabs/broadside/wiki/Setup).
 
+## Debugging
+Broadside is pretty terse with its error output; you can get a full stacktrace with `export GLI_DEBUG=true`
 
 ## Contributing
 Pull requests, bug reports, and feature suggestions are welcome! Before starting on a contribution, I recommend opening an issue or replying to an existing one to give others some initial context on the work needing to be done.
