@@ -69,16 +69,16 @@ module Broadside
       yield
     end
 
+    def family
+      "#{Broadside.config.application}_#{@target.name}"
+    end
+
     private
 
     def deploy
       info "Deploying #{image_tag} to #{family}..."
       yield
       info 'Deployment complete.'
-    end
-
-    def family
-      "#{Broadside.config.application}_#{@target.name}"
     end
 
     def image_tag

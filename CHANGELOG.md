@@ -5,6 +5,7 @@
 - **BREAKING CHANGE**: `instance` can no longer be configured on a per `Target` basis
 - *NEW FEATURE*: Allow per target `:docker_image` configuration
 - *NEW FEATURE*: Put back per target `tag:` config
+- *NEW FEATURE*: Add `list_targets` command to display all the targets' deployed images and CPU/memory allocations
 - Only load `env_files` for the selected target (AKA don't preload everything when you aren't using it)
 - Make `env_files` configuration optional
 - No more `Utils` module, just `LoggingUtils`
