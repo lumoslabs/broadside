@@ -21,7 +21,7 @@ Broadside.configure do |config|
       env_file: '.env.production'
       predeploy_commands: [
         Broadside::Predeploy::RAKE_DB_MIGRATE, # RAKE_DB_MIGRATE is just a constant for your convenience
-        ['bundle', 'exec', 'rake', 'assets:precompile']
+        ['bundle', 'exec', 'rake', 'data:migrate']
       ]
     },
     staging_web: {
