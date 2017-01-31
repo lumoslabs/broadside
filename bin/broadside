@@ -75,7 +75,7 @@ command :list_targets do |list_targets|
       deploy = _DeployObj.new(target)
       deploy.container_definitions.each do |image|
         image_tag, version = image[:image].split(':')
-        task_arns = Broadside::EcsManager.get_task_arns(target.cluster, deploy.send(:family))
+        task_arns = Broadside::EcsManager.get_task_arns(target.cluster, deploy.family)
         Broadside::EcsManager.ecs.describe_tasks(cluster: target.cluster, tasks: task_arns).tasks.each_with_index do |task, i|
           printf(
             "%-40s %-50s %-25s %-10s %-5s %-7s %-1d %-9s %-23s\n",

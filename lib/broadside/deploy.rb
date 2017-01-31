@@ -85,11 +85,11 @@ module Broadside
       yield
     end
 
-    private
-
     def family
       "#{config.application}_#{@target.name}"
     end
+
+    private
 
     def image_tag
       raise ArgumentError, "Missing tag" unless @tag
