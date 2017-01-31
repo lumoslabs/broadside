@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.summary       = 'A command-line tool for EC2 Container Service deployment.'
   spec.homepage      = 'https://github.com/lumoslabs/broadside'
   spec.license       = 'MIT'
-  spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
+  spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec)/}) }
   spec.bindir        = "bin"
   spec.executables   = ['broadside']
   spec.require_paths = ["lib"]
