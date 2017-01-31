@@ -5,6 +5,7 @@
 - Only load `env_files` for the selected target (AKA don't preload everything when you aren't using it)
 - Make `env_files` configuration optional
 - No more `Utils` module, just `LoggingUtils`
+- Allow per target `:docker_image` configuration
 
 # 2.0.0
 - **BREAKING CHANGE**: `rake db:migrate` is no longer the default `predeploy_command`

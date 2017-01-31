@@ -21,7 +21,7 @@ module Broadside
       :task_definition_config
     )
 
-    validates :cluster, :name, presence: true
+    validates :cluster, :docker_image, :name, presence: true
     validates :scale, numericality: { only_integer: true }
 
     validates_each :bootstrap_commands, :predeploy_commands, allow_nil: true do |record, attr, val|
@@ -43,6 +43,7 @@ module Broadside
       @bootstrap_commands = @config[:bootstrap_commands]
       @cluster = @config[:cluster]
       @command = @config[:command]
+      @docker_image = @config[:docker_image]
       @env_files = Array.wrap(@config[:env_files] || @config[:env_file]).map do |env_path|
         env_file = Pathname.new(env_path)
         next env_file if env_file.absolute?
@@ -73,6 +74,10 @@ module Broadside
 
     def cluster
       @cluster || Broadside.config.ecs.cluster
+    end
+
+    def docker_image
+      @docker_image || Broadside.config.docker_image
     end
   end
 end

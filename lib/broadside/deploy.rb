@@ -95,7 +95,7 @@ module Broadside
 
     def image_tag
       raise ArgumentError, "Missing tag" unless @tag
-      "#{Broadside.config.docker_image}:#{@tag}"
+      "#{@target.docker_image}:#{@tag}"
     end
 
     def gen_ssh_cmd(ip, options = { tty: false })
