@@ -1,11 +1,13 @@
+require 'active_model'
 require 'active_support/core_ext/array'
 require 'dotenv'
 require 'pathname'
 
 module Broadside
   class Target
-    include VerifyInstanceVariables
+    include ActiveModel::Model
     include LoggingUtils
+    include VerifyInstanceVariables
 
     attr_reader(
       :bootstrap_commands,
@@ -18,6 +20,28 @@ module Broadside
       :service_config,
       :task_definition_config
     )
+
+    validates_each :bootstrap_commands, :predeploy_commands do |record, attr, val|
+      unless val.nil? || (val.is_a?(Array) && val.all? { |v| v.is_a?(Array) })
+        record.errors.add(attr, 'must be an array of arrays')
+      end
+    end
+
+    validates_each :service_config, :task_definition_config do |record, attr, val|
+      record.errors.add(attr, 'must be a hash') unless val.nil? || val.is_a?(Hash)
+    end
+
+    validates_each :env_files do |record, attr, v|
+      unless v.nil? || v.is_a?(String) || (v.is_a?(Array) && v.all? { |file| file.is_a?(String) })
+        record.errors.add(attr, 'must be a string or array of strings')
+      end
+    end
+
+    validates_each :command do |record, attr, v|
+      record.errors.add(attr, 'must be a string or array of strings') unless v.nil? || v.is_a?(Array)
+    end
+
+    validates :scale, numericality: true
 
     def initialize(name, options = {})
       @name = name
@@ -33,7 +57,7 @@ module Broadside
       @service_config = @config[:service_config]
       @task_definition_config = @config[:task_definition_config]
 
-      validate!
+      raise ArgumentError, errors.full_messages unless valid?
     end
 
     def load_env_vars!
@@ -60,44 +84,6 @@ module Broadside
 
     def cluster
       @cluster || Broadside.config.ecs.cluster
-    end
-
-    private
-
-    TARGET_ATTRIBUTE_VALIDATIONS = {
-      bootstrap_commands:     ->(target_attribute) { validate_commands(target_attribute) },
-      command:                ->(target_attribute) { validate_types([Array, NilClass], target_attribute) },
-      env_files:              ->(target_attribute) { validate_types([String, Array, NilClass], target_attribute) },
-      predeploy_commands:     ->(target_attribute) { validate_commands(target_attribute) },
-      scale:                  ->(target_attribute) { validate_types([Integer], target_attribute) },
-      service_config:         ->(target_attribute) { validate_types([Hash, NilClass], target_attribute) },
-      task_definition_config: ->(target_attribute) { validate_types([Hash, NilClass], target_attribute) }
-    }.freeze
-
-    def validate!
-      invalid_messages = TARGET_ATTRIBUTE_VALIDATIONS.map do |var, validation|
-        message = validation.call(instance_variable_get('@' + var.to_s))
-        message.nil? ? nil : "Deploy target '#{@name}' parameter '#{var}' is invalid: #{message}"
-      end.compact
-
-      unless invalid_messages.empty?
-        raise ArgumentError, invalid_messages.join("\n")
-      end
-    end
-
-    def self.validate_types(types, target_attribute)
-      return nil if types.any? { |type| target_attribute.is_a?(type) }
-      "'#{target_attribute}' must be of type [#{types.join('|')}], got '#{target_attribute.class}' !"
-    end
-
-    def self.validate_commands(commands)
-      return nil if commands.nil?
-      return 'predeploy_commands must be an array' unless commands.is_a?(Array)
-
-      messages = commands.reject { |cmd| cmd.is_a?(Array) }.map do |command|
-        "predeploy_command '#{command}' must be an array" unless command.is_a?(Array)
-      end
-      messages.empty? ? nil : messages.join(', ')
     end
   end
 end
