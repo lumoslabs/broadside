@@ -216,7 +216,7 @@ module Broadside
           end
 
           task_arn = run_task_response.tasks[0].task_arn
-          debug "Launched #{command_name} task #{task_arn}, waiting for completion..."
+          info "Launched #{command_name} task #{task_arn}, waiting for completion..."
 
           EcsManager.ecs.wait_until(:tasks_stopped, { cluster: @target.cluster, tasks: [task_arn] }) do |w|
             w.max_attempts = nil
@@ -229,7 +229,7 @@ module Broadside
           info "#{command_name} task container logs:\n#{get_container_logs(task_arn)}"
 
           if (code = EcsManager.get_task_exit_code(@target.cluster, task_arn, family)) == 0
-            debug "#{command_name} task #{task_arn} exited with status code 0"
+            info "#{command_name} task #{task_arn} complete"
           else
             raise Error, "#{command_name} task #{task_arn} exited with a non-zero status code #{code}!"
           end

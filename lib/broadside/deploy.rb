@@ -55,9 +55,7 @@ module Broadside
 
     def run
       verify(:command)
-      info "Running command [#{@command}] for #{family}..."
       yield
-      info 'Complete.'
     end
 
     def status

@@ -3,10 +3,11 @@ require 'spec_helper'
 describe Broadside::Target do
   include_context 'deploy configuration'
   let(:sample_dotenv) { File.join(FIXTURES_PATH, '.env.rspec') }
+  let(:target_name) { 'tarbaby_target' }
 
   shared_examples 'valid_configuration?' do |succeeds, config_hash|
     let(:valid_options) { { scale: 100, env_files: sample_dotenv } }
-    let(:target) { described_class.new('tarbaby_target', valid_options.merge(config_hash) )}
+    let(:target) { described_class.new(target_name, valid_options.merge(config_hash) )}
 
     it 'validates target configuration' do
       if succeeds
@@ -39,9 +40,9 @@ describe Broadside::Target do
     ]
   end
 
-  describe '#load_env_vars!' do
-    let(:valid_options) { { scale: 100, env_files: env_files } }
-    let(:target) { described_class.new('tarbaby_target', valid_options) }
+  describe '#env_vars' do
+    let(:valid_options) { { scale: 1, env_files: env_files } }
+    let(:target) { described_class.new(target_name, valid_options) }
 
     context 'with a single environment file' do
       let(:env_files) { sample_dotenv }
