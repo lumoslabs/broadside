@@ -46,7 +46,9 @@ module Broadside
     end
 
     def bootstrap
-      unless EcsManager.get_latest_task_definition_arn(family)
+      if EcsManager.get_latest_task_definition_arn(family)
+        info("Task definition for #{family} already exists.")
+      else
         unless @target.task_definition_config
           raise ArgumentError, "No first task definition and no :task_definition_config in '#{family}' configuration"
         end
@@ -171,7 +173,7 @@ module Broadside
     # reloads the service using the latest task definition
     def update_service
       task_definition_arn = EcsManager.get_latest_task_definition_arn(family)
-      debug "Updating #{family} with scale=#{@target.scale} using task #{task_definition_arn}..."
+      debug "Updating #{family} with scale=#{@target.scale} using task_definition #{task_definition_arn}..."
 
       update_service_response = EcsManager.ecs.update_service({
         cluster: @target.cluster,
