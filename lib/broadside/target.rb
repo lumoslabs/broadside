@@ -1,5 +1,6 @@
 require 'active_model'
 require 'active_support/core_ext/array'
+require 'active_support/core_ext/object'
 require 'dotenv'
 require 'pathname'
 
@@ -39,23 +40,25 @@ module Broadside
 
     def initialize(name, options = {})
       @name = name
-      @bootstrap_commands = options[:bootstrap_commands]
-      @cluster = options[:cluster] || Broadside.config.ecs.cluster
-      @command = options[:command]
-      @docker_image = options[:docker_image] || Broadside.config.docker_image
-      @env_files = Array.wrap(options[:env_files] || options[:env_file]).map do |env_path|
+      config = options.deep_dup
+      @bootstrap_commands = config.delete(:bootstrap_commands)
+      @cluster = config.delete(:cluster) || Broadside.config.ecs.cluster
+      @command = config.delete(:command)
+      @docker_image = config.delete(:docker_image) || Broadside.config.docker_image
+      @env_files = Array.wrap(config.delete(:env_files) || config.delete(:env_file)).map do |env_path|
         env_file = Pathname.new(env_path)
         next env_file if env_file.absolute?
 
         dir = Broadside.config.config_file ? Pathname.new(Broadside.config.config_file).dirname : Dir.pwd
         env_file.expand_path(dir)
       end
-      @predeploy_commands = options[:predeploy_commands]
-      @scale = options[:scale]
-      @service_config = options[:service_config]
-      @task_definition_config = options[:task_definition_config]
+      @predeploy_commands = config.delete(:predeploy_commands)
+      @scale = config.delete(:scale)
+      @service_config = config.delete(:service_config)
+      @task_definition_config = config.delete(:task_definition_config)
 
       raise ArgumentError, errors.full_messages unless valid?
+      raise ArgumentError, "Target #{@name} was configured with invalid options: #{config}" unless config.empty?
     end
 
     # Convert env files to key/value format ECS expects

@@ -33,6 +33,8 @@ describe Broadside::Target do
     it_behaves_like 'valid_configuration?', true,  command: ['bundle', 'exec', 'resque:work']
     it_behaves_like 'valid_configuration?', false, command: 'bundle exec rails s'
 
+    it_behaves_like 'valid_configuration?', false, not_a_param: 'foo'
+
     it_behaves_like 'valid_configuration?', true,  predeploy_commands: nil
     it_behaves_like 'valid_configuration?', false, predeploy_commands: Broadside::PredeployCommands::RAKE_DB_MIGRATE
     it_behaves_like 'valid_configuration?', false, predeploy_commands: 'bundle exec rake db:migrate'
