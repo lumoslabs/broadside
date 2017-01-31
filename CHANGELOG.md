@@ -1,6 +1,7 @@
 # 3.0.0
 - **BREAKING CHANGE**: `ssh`, `bash`, `logtail`, `status`, and `run` are now top level commands, not subcommands of `deploy`
-- **BREAKING CHANGE**: `config.git_repo` was removed.  `config.base` and `config.deploy` also are no longer backwards compatible
+- **BREAKING CHANGE**: `config.git_repo=` and `config.type=` were removed.
+- **BREAKING CHANGE**: `config.base` and `config.deploy` also are no longer backwards compatible
 - **BREAKING CHANGE**: `instance` can no longer be configured on a per `Target` basis
 - Put back per target `tag:` config
 - Only load `env_files` for the selected target (AKA don't preload everything when you aren't using it)
