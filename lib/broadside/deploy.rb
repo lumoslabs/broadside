@@ -28,9 +28,6 @@ module Broadside
     end
 
     def full
-      Broadside.config.verify(:ssh)
-      verify(:tag)
-
       info "Running predeploy commands for #{family}..."
       run_commands(@target.predeploy_commands)
       info 'Predeploy complete.'
@@ -39,8 +36,6 @@ module Broadside
     end
 
     def deploy
-      verify(:tag)
-
       info "Deploying #{image_tag} to #{family}..."
       yield
       info 'Deployment complete.'
@@ -59,8 +54,7 @@ module Broadside
     end
 
     def run
-      Broadside.config.verify(:ssh)
-      verify(:tag, :command)
+      verify(:command)
       info "Running command [#{@command}] for #{family}..."
       yield
       info 'Complete.'
@@ -90,7 +84,7 @@ module Broadside
     end
 
     def image_tag
-      raise ArgumentError, "Missing tag" unless @tag
+      verify(:tag)
       "#{@target.docker_image}:#{@tag}"
     end
 

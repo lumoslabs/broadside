@@ -1,4 +1,3 @@
-require 'aws-sdk'
 require 'open3'
 require 'pp'
 require 'rainbow'
@@ -128,7 +127,7 @@ module Broadside
     def ssh
       super do
         ip = get_running_instance_ip
-        debug "Establishing an SSH connection to ip #{ip}..."
+        debug "Establishing an SSH connection to IP #{ip}..."
         exec gen_ssh_cmd(ip)
       end
     end
@@ -136,11 +135,10 @@ module Broadside
     def bash
       super do
         ip = get_running_instance_ip
-        debug "Running bash for running container at ip #{ip}..."
+        debug "Running bash for running container at IP #{ip}..."
         search_pattern = Shellwords.shellescape(family)
         cmd = "docker exec -i -t `docker ps -n 1 --quiet --filter name=#{search_pattern}` bash"
-        bash_cmd = gen_ssh_cmd(ip, tty: true) + " '#{cmd}'"
-        exec bash_cmd
+        exec gen_ssh_cmd(ip, tty: true) + " '#{cmd}'"
       end
     end
 
@@ -205,7 +203,7 @@ module Broadside
 
     def run_commands(commands)
       return if commands.nil? || commands.empty?
-
+      Broadside.config.verify(:ssh)
       update_task_revision
 
       begin
@@ -260,7 +258,6 @@ module Broadside
     end
 
     def container_definition
-      @target.load_env_vars! unless @target.env_vars
       configured_containers = (@target.task_definition_config || {})[:container_definitions]
 
       if configured_containers && configured_containers.size > 1

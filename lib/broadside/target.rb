@@ -13,7 +13,6 @@ module Broadside
       :bootstrap_commands,
       :command,
       :env_files,
-      :env_vars,
       :name,
       :predeploy_commands,
       :scale,
@@ -60,8 +59,8 @@ module Broadside
     end
 
     # Convert env files to key/value format ECS expects
-    def load_env_vars!
-      @env_vars = @env_files.inject({}) do |memo, env_file|
+    def env_vars
+      @env_vars ||= @env_files.inject({}) do |memo, env_file|
         raise "#{env_file} does not exist!" unless env_file.exist?
 
         begin

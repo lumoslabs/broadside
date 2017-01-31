@@ -118,7 +118,7 @@ command :run do |run|
   run.arg_name 'COMMAND'
   run.flag [:command], type: Array
 
-  add_target_configs(run)
+  add_instance_config(run)
 end
 
 desc 'Tail the logs inside a running container.'

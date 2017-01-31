@@ -1,5 +1,6 @@
 require 'active_support/core_ext/array'
 require 'active_support/core_ext/hash'
+require 'aws-sdk'
 
 module Broadside
   class EcsManager
@@ -55,7 +56,7 @@ module Broadside
 
         ec2_instance_ids = container_instances.map(&:ec2_instance_id)
         reservations = ec2_client.describe_instances(instance_ids: ec2_instance_ids).reservations
-        
+
         reservations.map(&:instances).flatten.map(&:private_ip_address)
       end
 
