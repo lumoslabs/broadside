@@ -47,6 +47,12 @@ describe Broadside::Target do
     let(:valid_options) { { scale: 1, env_files: env_files } }
     let(:target) { described_class.new(target_name, valid_options) }
 
+    shared_examples 'successfully loaded env_files' do
+      it 'loads environment variables from a file' do
+        expect(target.env_vars).to eq(expected_env_vars)
+      end
+    end
+
     context 'with a single environment file' do
       let(:env_files) { dot_env_file }
       let(:expected_env_vars) do
@@ -56,9 +62,7 @@ describe Broadside::Target do
         ]
       end
 
-      it 'loads environment variables from a file' do
-        expect(target.env_vars).to eq(expected_env_vars)
-      end
+      it_behaves_like 'successfully loaded env_files'
     end
 
     context 'with multiple environment files' do
@@ -71,9 +75,7 @@ describe Broadside::Target do
         ]
       end
 
-      it 'loads the last environment file with highest precedence' do
-        expect(target.env_vars).to eq(expected_env_vars)
-      end
+      it_behaves_like 'successfully loaded env_files'
     end
   end
 end
