@@ -35,8 +35,8 @@ module Broadside
       end
 
       def get_latest_task_definition(name)
-        return nil unless get_latest_task_definition_arn(name)
-        ecs.describe_task_definition(task_definition: get_latest_task_definition_arn(name)).task_definition.to_h
+        return nil unless (arn = get_latest_task_definition_arn(name))
+        ecs.describe_task_definition(task_definition: arn).task_definition.to_h
       end
 
       def get_latest_task_definition_arn(name)
@@ -45,7 +45,7 @@ module Broadside
 
       def get_running_instance_ips(cluster, family, task_arns = nil)
         task_arns = task_arns ? Array.wrap(task_arns) : get_task_arns(cluster, family)
-        exception "No running tasks found for '#{family}' on cluster '#{cluster}'!" if task_arns.empty?
+        raise Error, "No running tasks found for '#{family}' on cluster '#{cluster}'!" if task_arns.empty?
 
         tasks = ecs.describe_tasks(cluster: cluster, tasks: task_arns).tasks
         container_instances = ecs.describe_container_instances(

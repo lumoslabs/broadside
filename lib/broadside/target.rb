@@ -7,11 +7,11 @@ module Broadside
     include VerifyInstanceVariables
     include LoggingUtils
 
+    attr_reader :env_vars
     attr_accessor(
       :bootstrap_commands,
       :command,
       :env_files,
-      :env_vars,
       :instance,
       :name,
       :predeploy_commands,
@@ -54,7 +54,7 @@ module Broadside
         begin
           @env_vars.merge!(Dotenv.load(env_file))
         rescue Dotenv::FormatError => e
-          raise e.class, "Dotenv error: '#{e.message}' while parsing #{env_file}", e.backtrace
+          raise e.class, "Dotenv gem error: '#{e.message}' while parsing #{env_file}", e.backtrace
         end
       end
 

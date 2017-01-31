@@ -160,7 +160,7 @@ module Broadside
         :task_definition_arn
       )
       updatable_container_definitions = revision[:container_definitions].select { |c| c[:name] == family }
-      exception "Can only update one container definition!" if updatable_container_definitions.size != 1
+      raise Error, "Can only update one container definition!" if updatable_container_definitions.size != 1
 
       # Deep merge doesn't work well with arrays (e.g. :container_definitions), so build the container first.
       updatable_container_definitions.first.merge!(container_definition)
@@ -233,7 +233,7 @@ module Broadside
           if (code = EcsManager.get_task_exit_code(@target.cluster, task_arn, family)) == 0
             debug "#{command_name} task #{task_arn} exited with status code 0"
           else
-            exception "#{command_name} task #{task_arn} exited with a non-zero status code #{code}!"
+            raise Error, "#{command_name} task #{task_arn} exited with a non-zero status code #{code}!"
           end
         end
       ensure
