@@ -13,14 +13,14 @@ module Broadside
       :target
     )
 
-    def initialize(target, opts = {})
+    def initialize(target, options = {})
       @target   = target
-      @command  = opts[:command]  || @target.command
-      @instance = opts[:instance] || 0
-      @lines    = opts[:lines]    || 10
-      @rollback = opts[:rollback] || 1
-      @scale    = opts[:scale]    || @target.scale
-      @tag      = opts[:tag]
+      @command  = options[:command]  || @target.command
+      @instance = options[:instance] || 0
+      @lines    = options[:lines]    || 10
+      @rollback = options[:rollback] || 1
+      @scale    = options[:scale]    || @target.scale
+      @tag      = options[:tag]
     end
 
     def short
