@@ -2,11 +2,8 @@ require 'active_model'
 
 module Broadside
   class Deploy
-    include ActiveModel::Model
     include LoggingUtils
     include VerifyInstanceVariables
-
-    #validates :instance, :lines, :scale, numericality: true
 
     attr_reader(
       :command,
@@ -24,7 +21,6 @@ module Broadside
       @rollback = opts[:rollback] || 1
       @scale    = opts[:scale]    || @target.scale
       @tag      = opts[:tag]
-      valid?
     end
 
     def short
