@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Broadside::EcsDeploy do
-  include_context 'full configuration'
+  include_context 'deploy configuration'
 
   let(:family) { "#{test_app}_#{test_target}" }
   let(:target) { Broadside::Target.new(test_target, test_target_config) }

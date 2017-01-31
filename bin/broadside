@@ -29,6 +29,8 @@ def add_target_configs(subcmd)
     _DeployObj = Kernel.const_get("Broadside::#{Broadside.config.type.capitalize}Deploy")
     _target = Broadside.config.targets.select { |t| t.name == options[:target] }.first
     raise "Target ':#{options[:target]}' not configured. " unless _target
+
+    _target.load_env_vars!
     _DeployObj.new(_target, options).public_send(subcmd.name)
   end
 end

@@ -40,7 +40,28 @@ module Broadside
       @task_definition_config = @config[:task_definition_config]
 
       validate!
-      load_env_vars!
+    end
+
+    def load_env_vars!
+      @env_files.flatten.each do |env_path|
+        env_file = Pathname.new(env_path)
+
+        unless env_file.absolute?
+          dir = config.config_file.nil? ? Dir.pwd : Pathname.new(config.config_file).dirname
+          env_file = env_file.expand_path(dir)
+        end
+
+        raise ArgumentError, "Could not find env_file '#{env_file}'!" unless env_file.exist?
+
+        begin
+          @env_vars.merge!(Dotenv.load(env_file))
+        rescue Dotenv::FormatError => e
+          raise e.class, "Dotenv error: '#{e.message}' while parsing #{env_file}", e.backtrace
+        end
+      end
+
+      # convert env vars to format ecs expects
+      @env_vars = @env_vars.map { |k, v| { 'name' => k, 'value' => v } }
     end
 
     def cluster
@@ -68,26 +89,6 @@ module Broadside
       unless invalid_messages.empty?
         raise ArgumentError, invalid_messages.join("\n")
       end
-    end
-
-    def load_env_vars!
-      @env_files.flatten.each do |env_path|
-        env_file = Pathname.new(env_path)
-
-        unless env_file.absolute?
-          dir = config.config_file.nil? ? Dir.pwd : Pathname.new(config.config_file).dirname
-          env_file = env_file.expand_path(dir)
-        end
-
-        if env_file.exist?
-          @env_vars.merge!(Dotenv.load(env_file))
-        else
-          raise ArgumentError, "Could not find file '#{env_file}' for loading environment variables !"
-        end
-      end
-
-      # convert env vars to format ecs expects
-      @env_vars = @env_vars.map { |k, v| { 'name' => k, 'value' => v } }
     end
 
     def self.validate_types(types, target_attribute)
