@@ -2,13 +2,13 @@ shared_context 'deploy configuration' do
   let(:test_app) { 'TEST_APP' }
   let(:cluster) { 'cluster' }
   let(:test_target) { :test_target }
-  let(:env_file)    { '.env.rspec' }
+  let(:dot_env_file) { File.join(FIXTURES_PATH, '.env.rspec') }
   let(:user) { 'test-user' }
   let(:test_target_config) do
     {
       scale: 1,
       command: ['sleep', 'infinity'],
-      env_files: File.join(FIXTURES_PATH, env_file)
+      env_files: dot_env_file
     }
   end
 

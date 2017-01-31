@@ -2,11 +2,11 @@ require 'spec_helper'
 
 describe Broadside::Target do
   include_context 'deploy configuration'
-  let(:sample_dotenv) { File.join(FIXTURES_PATH, '.env.rspec') }
+
   let(:target_name) { 'tarbaby_target' }
 
   shared_examples 'valid_configuration?' do |succeeds, config_hash|
-    let(:valid_options) { { scale: 100, env_files: sample_dotenv } }
+    let(:valid_options) { { scale: 100 } }
     let(:target) { described_class.new(target_name, valid_options.merge(config_hash) )}
 
     it 'validates target configuration' do
@@ -45,7 +45,7 @@ describe Broadside::Target do
     let(:target) { described_class.new(target_name, valid_options) }
 
     context 'with a single environment file' do
-      let(:env_files) { sample_dotenv }
+      let(:env_files) { dot_env_file }
       let(:expected_env_vars) do
         [
           { 'name' => 'TEST_KEY1', 'value' => 'TEST_VALUE1'},
@@ -59,7 +59,7 @@ describe Broadside::Target do
     end
 
     context 'with multiple environment files' do
-      let(:env_files) { [sample_dotenv, sample_dotenv + '.override'] }
+      let(:env_files) { [dot_env_file, dot_env_file + '.override'] }
       let(:expected_env_vars) do
         [
           { 'name' => 'TEST_KEY1', 'value' => 'TEST_VALUE1' },
