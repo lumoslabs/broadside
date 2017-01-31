@@ -2,7 +2,7 @@
 - **BREAKING CHANGE**: `ssh`, `bash`, `logtail`, `status`, and `run` are now top level commands, not subcommands of `deploy`
 - **BREAKING CHANGE**: `config.git_repo` was removed.  `config.base` and `config.deploy` also are no longer backwards compatible
 - Only load `env_files` for the selected target (AKA don't preload everything when you aren't using it)
-- Add `list_targets` command to display all the targets' deployed images
+- Add `list_targets` command to display all the targets' deployed images and CPU/memory allocations
 
 # 2.0.0
 - **BREAKING CHANGE**: `rake db:migrate` is no longer the default `predeploy_command`
@@ -17,7 +17,6 @@
 
 # 1.3.0
 - [#41](https://github.com/lumoslabs/broadside/pull/41/files): Introduce the concept of bootstrap commands, which are designed to be run when setting up a new server or environment.
->>>>>>> master
 
 # 1.2.1
 - [#35](https://github.com/lumoslabs/broadside/pull/35/files): Allows logtail to display more than 10 lines
