@@ -107,7 +107,7 @@ module Broadside
     def logtail
       super do
         ip = get_running_instance_ip
-        debug "Tailing logs for running container at ip #{ip}..."
+        debug "Tailing logs for running container at #{ip}..."
         search_pattern = Shellwords.shellescape(family)
         cmd = "docker logs -f --tail=#{@lines} `docker ps -n 1 --quiet --filter name=#{search_pattern}`"
         tail_cmd = gen_ssh_cmd(ip) + " '#{cmd}'"
@@ -118,7 +118,7 @@ module Broadside
     def ssh
       super do
         ip = get_running_instance_ip
-        debug "Establishing an SSH connection to IP #{ip}..."
+        debug "Establishing an SSH connection to #{ip}..."
         exec(gen_ssh_cmd(ip))
       end
     end
@@ -157,8 +157,7 @@ module Broadside
       EcsManager.get_running_instance_ips(@target.cluster, family).fetch(@instance)
     end
 
-    # Creates a new task revision using current directory's env vars, provided tag, and configured options.
-    # Currently can only handle a single container definition.
+    # Creates a new task revision using current directory's env vars, provided tag, and @target.task_definition_config
     def update_task_revision
       check_task_definition!
       revision = EcsManager.get_latest_task_definition(family).except(
@@ -168,7 +167,7 @@ module Broadside
         :task_definition_arn
       )
       updatable_container_definitions = revision[:container_definitions].select { |c| c[:name] == family }
-      raise Error, "Can only update one container definition!" if updatable_container_definitions.size != 1
+      raise Error, 'Can only update one container definition!' if updatable_container_definitions.size != 1
 
       # Deep merge doesn't work well with arrays (e.g. :container_definitions), so build the container first.
       updatable_container_definitions.first.merge!(container_definition)
@@ -178,7 +177,7 @@ module Broadside
       debug "Successfully created #{task_definition.task_definition_arn}"
     end
 
-    # reloads the service using the latest task definition
+    # Reloads the service using the latest task definition and @target.service_config
     def update_service
       check_service_and_task_definition!
       task_definition_arn = EcsManager.get_latest_task_definition_arn(family)

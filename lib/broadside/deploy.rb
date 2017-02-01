@@ -89,13 +89,14 @@ module Broadside
       "#{@target.docker_image}:#{@tag}"
     end
 
-    def gen_ssh_cmd(ip, options = { tty: false })
+    def gen_ssh_cmd(ip, options = {})
       opts = Broadside.config.ssh || {}
       cmd = 'ssh -o StrictHostKeyChecking=no'
       cmd << ' -t -t' if options[:tty]
       cmd << " -i #{opts[:keyfile]}" if opts[:keyfile]
-      if opts[:proxy]
-        cmd << " -o ProxyCommand=\"ssh #{opts[:proxy][:host]} nc #{ip} #{opts[:proxy][:port]}\""
+      if (proxy = opts[:proxy])
+        raise ArgumentError, "Bad proxy host/port: #{proxy[:host]}/#{proxy[:port]}" unless proxy[:host] && proxy[:port]
+        cmd << " -o ProxyCommand=\"ssh #{proxy[:host]} nc #{ip} #{proxy[:port]}\""
       end
       cmd << " #{opts[:user]}@#{ip}"
       cmd
