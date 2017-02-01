@@ -213,11 +213,10 @@ module Broadside
 
     def run_commands(commands, options = {})
       return if commands.nil? || commands.empty?
-      Broadside.config.verify(:ssh)
       update_task_revision
 
       begin
-        Array.wrap(commands).each do |command|
+        commands.each do |command|
           command_name = command.join(' ')
           run_task_response = EcsManager.run_task(@target.cluster, family, command, options)
           unless run_task_response.successful? && run_task_response.tasks.try(:[], 0)
