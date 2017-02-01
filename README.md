@@ -11,9 +11,9 @@ Applications using broadside employ a configuration file that looks something li
 
 ```ruby
 Broadside.configure do |config|
-  config.application = 'hello_world'
-  config.docker_image = 'lumoslabs/hello_world'
-  config.ecs.cluster = 'production-cluster'
+  config.application =  'hello_world'
+  config.docker_image = 'docker.io/lumoslabs/hello_world'
+  config.ecs.cluster =  'production-cluster'
   config.targets = {
     production_web: {
       scale: 7,
@@ -25,16 +25,16 @@ Broadside.configure do |config|
       ]
     },
     staging_web: {
-      cluster: 'staging-cluster', # Overrides config.ecs.cluster for this target only
       scale: 1,
       command: ['bundle', 'exec', 'puma'],
-      env_file: '../.env.staging',
-      tag: 'latest_staging'
+      env_file: '.env.staging',
+      tag: 'latest_staging',
+      cluster: 'staging-cluster'
     },
-    # This example has a task_definition and service config which you use to bootstrap a new AWS Service
     json_stream: {
       scale: 1,
       command: ['java', '-cp', '*:.', 'path.to.MyClass'],
+      # This target has a task_definition and service config which you use to bootstrap a new AWS Service
       service_config: { deployment_configuration: { minimum_healthy_percent: 0.5 } },
       task_definition_config: { container_definitions: [ { cpu: 1, memory: 2000, } ] }
     }
@@ -45,7 +45,7 @@ end
 From here, developers can use broadside's command-line interface to initiate a basic deployment:
 
 ```bash
-broadside deploy short --target production_web --tag $GIT_TAG
+broadside deploy full --target production_web --tag $GIT_TAG
 ```
 
 In the case of an error or timeout during a deploy, broadside will automatically rollback to the latest stable version. You can perform manual rollbacks as well through the command-line.
@@ -54,6 +54,7 @@ Beyond deploying things, broadside has a lot of other handy features.  Other thi
 
 - **Launch a bash shell directly in the remote docker image** - no messing around with tracking down the server, running `docker ps`, and all the other headaches.
 - **SSH directly onto the server running your image**
+- **Run arbitrary commands in a container that is spun up and spun down as you need it**
 - **Get a lot of status information about your running image**
 - **Tail the logs of a running container**
 - **Horizontally scale an existing deployment to as many instances as your AWS account can handle**
