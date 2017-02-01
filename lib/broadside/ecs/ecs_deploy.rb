@@ -104,11 +104,7 @@ module Broadside
       super do
         ips = EcsManager.get_running_instance_ips(@target.cluster, family)
         task_arns = Broadside::EcsManager.get_task_arns(@target.cluster, family)
-        tasks = if task_arns.nil? || task_arns.empty?
-                  'None'
-                else
-                  Broadside::EcsManager.ecs.describe_tasks(cluster: @target.cluster, tasks: task_arns)
-                end
+        tasks = task_arns.empty? ? 'None' : Broadside::EcsManager.ecs.describe_tasks(cluster: @target.cluster, tasks: task_arns)
 
         info "\n---------------\n",
           Rainbow("Current task definition information:\n").underline,
