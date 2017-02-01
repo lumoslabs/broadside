@@ -18,7 +18,6 @@ module Broadside
 
     def deploy
       super do
-        check_service_and_task_definition!
         update_task_revision
 
         begin
@@ -72,8 +71,8 @@ module Broadside
 
     def rollback(count = @rollback)
       super do
+        check_service_and_task_definition!
         begin
-          check_service_and_task_definition!
           EcsManager.deregister_last_n_tasks_definitions(family, count)
           update_service
         rescue StandardError
@@ -85,7 +84,6 @@ module Broadside
 
     def scale
       super do
-        check_service_and_task_definition!
         update_service
       end
     end
@@ -163,6 +161,7 @@ module Broadside
     # Creates a new task revision using current directory's env vars, provided tag, and configured options.
     # Currently can only handle a single container definition.
     def update_task_revision
+      check_task_definition!
       revision = EcsManager.get_latest_task_definition(family).except(
         :requires_attributes,
         :revision,
@@ -182,6 +181,7 @@ module Broadside
 
     # reloads the service using the latest task definition
     def update_service
+      check_service_and_task_definition!
       task_definition_arn = EcsManager.get_latest_task_definition_arn(family)
       debug "Updating #{family} with scale=#{@target.scale} using task_definition #{task_definition_arn}..."
 
