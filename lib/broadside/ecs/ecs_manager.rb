@@ -85,7 +85,6 @@ module Broadside
       def run_task(cluster, name, command, options = {})
         fail ArgumentError, "#{command} must be an array" unless command.is_a?(Array)
 
-        started_by =
         ecs.run_task(
           cluster: cluster,
           task_definition: get_latest_task_definition_arn(name),
