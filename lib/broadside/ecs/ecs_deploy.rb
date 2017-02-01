@@ -23,14 +23,9 @@ module Broadside
 
         begin
           update_service
-        rescue SignalException::Interrupt
-          error 'Caught interrupt signal, rolling back...'
-          rollback(1)
-          error 'Deployment did not finish successfully.'
-          raise
-        rescue StandardError => e
-          error e.inspect, "\n", e.backtrace.join("\n")
-          error 'Deploy failed! Rolling back...'
+        rescue SignalException::Interrupt, StandardError => e
+          msg = e.is_a?(SignalException::Interrupt) ? 'Caught interrupt signal' : "#{e.class}: #{e.message}"
+          error "#{msg}, rolling back..."
           rollback(1)
           error 'Deployment did not finish successfully.'
           raise e
@@ -40,7 +35,7 @@ module Broadside
 
     def bootstrap
       if EcsManager.get_latest_task_definition_arn(family)
-        info("Task definition for #{family} already exists.")
+        info "Task definition for #{family} already exists."
       else
         unless @target.task_definition_config
           raise ArgumentError, "No first task definition and no :task_definition_config in '#{family}' configuration"
