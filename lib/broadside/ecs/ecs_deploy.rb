@@ -91,7 +91,6 @@ module Broadside
 
     def run
       super do
-        check_task_definition!
         run_commands([@command], started_by: 'run')
       end
     end
