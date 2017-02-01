@@ -197,8 +197,8 @@ describe Broadside::EcsDeploy do
       it 'executes correct system command' do
         expect { deploy.bash }.to_not raise_error
         expect(api_request_log).to eq([
-          { describe_services: { cluster: cluster, services: [family]}},
-          { list_task_definitions: { family_prefix: family} },
+          { describe_services: { cluster: cluster, services: [family] } },
+          { list_task_definitions: { family_prefix: family } },
           { list_tasks: { cluster: cluster, family: family } },
           { describe_tasks: { cluster: cluster, tasks: [task_arn] } },
           { describe_container_instances: { cluster: cluster, container_instances: [container_arn] } },
@@ -211,8 +211,19 @@ describe Broadside::EcsDeploy do
   context 'run' do
     let(:local_deploy_config) { { command: ['run', 'some', 'command'] } }
 
-    it 'runs the command' do
-      deploy.run
+    it 'fails without a task definition' do
+      expect { deploy.run }.to raise_error /No task definition for /
+    end
+
+    context 'with a task_definition' do
+      include_context 'with a task_definition'
+      before do
+        ecs_stub.stub_responses(:run_task, tasks: [task_arn: 'task_arn'])
+      end
+
+      it 'runs' do
+        expect { deploy.run }.to_not raise_error
+      end
     end
   end
 end

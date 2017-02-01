@@ -93,7 +93,7 @@ module Broadside
     def run
       super do
         check_task_definition!
-        run_commands(@command, started_by: 'run')
+        run_commands([@command], started_by: 'run')
       end
     end
 
@@ -222,7 +222,6 @@ module Broadside
         Array.wrap(commands).each do |command|
           command_name = command.join(' ')
           run_task_response = EcsManager.run_task(@target.cluster, family, command, options)
-
           unless run_task_response.successful? && run_task_response.tasks.try(:[], 0)
             raise Error, "Failed to run #{command_name} task:\n#{run_task_response.pretty_inspect}"
           end

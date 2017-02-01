@@ -1,10 +1,10 @@
 require 'spec_helper'
 
-# Hitting the stubbed Aws::ECS::Client object will validate the request format
+# Hitting the stubbed Aws::ECS::Client serves to validate the request format we are sending
 
 describe Broadside::EcsManager do
   include_context 'ecs stubs'
-  
+
   let(:service_name) { 'service' }
   let(:cluster) { 'cluster' }
   let(:name) { 'job' }
@@ -31,7 +31,7 @@ describe Broadside::EcsManager do
   end
 
   context 'all_results' do
-    let(:task_definition_arns) { ["arn:task-definition/task:1", "arn:task-definition/other_task:1" ] }
+    let(:task_definition_arns) { ["arn:task-definition/task:1", "arn:task-definition/other_task:1"] }
     let(:stub_task_definition_responses) do
       [
         { task_definition_arns: [task_definition_arns[0]], next_token: 'MzQ3N' },
