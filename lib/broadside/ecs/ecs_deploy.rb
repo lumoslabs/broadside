@@ -8,13 +8,8 @@ module Broadside
     DEFAULT_CONTAINER_DEFINITION = {
       cpu: 1,
       essential: true,
-      memory: 1000
+      memory: 1024
     }
-
-    def initialize(target, opts = {})
-      super
-      Broadside.config.ecs.verify(:poll_frequency)
-    end
 
     def deploy
       super do

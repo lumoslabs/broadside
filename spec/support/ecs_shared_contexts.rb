@@ -1,5 +1,6 @@
 shared_context 'ecs stubs' do
   let(:api_request_log) { [] }
+  let(:api_request_methods) { api_request_log.map(&:keys).flatten }
   let(:ecs_stub) { build_stub_aws_client(Aws::ECS::Client, api_request_log) }
   let(:ec2_stub) { build_stub_aws_client(Aws::EC2::Client, api_request_log) }
 
@@ -11,10 +12,6 @@ end
 
 shared_context 'with a running service' do
   include_context 'ecs stubs'
-
-  before(:each) do
-    ecs_stub.stub_responses(:describe_services, stub_service_response)
-  end
 
   let(:stub_service_response) do
     {
@@ -28,11 +25,15 @@ shared_context 'with a running service' do
       failures: []
     }
   end
+
+  before(:each) do
+    ecs_stub.stub_responses(:describe_services, stub_service_response)
+  end
 end
 
 shared_context 'with a task_definition' do
   include_context 'ecs stubs'
-  
+
   let(:task_definition_arn) { "#{arn}:task-definition/#{test_target}:1" }
   let(:stub_task_definition_response) { { task_definition_arns: [task_definition_arn] } }
   let(:stub_describe_task_definition_response) do

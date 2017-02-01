@@ -21,6 +21,9 @@ module Broadside
     )
 
     validates :application, :targets, :logger, presence: true
+    validates_each :ecs do |record, attr, val|
+      record.errors.add(attr, 'not set') unless val.poll_frequency
+    end
 
     def initialize
       @logger = ::Logger.new(STDOUT)

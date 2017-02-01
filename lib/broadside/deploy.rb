@@ -1,15 +1,8 @@
 module Broadside
   class Deploy
     include LoggingUtils
-    include VerifyInstanceVariables
 
-    attr_reader(
-      :command,
-      :instance,
-      :lines,
-      :tag,
-      :target
-    )
+    attr_reader :command, :tag, :target
 
     def initialize(target, options = {})
       @target   = target
@@ -19,6 +12,7 @@ module Broadside
       @rollback = options[:rollback] || 1
       @scale    = options[:scale]    || @target.scale
       @tag      = options[:tag]      || @target.tag
+      verify(:target)
     end
 
     def short
@@ -99,6 +93,10 @@ module Broadside
       end
       cmd << " #{opts[:user]}@#{ip}"
       cmd
+    end
+
+    def verify(var)
+      raise MissingVariableError, "Missing #{self.class.to_s.split("::").last} variable '#{var}'!" if send(var).nil?
     end
   end
 end
