@@ -12,14 +12,14 @@ module Broadside
         )
       end
 
-      def create_service(cluster, name, options = {})
+      def create_service(cluster, name, service_config = {})
         ecs.create_service(
           {
             cluster: cluster,
             desired_count: DEFAULT_DESIRED_COUNT,
             service_name: name,
             task_definition: name
-          }.deep_merge(options)
+          }.deep_merge(service_config)
         )
       end
 
@@ -97,7 +97,7 @@ module Broadside
         )
 
         unless response.successful? && response.tasks.try(:[], 0)
-          raise Error, "Failed to run #{command.join(' ')} task:\n#{response.pretty_inspect}"
+          raise Error, "Failed to run '#{command.join(' ')}' task:\n#{response.pretty_inspect}"
         end
 
         response

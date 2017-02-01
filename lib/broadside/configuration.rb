@@ -21,8 +21,14 @@ module Broadside
     )
 
     validates :application, :targets, :logger, presence: true
-    validates_each :ecs do |record, attr, val|
+
+    validates_each :ecs do |record, attr ,val|
       record.errors.add(attr, 'not set') unless val.poll_frequency
+    end
+
+    validates_each :aws do |record, _, val|
+      record.errors.add('aws.region', 'not set') unless val.region
+      record.errors.add('aws.credentials', 'not set') unless val.credentials
     end
 
     def initialize
