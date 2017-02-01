@@ -68,7 +68,7 @@ desc 'List the targets and deployed images'
 command :list_targets do |list_targets|
   list_targets.action do |global_options, options, args|
     _DeployObj = Kernel.const_get("Broadside::#{Broadside.config.type.capitalize}Deploy")
-    printf("%-50s %-25s %-10s %-5s %-6s %-1s %-9s %-23s\n", 'Container Name', 'Image', 'Version', 'CPU', 'Memory', '#', 'Status', 'Started')
+    printf("%-50s %-25s %-10s %-5s %-6s %-1s %-9s %-23s\n", 'Target', 'Image', 'Version', 'CPU', 'Memory', '#', 'Status', 'Started')
 
     Broadside.config.targets.each do |target|
       deploy = _DeployObj.new(target)
@@ -84,7 +84,7 @@ command :list_targets do |list_targets|
         Broadside::EcsManager.ecs.describe_tasks(cluster: target.cluster, tasks: task_arns).tasks.each_with_index do |task, i|
           printf(
             "%-50s %-25s %-10s %-5s %-6s %-1d %-9s %-23s\n",
-            image[:name],
+            target.name,
             image_tag,
             version,
             image[:cpu],
