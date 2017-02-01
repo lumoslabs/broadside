@@ -4,23 +4,6 @@ Dir["./spec/support/**/*.rb"].sort.each { |f| require f }
 
 FIXTURES_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 
-module AwsStubHelper
-  def build_stub_aws_client(klass, api_request_log = [])
-    client = klass.new(
-      region: Broadside.config.aws.region,
-      credentials: Aws::Credentials.new('access', 'secret'),
-      stub_responses: true
-    )
-
-    client.handle do |context|
-      api_request_log << { context.operation_name => context.params }
-      @handler.call(context)
-    end
-
-    client
-  end
-end
-
 RSpec.configure do |config|
   config.before do
     Broadside.reset!
