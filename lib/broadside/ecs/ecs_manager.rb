@@ -44,6 +44,11 @@ module Broadside
         get_task_definition_arns(name).last
       end
 
+      def describe_all_tasks(cluster, family)
+        task_arns = get_task_arns(cluster, family)
+        task_arns.empty? ? nil : ecs.describe_tasks(cluster: cluster, tasks: task_arns)
+      end
+
       def get_running_instance_ips(cluster, family, task_arns = nil)
         task_arns = task_arns ? Array.wrap(task_arns) : get_task_arns(cluster, family)
         raise Error, "No running tasks found for '#{family}' on cluster '#{cluster}'!" if task_arns.empty?

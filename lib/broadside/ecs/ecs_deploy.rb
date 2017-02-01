@@ -5,6 +5,7 @@ require 'shellwords'
 
 module Broadside
   class EcsDeploy < Deploy
+    WIDTH = 150
     DEFAULT_CONTAINER_DEFINITION = {
       cpu: 1,
       essential: true,
@@ -103,13 +104,22 @@ module Broadside
     def status
       super do
         ips = EcsManager.get_running_instance_ips(@target.cluster, family)
-        info "\n---------------",
-          "\nDeployed task definition information:\n",
-          Rainbow(PP.pp(EcsManager.get_latest_task_definition(family), '')).blue,
-          "\nPrivate ips of instances running containers:\n",
-          Rainbow(ips.join(' ')).blue,
-          "\n\nssh command:\n#{Rainbow(gen_ssh_cmd(ips.first)).cyan}",
-          "\n---------------\n"
+        tasks = EcsManager.describe_all_tasks(@target.cluster, family)
+        tasks = tasks ? tasks.to_hash : 'No tasks found'
+
+        info "\n---------------\n",
+          Rainbow("Current task definition information:\n").underline,
+          Rainbow(PP.pp(EcsManager.get_latest_task_definition(family), '', WIDTH)).blue.bright,
+          "\n",
+          Rainbow("Current service information:\n").underline,
+          Rainbow(PP.pp(EcsManager.ecs.describe_services(cluster: @target.cluster, services: [family]).to_hash, '', WIDTH)).aliceblue,
+          "\n",
+          Rainbow("Task information:\n").underline,
+          Rainbow(PP.pp(tasks, '', WIDTH)).aqua,
+          "\n\n",
+          Rainbow("IPs and SSH commands:\n").underline,
+          Rainbow(ips.map { |ip| "#{ip}: #{gen_ssh_cmd(ip)}"}.join("\n")).cyan,
+          "\n"
       end
     end
 

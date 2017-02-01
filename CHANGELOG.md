@@ -9,7 +9,8 @@
 - Only load `env_files` for the selected target (AKA don't preload everything when you aren't using it)
 - Make `env_files` configuration optional
 - No more `Utils` module, just `LoggingUtils`
-- Exceptions will be raised if you try to configure a target with an invalid hash key
+- Exceptions will be raised if you try to configure a `Target` with an invalid hash key
+- `broadside status` shows you a lot more stuff
 
 # 2.0.0
 - **BREAKING CHANGE**: `rake db:migrate` is no longer the default `predeploy_command`
