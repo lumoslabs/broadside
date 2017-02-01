@@ -1,4 +1,5 @@
 Broadside.configure do |c|
+  c.ecs.cluster = 'cluster'
   c.application = 'TEST_APP'
   c.docker_image = 'rails'
   c.logger.level = Logger::ERROR

@@ -2,11 +2,13 @@ require 'logger'
 
 module Broadside
   class Configuration
-    extend Gem::Deprecate
     include VerifyInstanceVariables
-    include Utils
+    include LoggingUtils
 
-    attr_reader :targets
+    attr_reader(
+      :targets,
+      :type
+    )
     attr_accessor(
       :application,
       :config_file,
@@ -15,8 +17,7 @@ module Broadside
       :prehook,
       :posthook,
       :ssh,
-      :timeout,
-      :type
+      :timeout
     )
 
     def initialize
@@ -36,12 +37,12 @@ module Broadside
     end
 
     def targets=(_targets)
-      raise ArgumentError, "Targets must be a hash" unless _targets.is_a?(Hash)
+      raise ArgumentError, ":targets must be a hash" unless _targets.is_a?(Hash)
       @targets = _targets.map { |name, config| Target.new(name, config) }
     end
 
     def verify(*args)
-      super(*([:application, :docker_image] + args))
+      super(*([:application] + args))
     end
   end
 end

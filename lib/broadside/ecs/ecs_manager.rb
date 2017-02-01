@@ -1,12 +1,13 @@
-require 'active_support/core_ext/hash'
 require 'active_support/core_ext/array'
+require 'active_support/core_ext/hash'
+require 'aws-sdk'
 
 module Broadside
   class EcsManager
     DEFAULT_DESIRED_COUNT = 0
 
     class << self
-      include Utils
+      include LoggingUtils
 
       def ecs
         @ecs_client ||= Aws::ECS::Client.new(
@@ -35,8 +36,8 @@ module Broadside
       end
 
       def get_latest_task_definition(name)
-        return nil unless get_latest_task_definition_arn(name)
-        ecs.describe_task_definition(task_definition: get_latest_task_definition_arn(name)).task_definition.to_h
+        return nil unless (arn = get_latest_task_definition_arn(name))
+        ecs.describe_task_definition(task_definition: arn).task_definition.to_h
       end
 
       def get_latest_task_definition_arn(name)
@@ -45,18 +46,18 @@ module Broadside
 
       def get_running_instance_ips(cluster, family, task_arns = nil)
         task_arns = task_arns ? Array.wrap(task_arns) : get_task_arns(cluster, family)
-        exception "No running tasks found for '#{family}' on cluster '#{cluster}'!" if task_arns.empty?
+        raise Error, "No running tasks found for '#{family}' on cluster '#{cluster}'!" if task_arns.empty?
 
         tasks = ecs.describe_tasks(cluster: cluster, tasks: task_arns).tasks
         container_instances = ecs.describe_container_instances(
           cluster: cluster,
           container_instances: tasks.map(&:container_instance_arn),
         ).container_instances
-        ec2_instance_ids = container_instances.map(&:ec2_instance_id)
 
+        ec2_instance_ids = container_instances.map(&:ec2_instance_id)
         reservations = ec2_client.describe_instances(instance_ids: ec2_instance_ids).reservations
-        instances = reservations.map(&:instances).flatten
-        instances.map(&:private_ip_address)
+
+        reservations.map(&:instances).flatten.map(&:private_ip_address)
       end
 
       def get_task_arns(cluster, family)
@@ -121,8 +122,8 @@ module Broadside
 
       def ec2_client
         @ec2_client ||= Aws::EC2::Client.new(
-          region: config.aws.region,
-          credentials: config.aws.credentials
+          region: Broadside.config.aws.region,
+          credentials: Broadside.config.aws.credentials
         )
       end
     end

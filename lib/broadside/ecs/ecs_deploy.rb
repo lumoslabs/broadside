@@ -1,4 +1,3 @@
-require 'aws-sdk'
 require 'open3'
 require 'pp'
 require 'rainbow'
@@ -14,16 +13,16 @@ module Broadside
 
     def initialize(target, opts = {})
       super
-      config.ecs.verify(:cluster, :poll_frequency)
+      Broadside.config.ecs.verify(:poll_frequency)
     end
 
     def deploy
       super do
         unless EcsManager.service_exists?(@target.cluster, family)
-          exception "No service for #{family}! Please bootstrap or manually configure the service."
+          raise Error, "No service for '#{family}'! Please bootstrap or manually configure one."
         end
         unless EcsManager.get_latest_task_definition_arn(family)
-          exception "No task definition for '#{family}'! Please bootstrap or manually configure the task definition."
+          raise Error, "No task definition for '#{family}'! Please bootstrap or manually configure one."
         end
 
         update_task_revision
@@ -46,7 +45,9 @@ module Broadside
     end
 
     def bootstrap
-      unless EcsManager.get_latest_task_definition_arn(family)
+      if EcsManager.get_latest_task_definition_arn(family)
+        info("Task definition for #{family} already exists.")
+      else
         unless @target.task_definition_config
           raise ArgumentError, "No first task definition and no :task_definition_config in '#{family}' configuration"
         end
@@ -119,33 +120,32 @@ module Broadside
         search_pattern = Shellwords.shellescape(family)
         cmd = "docker logs -f --tail=#{@lines} `docker ps -n 1 --quiet --filter name=#{search_pattern}`"
         tail_cmd = gen_ssh_cmd(ip) + " '#{cmd}'"
-        exec tail_cmd
+        exec(tail_cmd)
       end
     end
 
     def ssh
       super do
         ip = get_running_instance_ip
-        debug "Establishing an SSH connection to ip #{ip}..."
-        exec gen_ssh_cmd(ip)
+        debug "Establishing an SSH connection to IP #{ip}..."
+        exec(gen_ssh_cmd(ip))
       end
     end
 
     def bash
       super do
         ip = get_running_instance_ip
-        debug "Running bash for running container at ip #{ip}..."
+        debug "Running bash for running container at IP #{ip}..."
         search_pattern = Shellwords.shellescape(family)
         cmd = "docker exec -i -t `docker ps -n 1 --quiet --filter name=#{search_pattern}` bash"
-        bash_cmd = gen_ssh_cmd(ip, tty: true) + " '#{cmd}'"
-        exec bash_cmd
+        exec(gen_ssh_cmd(ip, tty: true) + " '#{cmd}'")
       end
     end
 
     private
 
     def get_running_instance_ip
-      EcsManager.get_running_instance_ips(@target.cluster, family).fetch(@target.instance)
+      EcsManager.get_running_instance_ips(@target.cluster, family).fetch(@instance)
     end
 
     # Creates a new task revision using current directory's env vars, provided tag, and configured options.
@@ -158,7 +158,7 @@ module Broadside
         :task_definition_arn
       )
       updatable_container_definitions = revision[:container_definitions].select { |c| c[:name] == family }
-      exception "Can only update one container definition!" if updatable_container_definitions.size != 1
+      raise Error, "Can only update one container definition!" if updatable_container_definitions.size != 1
 
       # Deep merge doesn't work well with arrays (e.g. :container_definitions), so build the container first.
       updatable_container_definitions.first.merge!(container_definition)
@@ -171,22 +171,23 @@ module Broadside
     # reloads the service using the latest task definition
     def update_service
       task_definition_arn = EcsManager.get_latest_task_definition_arn(family)
-      debug "Updating #{family} with scale=#{@target.scale} using task #{task_definition_arn}..."
+      debug "Updating #{family} with scale=#{@target.scale} using task_definition #{task_definition_arn}..."
 
       update_service_response = EcsManager.ecs.update_service({
         cluster: @target.cluster,
-        desired_count: @target.scale,
+        desired_count: @target.scale.to_i,
         service: family,
         task_definition: task_definition_arn
       }.deep_merge(@target.service_config || {}))
 
       unless update_service_response.successful?
-        exception('Failed to update service during deploy.', update_service_response.pretty_inspect)
+        raise Error, "Failed to update service during deploy:\n#{update_service_response.pretty_inspect}"
       end
 
       EcsManager.ecs.wait_until(:services_stable, { cluster: @target.cluster, services: [family] }) do |w|
-        w.max_attempts = config.timeout ? config.timeout / config.ecs.poll_frequency : nil
-        w.delay = config.ecs.poll_frequency
+        timeout = Broadside.config.timeout
+        w.delay = Broadside.config.ecs.poll_frequency
+        w.max_attempts = timeout ? timeout / w.delay : nil
         seen_event = nil
 
         w.before_wait do |attempt, response|
@@ -202,7 +203,7 @@ module Broadside
 
     def run_commands(commands)
       return if commands.nil? || commands.empty?
-
+      Broadside.config.verify(:ssh)
       update_task_revision
 
       begin
@@ -211,15 +212,15 @@ module Broadside
           run_task_response = EcsManager.run_task(@target.cluster, family, command)
 
           unless run_task_response.successful? && run_task_response.tasks.try(:[], 0)
-            exception("Failed to run #{command_name} task.", run_task_response.pretty_inspect)
+            raise Error, "Failed to run #{command_name} task:\n#{run_task_response.pretty_inspect}"
           end
 
           task_arn = run_task_response.tasks[0].task_arn
-          debug "Launched #{command_name} task #{task_arn}, waiting for completion..."
+          info "Launched #{command_name} task #{task_arn}, waiting for completion..."
 
           EcsManager.ecs.wait_until(:tasks_stopped, { cluster: @target.cluster, tasks: [task_arn] }) do |w|
             w.max_attempts = nil
-            w.delay = config.ecs.poll_frequency
+            w.delay = Broadside.config.ecs.poll_frequency
             w.before_attempt do |attempt|
               debug "Attempt #{attempt}: waiting for #{command_name} to complete..."
             end
@@ -228,9 +229,9 @@ module Broadside
           info "#{command_name} task container logs:\n#{get_container_logs(task_arn)}"
 
           if (code = EcsManager.get_task_exit_code(@target.cluster, task_arn, family)) == 0
-            debug "#{command_name} task #{task_arn} exited with status code 0"
+            info "#{command_name} task #{task_arn} complete"
           else
-            exception "#{command_name} task #{task_arn} exited with a non-zero status code #{code}!"
+            raise Error, "#{command_name} task #{task_arn} exited with a non-zero status code #{code}!"
           end
         end
       ensure
@@ -240,19 +241,22 @@ module Broadside
 
     def get_container_logs(task_arn)
       ip = EcsManager.get_running_instance_ips(@target.cluster, family, task_arn).first
-      debug "Found ip of container instance: #{ip}"
+      debug "Found IP of container instance: #{ip}"
 
       find_container_id_cmd = "#{gen_ssh_cmd(ip)} \"docker ps -aqf 'label=com.amazonaws.ecs.task-arn=#{task_arn}'\""
       debug "Running command to find container id:\n#{find_container_id_cmd}"
-      container_id = `#{find_container_id_cmd}`.strip
+      container_ids = `#{find_container_id_cmd}`.split
 
-      get_container_logs_cmd = "#{gen_ssh_cmd(ip)} \"docker logs #{container_id}\""
-      debug "Running command to get logs of container #{container_id}:\n#{get_container_logs_cmd}"
+      logs = ''
+      container_ids.each do |container_id|
+        get_container_logs_cmd = "#{gen_ssh_cmd(ip)} \"docker logs #{container_id}\""
+        debug "Running command to get logs of container #{container_id}:\n#{get_container_logs_cmd}"
 
-      logs = nil
-      Open3.popen3(get_container_logs_cmd) do |_, stdout, stderr, _|
-        logs = "STDOUT:--\n#{stdout.read}\nSTDERR:--\n#{stderr.read}"
+        Open3.popen3(get_container_logs_cmd) do |_, stdout, stderr, _|
+          logs << "STDOUT (#{container_id}):--\n#{stdout.read}\nSTDERR (#{container_id}):--\n#{stderr.read}\n"
+        end
       end
+
       logs
     end
 

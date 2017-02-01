@@ -76,7 +76,8 @@ In the case of an error or timeout during a deploy, broadside will automatically
 [See the complete command-line reference in the wiki](https://github.com/lumoslabs/broadside/wiki/CLI-reference).
 
 
-## Setup
+## Installation
+### Via Gemfile
 First, install broadside by adding it to your application `Gemfile`:
 
 ```ruby
@@ -93,7 +94,20 @@ You can now run the executable in your app directory:
 bundle exec broadside --help
 ```
 
-For a full application setup, see the [detailed instructions in the wiki](https://github.com/lumoslabs/broadside/wiki/Setup).
+`bundler` can also install binstubs for you - small scripts in the `/bin` directory of your application that will mean you can type `bin/broadside do_something` instead of `bundle exec broadside do_something`.  If you want to save the typing, run:
+
+```bash
+bundle binstubs broadside
+```
+
+### System Wide
+If you are unfamiliar with `bundler` and/or just want to install it for the whole system like a real cowboy, you can just do
+```
+gem install broadside
+```
+
+## Configuration
+For full application setup including tips about setting up your Amazon Web Services, see the [detailed instructions in the wiki](https://github.com/lumoslabs/broadside/wiki).
 
 ## Debugging
 Broadside is pretty terse with its error output; you can get a full stacktrace with `export GLI_DEBUG=true`

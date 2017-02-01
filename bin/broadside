@@ -4,7 +4,7 @@ require 'gli'
 require 'broadside'
 
 include GLI::App
-include Broadside::Utils
+include Broadside::LoggingUtils
 
 program_desc 'A command-line tool for deployment and development of docker applications.'
 
@@ -30,7 +30,6 @@ def add_target_configs(subcmd)
     _target = Broadside.config.targets.select { |t| t.name == options[:target] }.first
     raise "Target ':#{options[:target]}' not configured. " unless _target
 
-    _target.load_env_vars!
     _DeployObj.new(_target, options).public_send(subcmd.name)
   end
 end
@@ -150,7 +149,7 @@ command :run do |run|
   run.arg_name 'COMMAND'
   run.flag [:command], type: Array
 
-  add_target_configs(run)
+  add_instance_config(run)
 end
 
 desc 'Tail the logs inside a running container.'

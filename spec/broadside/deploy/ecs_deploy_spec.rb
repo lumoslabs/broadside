@@ -2,42 +2,24 @@ require 'spec_helper'
 
 describe Broadside::EcsDeploy do
   include_context 'deploy configuration'
+  include_context 'ecs stubs'
 
   let(:family) { "#{test_app}_#{test_target}" }
-  let(:target) { Broadside::Target.new(test_target, test_target_config) }
+  let(:target) { Broadside::Target.new(test_target, test_target_config.merge(local_target_config)) }
+  let(:local_target_config) { {} }
   let(:deploy) { described_class.new(target, tag: 'tag_the_bag') }
-
-  let(:api_request_log) { [] }
-
-  let(:ecs_stub) do
-    requests = api_request_log
-    client = Aws::ECS::Client.new(
-      region: Broadside.config.aws.region,
-      credentials: Aws::Credentials.new('access', 'secret'),
-      stub_responses: true
-    )
-
-    client.handle do |context|
-      requests << { context.operation_name => context.params }
-      @handler.call(context)
-    end
-
-    client
-  end
-
   let(:desired_count) { 2 }
-  let(:minimum_healthy_percent) { 40 }
+  let(:cpu) { 1 }
+  let(:memory) { 2000 }
+  let(:arn) { 'arn:aws:ecs:us-east-1:1234' }
   let(:service_config) do
     {
       desired_count: desired_count,
       deployment_configuration: {
-        minimum_healthy_percent: minimum_healthy_percent,
+        minimum_healthy_percent: 40,
       }
     }
   end
-
-  let(:cpu) { 1 }
-  let(:memory) { 2000 }
   let(:task_definition_config) do
     {
       container_definitions: [
@@ -48,16 +30,18 @@ describe Broadside::EcsDeploy do
       ]
     }
   end
-
-  let(:arn) { 'arn:aws:ecs:us-east-1:1234' }
-  let(:existing_service) do
+  let(:stub_service_response) do
     {
-      service_name: test_target.to_s,
-      service_arn: "#{arn}:service/#{test_target}",
-      deployments: [{ desired_count: 1, running_count: 1 }]
+      services: [
+        {
+          service_name: test_target.to_s,
+          service_arn: "#{arn}:service/#{test_target}",
+          deployments: [{ desired_count: 1, running_count: 1 }]
+        }
+      ],
+      failures: []
     }
   end
-  let(:stub_service_response) { { services: [existing_service], failures: [] } }
   let(:task_definition_arn) { "#{arn}:task-definition/#{test_target}:1" }
   let(:stub_task_definition_response) { { task_definition_arns: [task_definition_arn] } }
   let(:stub_describe_task_definition_response) do
@@ -74,15 +58,13 @@ describe Broadside::EcsDeploy do
     }
   end
 
-  before(:each) { Broadside::EcsManager.instance_variable_set(:@ecs_client, ecs_stub) }
-
   it 'should instantiate an object' do
     expect { deploy }.to_not raise_error
   end
 
   context 'bootstrap' do
     it 'fails without task_definition_config' do
-      expect { deploy.bootstrap }.to raise_error(//)
+      expect { deploy.bootstrap }.to raise_error(/No first task definition and no :task_definition_config/)
     end
 
     context 'with an existing task definition' do
@@ -92,8 +74,6 @@ describe Broadside::EcsDeploy do
       end
 
       it 'fails without service_config' do
-        deploy.target.task_definition_config = task_definition_config
-
         expect { deploy.bootstrap }.to raise_error(/Service doesn't exist and no :service_config/)
       end
 
@@ -103,17 +83,12 @@ describe Broadside::EcsDeploy do
         end
 
         it 'succeeds' do
-          deploy.target.service_config = service_config
-          deploy.target.task_definition_config = task_definition_config
-
           expect { deploy.bootstrap }.to_not raise_error
         end
 
         context 'and some configured bootstrap commands' do
           let(:commands) { [%w(foo bar baz)] }
-          let(:target) do
-            Broadside::Target.new(test_target, test_target_config.merge(bootstrap_commands: commands))
-          end
+          let(:local_target_config) { { bootstrap_commands: commands } }
 
           it 'runs bootstrap commands' do
             expect(deploy).to receive(:run_commands).with(commands)
@@ -126,7 +101,7 @@ describe Broadside::EcsDeploy do
 
   context 'deploy' do
     it 'fails without an existing service' do
-      expect { deploy.deploy }.to raise_error(/No service for #{family}!/)
+      expect { deploy.short }.to raise_error(/No service for '#{family}'!/)
     end
 
     context 'with an existing service' do
@@ -135,7 +110,7 @@ describe Broadside::EcsDeploy do
       end
 
       it 'fails without an existing task_definition' do
-        expect { deploy.deploy }.to raise_error(/No task definition for/)
+        expect { deploy.short }.to raise_error(/No task definition for/)
       end
 
       context 'with an existing task definition' do
@@ -148,23 +123,30 @@ describe Broadside::EcsDeploy do
           expect { deploy.short }.to_not raise_error
         end
 
-        it 'should reconfigure the task definition' do
-          deploy.target.task_definition_config = task_definition_config
-          deploy.short
+        context 'updating service and task definitions' do
+          let(:local_target_config) do
+            {
+              task_definition_config: task_definition_config,
+              service_config: service_config
+            }
+          end
 
-          register_requests = api_request_log.select { |cmd| cmd.keys.first == :register_task_definition }
-          expect(register_requests.size).to eq(1)
+          it 'should reconfigure the task definition' do
+            deploy.short
 
-          expect(register_requests.first.values.first[:container_definitions].first[:cpu]).to eq(cpu)
-          expect(register_requests.first.values.first[:container_definitions].first[:memory]).to eq(memory)
-        end
+            register_requests = api_request_log.select { |cmd| cmd.keys.first == :register_task_definition }
+            expect(register_requests.size).to eq(1)
 
-        it 'should reconfigure the service definition' do
-          deploy.target.service_config = service_config
-          deploy.short
+            expect(register_requests.first.values.first[:container_definitions].first[:cpu]).to eq(cpu)
+            expect(register_requests.first.values.first[:container_definitions].first[:memory]).to eq(memory)
+          end
 
-          service_requests = api_request_log.select { |cmd| cmd.keys.first == :update_service }
-          expect(service_requests.first.values.first[:desired_count]).to eq(desired_count)
+          it 'should reconfigure the service definition' do
+            deploy.short
+
+            service_requests = api_request_log.select { |cmd| cmd.keys.first == :update_service }
+            expect(service_requests.first.values.first[:desired_count]).to eq(desired_count)
+          end
         end
 
         it 'can rollback' do
@@ -177,6 +159,38 @@ describe Broadside::EcsDeploy do
             :describe_services
           ])
         end
+      end
+    end
+  end
+
+  context 'bash' do
+    it 'fails without a running task' do
+      expect { deploy.bash }.to raise_error(Broadside::Error, /No running tasks found/)
+    end
+
+    context 'with a running task' do
+      let(:task_arn) { 'some_task_arn'}
+      let(:container_arn) { 'some_container_arn' }
+      let(:instance_id) { 'i-xxxxxxxx' }
+      let(:ip) { '123.123.123.123' }
+
+      before(:each) do
+        ecs_stub.stub_responses(:list_tasks, task_arns: [task_arn])
+        ecs_stub.stub_responses(:describe_tasks, tasks: [{ container_instance_arn: container_arn }])
+        ecs_stub.stub_responses(:describe_container_instances, container_instances: [{ ec2_instance_id: instance_id }])
+        ec2_stub.stub_responses(:describe_instances, reservations: [ instances: [ { private_ip_address: ip } ] ])
+
+        allow(deploy).to receive(:exec).with("ssh -o StrictHostKeyChecking=no -t -t #{user}@#{ip} 'docker exec -i -t `docker ps -n 1 --quiet --filter name=#{family}` bash'")
+      end
+
+      it 'executes correct system command' do
+        expect { deploy.bash }.to_not raise_error
+        expect(api_request_log).to eq([
+          { list_tasks: { cluster: cluster, family: family } },
+          { describe_tasks: { cluster: cluster, tasks: [task_arn] } },
+          { describe_container_instances: { cluster: cluster, container_instances: [container_arn] } },
+          { describe_instances: { instance_ids: [instance_id] } }
+        ])
       end
     end
   end

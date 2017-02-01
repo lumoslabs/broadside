@@ -1,6 +1,8 @@
+require 'active_model'
+
 module Broadside
   class Deploy
-    include Utils
+    include LoggingUtils
     include VerifyInstanceVariables
 
     attr_reader(
@@ -11,14 +13,14 @@ module Broadside
       :target
     )
 
-    def initialize(target, opts = {})
+    def initialize(target, options = {})
       @target   = target
-      @command  = opts[:command]  || @target.command
-      @instance = opts[:instance] || @target.instance
-      @lines    = opts[:lines]    || 10
-      @rollback = opts[:rollback] || 1
-      @scale    = opts[:scale]    || @target.scale
-      @tag      = opts[:tag]      || @target.tag
+      @command  = options[:command]  || @target.command
+      @instance = options[:instance] || 0
+      @lines    = options[:lines]    || 10
+      @rollback = options[:rollback] || 1
+      @scale    = options[:scale]    || @target.scale
+      @tag      = options[:tag]      || @target.tag
     end
 
     def short
@@ -26,22 +28,11 @@ module Broadside
     end
 
     def full
-      config.verify(:ssh)
-      verify(:tag)
-
       info "Running predeploy commands for #{family}..."
       run_commands(@target.predeploy_commands)
       info 'Predeploy complete.'
 
       deploy
-    end
-
-    def deploy
-      verify(:tag)
-
-      info "Deploying #{image_tag} to #{family}..."
-      yield
-      info 'Deployment complete.'
     end
 
     def rollback(count = @rollback)
@@ -57,47 +48,46 @@ module Broadside
     end
 
     def run
-      config.verify(:ssh)
-      verify(:tag, :command)
-      info "Running command [#{@command}] for #{family}..."
+      verify(:command)
       yield
-      info 'Complete.'
     end
 
     def status
       info "Getting status information about #{family}"
       yield
-      info 'Complete.'
     end
 
     def logtail
-      verify(:instance)
       yield
     end
 
     def ssh
-      verify(:instance)
       yield
     end
 
     def bash
-      verify(:instance)
       yield
     end
 
     def family
-      "#{config.application}_#{@target.name}"
+      "#{Broadside.config.application}_#{@target.name}"
     end
 
     private
 
+    def deploy
+      info "Deploying #{image_tag} to #{family}..."
+      yield
+      info 'Deployment complete.'
+    end
+
     def image_tag
-      raise ArgumentError, "Missing tag" unless @tag
-      "#{config.docker_image}:#{@tag}"
+      verify(:tag)
+      "#{@target.docker_image}:#{@tag}"
     end
 
     def gen_ssh_cmd(ip, options = { tty: false })
-      opts = config.ssh || {}
+      opts = Broadside.config.ssh || {}
       cmd = 'ssh -o StrictHostKeyChecking=no'
       cmd << ' -t -t' if options[:tty]
       cmd << " -i #{opts[:keyfile]}" if opts[:keyfile]
