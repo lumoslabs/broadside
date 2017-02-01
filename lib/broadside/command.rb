@@ -52,27 +52,46 @@ module Broadside
 
       def status(options)
         target = Broadside.config.target_from_name!(options[:target])
+        cluster = target.cluster
+        family = target.family
+        pastel = Pastel.new
 
-        info "Getting status information about #{target.family}"
-        ips = EcsManager.get_running_instance_ips(target.cluster, target.family)
+        debug "Getting status information about #{family}"
         output = [
           "\n---------------",
-          "\nDeployed task definition information:\n",
-          Pastel.new.blue(PP.pp(EcsManager.get_latest_task_definition(target.family), ''))
+          pastel.underline("Current task definition information:"),
+          pastel.blue(PP.pp(EcsManager.get_latest_task_definition(family), '')),
         ]
 
-        if ips.empty?
-          output << ["\nNo running tasks found.\n"]
-        else
+        if options[:verbose]
           output << [
-            "\nPrivate ips of instances running tasks:\n",
-            Pastel.new.blue(ips.join(' ')),
-            "\n\nssh command:\n#{Pastel.new.cyan(Broadside.config.ssh_cmd(ips.first))}",
-            "\n---------------\n"
+            pastel.underline("Current service information:"),
+            pastel.bright_blue(PP.pp(EcsManager.ecs.describe_services(cluster: cluster, services: [family]), ''))
           ]
         end
 
-        info *output
+        task_arns = Broadside::EcsManager.get_task_arns(cluster, family)
+        if task_arns.empty?
+          output << ["No running tasks found.\n"]
+        else
+          ips = EcsManager.get_running_instance_ips(cluster, family)
+
+          if options[:verbose]
+            output << [
+              pastel.underline("Task information:"),
+              pastel.bright_cyan(PP.pp(Broadside::EcsManager.ecs.describe_tasks(cluster: cluster, tasks: task_arns), ''))
+            ]
+          end
+
+          output << [
+            pastel.underline("Private ips of instances running tasks:"),
+            pastel.blue(ips.join(' ')) + "\n",
+            pastel.underline("ssh command:"),
+            pastel.cyan(Broadside.config.ssh_cmd(ips.first)) + "\n",
+          ]
+        end
+
+        info output.join("\n")
       end
 
       def run(options)
