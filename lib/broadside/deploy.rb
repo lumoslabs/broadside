@@ -45,18 +45,19 @@ module Broadside
     end
 
     def scale
-      info "Rescaling #{family} with scale=#{@scale}"
+      info "Rescaling #{family} with scale=#{@scale}..."
       yield
       info 'Rescaling complete.'
     end
 
     def run
       verify(:command)
+      info "Running #{command}..."
       yield
     end
 
     def status
-      info "Getting status information about #{family}"
+      info "Getting status information about #{family}..."
       yield
     end
 
