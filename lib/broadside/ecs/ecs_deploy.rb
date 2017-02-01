@@ -5,6 +5,7 @@ require 'shellwords'
 
 module Broadside
   class EcsDeploy < Deploy
+    WIDTH = 150
     DEFAULT_CONTAINER_DEFINITION = {
       cpu: 1,
       essential: true,
@@ -108,13 +109,13 @@ module Broadside
 
         info "\n---------------\n",
           Rainbow("Current task definition information:\n").underline,
-          Rainbow(PP.pp(EcsManager.get_latest_task_definition(family), '')).blue,
+          Rainbow(PP.pp(EcsManager.get_latest_task_definition(family), '', WIDTH)).blue,
           "\n",
           Rainbow("Current service information:\n").underline,
-          Rainbow(PP.pp(EcsManager.ecs.describe_services(cluster: @target.cluster, services: [family]).to_hash, '')).aliceblue,
+          Rainbow(PP.pp(EcsManager.ecs.describe_services(cluster: @target.cluster, services: [family]).to_hash, '', WIDTH)).aliceblue,
           "\n",
           Rainbow("Task information:\n").underline,
-          Rainbow(PP.pp(tasks, '')).aqua,
+          Rainbow(PP.pp(tasks, '', WIDTH)).aqua,
           "\n\n",
           Rainbow("IPs and SSH commands:\n").underline,
           Rainbow(ips.map { |ip| "#{ip}: #{gen_ssh_cmd(ip)}"}.join("\n")).cyan,
