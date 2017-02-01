@@ -49,7 +49,7 @@ module Broadside
     end
 
     def status
-      info "Getting status information about #{family}..."
+      info "Status information about #{family}:"
       yield
     end
 
