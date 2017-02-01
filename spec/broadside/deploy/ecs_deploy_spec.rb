@@ -126,7 +126,7 @@ describe Broadside::EcsDeploy do
             let(:local_target_config) { { predeploy_commands: predeploy_commands } }
 
             it 'should run predeploy_commands' do
-              expect(deploy).to receive(:run_commands).with(predeploy_commands, started_by: "predeploy")
+              expect(deploy).to receive(:run_commands).with(predeploy_commands, started_by: 'predeploy')
               deploy.full
             end
           end

@@ -85,7 +85,7 @@ module Broadside
       def run_task(cluster, name, command, options = {})
         fail ArgumentError, "#{command} must be an array" unless command.is_a?(Array)
 
-        ecs.run_task(
+        response = ecs.run_task(
           cluster: cluster,
           task_definition: get_latest_task_definition_arn(name),
           overrides: {
@@ -99,6 +99,12 @@ module Broadside
           count: 1,
           started_by: ((options[:started_by] ? "#{options[:started_by]}:" : '') + command.join(' '))[0...36]
         )
+
+        unless response.successful? && response.tasks.try(:[], 0)
+          raise Error, "Failed to run #{command.join(' ')} task:\n#{response.pretty_inspect}"
+        end
+
+        response
       end
 
       def service_exists?(cluster, family)

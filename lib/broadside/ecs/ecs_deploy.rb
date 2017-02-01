@@ -205,7 +205,7 @@ module Broadside
           # skip first event since it doesn't apply to current request
           if response.services[0].events.first && response.services[0].events.first.id != seen_event && attempt > 1
             seen_event = response.services[0].events.first.id
-            debug(response.services[0].events.first.message)
+            debug response.services[0].events.first.message
           end
         end
       end
@@ -217,13 +217,8 @@ module Broadside
 
       begin
         commands.each do |command|
-          command_name = command.join(' ')
-          run_task_response = EcsManager.run_task(@target.cluster, family, command, options)
-          unless run_task_response.successful? && run_task_response.tasks.try(:[], 0)
-            raise Error, "Failed to run #{command_name} task:\n#{run_task_response.pretty_inspect}"
-          end
-
-          task_arn = run_task_response.tasks[0].task_arn
+          command_name = "'#{command.join(' ')}'"
+          task_arn = EcsManager.run_task(@target.cluster, family, command, options).tasks[0].task_arn
           info "Launched #{command_name} task #{task_arn}, waiting for completion..."
 
           EcsManager.ecs.wait_until(:tasks_stopped, { cluster: @target.cluster, tasks: [task_arn] }) do |w|
