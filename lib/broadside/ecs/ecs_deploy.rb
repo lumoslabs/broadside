@@ -191,7 +191,7 @@ module Broadside
       }.deep_merge(@target.service_config || {}))
 
       unless update_service_response.successful?
-        raise Error, "Failed to update service during deploy:\n#{update_service_response.pretty_inspect}"
+        raise Error, "Failed to update service:\n#{update_service_response.pretty_inspect}"
       end
 
       EcsManager.ecs.wait_until(:services_stable, { cluster: @target.cluster, services: [family] }) do |w|
@@ -256,7 +256,7 @@ module Broadside
         debug "Running command to get logs of container #{container_id}:\n#{get_container_logs_cmd}"
 
         Open3.popen3(get_container_logs_cmd) do |_, stdout, stderr, _|
-          logs << "STDOUT (#{container_id}):--\n#{stdout.read}\nSTDERR (#{container_id}):--\n#{stderr.read}\n"
+          logs << "STDOUT (#{container_id}):\n--\n#{stdout.read}\nSTDERR (#{container_id}):\n--\n#{stderr.read}\n"
         end
       end
 
