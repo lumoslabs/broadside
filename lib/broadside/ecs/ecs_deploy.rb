@@ -113,7 +113,7 @@ module Broadside
     def ssh
       super do
         ip = get_running_instance_ip
-        debug "Establishing an SSH connection to #{ip}..."
+        debug "Establishing SSH connection to #{ip}..."
         exec(gen_ssh_cmd(ip))
       end
     end
@@ -192,14 +192,14 @@ module Broadside
       EcsManager.ecs.wait_until(:services_stable, { cluster: @target.cluster, services: [family] }) do |w|
         timeout = Broadside.config.timeout
         w.delay = Broadside.config.ecs.poll_frequency
-        w.max_attempts = timeout ? timeout / w.delay : nil
-        seen_event = nil
+        w.max_attempts = timeout ? timeout / w.delay : Float::INFINITY
+        seen_event_id = nil
 
         w.before_wait do |attempt, response|
-          debug "(#{attempt}/#{w.max_attempts ? w.max_attempts : Float::INFINITY}) Polling ECS for events..."
+          debug "(#{attempt}/#{w.max_attempts}) Polling ECS for events..."
           # skip first event since it doesn't apply to current request
-          if response.services[0].events.first && response.services[0].events.first.id != seen_event && attempt > 1
-            seen_event = response.services[0].events.first.id
+          if response.services[0].events.first && response.services[0].events.first.id != seen_event_id && attempt > 1
+            seen_event_id = response.services[0].events.first.id
             debug response.services[0].events.first.message
           end
         end
