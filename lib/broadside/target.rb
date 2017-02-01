@@ -58,8 +58,7 @@ module Broadside
       raise ArgumentError, "Target #{@name} was configured with invalid options: #{config}" unless config.empty?
     end
 
-    # Convert env files to key/value format ECS expects
-    def env_vars
+    def ecs_env_vars
       @env_vars ||= @env_files.inject({}) do |memo, env_file|
         raise ArgumentError, "#{env_file} does not exist!" unless env_file.exist?
 

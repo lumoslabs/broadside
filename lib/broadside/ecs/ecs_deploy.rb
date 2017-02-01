@@ -273,7 +273,7 @@ module Broadside
       (configured_containers.try(:first) || {}).merge(
         name: family,
         command: @command,
-        environment: @target.env_vars,
+        environment: @target.ecs_env_vars,
         image: image_tag
       )
     end
