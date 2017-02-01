@@ -68,18 +68,22 @@ desc 'List the targets and deployed images'
 command :list_targets do |list_targets|
   list_targets.action do |global_options, options, args|
     _DeployObj = Kernel.const_get("Broadside::#{Broadside.config.type.capitalize}Deploy")
-    printf("%-40s %-50s %-25s %-10s %-5s %-7s %-1s %-9s %-23s\n", 'Target', 'Container Name', 'Image', 'Version', 'CPU', 'Memory', '#', 'Status', 'Started')
+    printf("%-50s %-25s %-10s %-5s %-6s %-1s %-9s %-23s\n", 'Container Name', 'Image', 'Version', 'CPU', 'Memory', '#', 'Status', 'Started')
 
     Broadside.config.targets.each do |target|
       deploy = _DeployObj.new(target)
-      container_definitions = Broadside::EcsManager.get_latest_task_definition(deploy.family)[:container_definitions]
-      container_definitions.each do |image|
+      task_definition = Broadside::EcsManager.get_latest_task_definition(deploy.family)
+      if task_definition.nil?
+        puts "#{target.name} has no task_definition in place"
+        next
+      end
+
+      task_definition[:container_definitions].each do |image|
         image_tag, version = image[:image].split(':')
         task_arns = Broadside::EcsManager.get_task_arns(target.cluster, deploy.family)
         Broadside::EcsManager.ecs.describe_tasks(cluster: target.cluster, tasks: task_arns).tasks.each_with_index do |task, i|
           printf(
-            "%-40s %-50s %-25s %-10s %-5s %-7s %-1d %-9s %-23s\n",
-            target.name,
+            "%-50s %-25s %-10s %-5s %-6s %-1d %-9s %-23s\n",
             image[:name],
             image_tag,
             version,

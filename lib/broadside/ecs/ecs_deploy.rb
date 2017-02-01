@@ -118,7 +118,7 @@ module Broadside
           Rainbow("Private ips of instances running containers:\n").underline,
           Rainbow(ips.join(' ')).blue,
           "\n\n",
-          Rainbow("ssh command:").underline,
+          Rainbow("ssh command:\n").underline,
           Rainbow(gen_ssh_cmd(ips.first)).cyan,
           "\n"
       end
