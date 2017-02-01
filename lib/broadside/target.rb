@@ -24,15 +24,15 @@ module Broadside
     validates :scale, numericality: { only_integer: true }
 
     validates_each :bootstrap_commands, :predeploy_commands, allow_nil: true do |record, attr, val|
-      record.errors.add(attr, 'must be an array of arrays') unless val.is_a?(Array) && val.all? { |v| v.is_a?(Array) }
+      record.errors.add(attr, 'is not array of arrays') unless val.is_a?(Array) && val.all? { |v| v.is_a?(Array) }
     end
 
     validates_each :service_config, :task_definition_config, allow_nil: true do |record, attr, val|
-      record.errors.add(attr, 'must be a hash') unless val.is_a?(Hash)
+      record.errors.add(attr, 'is not a hash') unless val.is_a?(Hash)
     end
 
     validates_each :command, allow_nil: true do |record, attr, val|
-      record.errors.add(attr, 'must be an array') unless val.is_a?(Array)
+      record.errors.add(attr, 'is not an array') unless val.is_a?(Array)
     end
 
     def initialize(name, options = {})
