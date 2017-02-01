@@ -69,7 +69,7 @@ describe Broadside::EcsDeploy do
 
   context 'deploy' do
     it 'fails without an existing service' do
-      expect { deploy.short }.to raise_error(/No task definition for '#{family}'!/)
+      expect { deploy.short }.to raise_error(/No service for '#{family}'!/)
     end
 
     context 'with an existing service' do

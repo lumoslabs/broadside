@@ -18,6 +18,7 @@ module Broadside
 
     def deploy
       super do
+        check_service!
         update_task_revision
 
         begin
@@ -146,10 +147,14 @@ module Broadside
       end
     end
 
-    def check_service_and_task_definition!
+    def check_service!
       unless EcsManager.service_exists?(@target.cluster, family)
         raise Error, "No service for '#{family}'! Please bootstrap or manually configure one."
       end
+    end
+
+    def check_service_and_task_definition!
+      check_service!
       check_task_definition!
     end
 
