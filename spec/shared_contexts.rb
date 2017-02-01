@@ -1,15 +1,16 @@
 shared_context 'deploy configuration' do
   let(:test_app) { 'TEST_APP' }
   let(:cluster) { 'cluster' }
-  let(:test_target) { :test_target }
+  let(:test_target_name) { :test_target }
   let(:dot_env_file) { File.join(FIXTURES_PATH, '.env.rspec') }
   let(:user) { 'test-user' }
+  let(:local_target_config) { {} } # override this in tests that require special configuration
   let(:test_target_config) do
     {
       scale: 1,
       command: ['sleep', 'infinity'],
       env_files: dot_env_file
-    }
+    }.merge(local_target_config)
   end
 
   before(:each) do
@@ -19,7 +20,7 @@ shared_context 'deploy configuration' do
       c.logger.level = Logger::ERROR
       c.ecs.cluster = cluster
       c.ssh = { user: user }
-      c.targets = { test_target => test_target_config }
+      c.targets = { test_target_name => test_target_config }
     end
   end
 end

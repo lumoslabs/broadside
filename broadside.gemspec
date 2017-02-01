@@ -22,7 +22,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'aws-sdk', '~> 2.3'
   spec.add_dependency 'dotenv', '>= 0.9.0', '< 3.0'
   spec.add_dependency 'gli', '~> 2.13'
-  spec.add_dependency 'rainbow', '~> 2.1'
+  spec.add_dependency 'tty', '~> 0.5'
 
   spec.add_development_dependency 'rspec', '~> 3.4.0'
   spec.add_development_dependency 'bundler', '~> 1.9'

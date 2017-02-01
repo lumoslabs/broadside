@@ -4,10 +4,7 @@ describe Broadside::EcsDeploy do
   include_context 'deploy configuration'
   include_context 'ecs stubs'
 
-  let(:family) { "#{test_app}_#{test_target}" }
-  let(:target) { Broadside::Target.new(test_target, test_target_config.merge(local_target_config)) }
-  let(:local_target_config) { {} }
-  let(:deploy) { described_class.new(target, tag: 'tag_the_bag') }
+  let(:deploy) { described_class.new(test_target_name, tag: 'tag_the_bag') }
   let(:desired_count) { 2 }
   let(:cpu) { 1 }
   let(:memory) { 2000 }
@@ -34,15 +31,15 @@ describe Broadside::EcsDeploy do
     {
       services: [
         {
-          service_name: test_target.to_s,
-          service_arn: "#{arn}:service/#{test_target}",
+          service_name: test_target_name.to_s,
+          service_arn: "#{arn}:service/#{test_target_name}",
           deployments: [{ desired_count: 1, running_count: 1 }]
         }
       ],
       failures: []
     }
   end
-  let(:task_definition_arn) { "#{arn}:task-definition/#{test_target}:1" }
+  let(:task_definition_arn) { "#{arn}:task-definition/#{test_target_name}:1" }
   let(:stub_task_definition_response) { { task_definition_arns: [task_definition_arn] } }
   let(:stub_describe_task_definition_response) do
     {
@@ -50,10 +47,10 @@ describe Broadside::EcsDeploy do
         task_definition_arn: task_definition_arn,
         container_definitions: [
           {
-            name: family
+            name: deploy.target.family
           }
         ],
-        family: family
+        family: deploy.target.family
       }
     }
   end
@@ -101,7 +98,7 @@ describe Broadside::EcsDeploy do
 
   context 'deploy' do
     it 'fails without an existing service' do
-      expect { deploy.short }.to raise_error(/No service for '#{family}'!/)
+      expect { deploy.short }.to raise_error(/No service for '#{deploy.target.family}'!/)
     end
 
     context 'with an existing service' do
@@ -180,13 +177,13 @@ describe Broadside::EcsDeploy do
         ecs_stub.stub_responses(:describe_container_instances, container_instances: [{ ec2_instance_id: instance_id }])
         ec2_stub.stub_responses(:describe_instances, reservations: [ instances: [ { private_ip_address: ip } ] ])
 
-        allow(deploy).to receive(:exec).with("ssh -o StrictHostKeyChecking=no -t -t #{user}@#{ip} 'docker exec -i -t `docker ps -n 1 --quiet --filter name=#{family}` bash'")
+        allow(deploy).to receive(:exec).with("ssh -o StrictHostKeyChecking=no -t -t #{user}@#{ip} 'docker exec -i -t `docker ps -n 1 --quiet --filter name=#{deploy.target.family}` bash'")
       end
 
       it 'executes correct system command' do
         expect { deploy.bash }.to_not raise_error
         expect(api_request_log).to eq([
-          { list_tasks: { cluster: cluster, family: family } },
+          { list_tasks: { cluster: cluster, family: deploy.target.family } },
           { describe_tasks: { cluster: cluster, tasks: [task_arn] } },
           { describe_container_instances: { cluster: cluster, container_instances: [container_arn] } },
           { describe_instances: { instance_ids: [instance_id] } }
