@@ -1,6 +1,6 @@
 # Broadside [![Build Status](https://travis-ci.org/lumoslabs/broadside.svg?branch=master)](https://travis-ci.org/lumoslabs/broadside)
 
-A command-line tool for deploying applications on AWS EC2 Container Service (ECS)
+A [GLI](https://github.com/davetron5000/gli) based command-line tool for deploying applications on AWS EC2 Container Service (ECS)
 
 ## Overview
 Amazon ECS presents a low barrier to entry for production-level docker applications. Combined with ECS's built-in blue-green deployment, Elastic Load Balancers, Autoscale Groups, and CloudWatch, one can set up a robust cluster that can scale to serve any number of applications in a short amount of time. Broadside seeks to leverage these benefits and improve the deployment process for developers.
@@ -42,7 +42,8 @@ Broadside.configure do |config|
 end
 ```
 
-From here, developers can use broadside's command-line interface to initiate a basic deployment:
+From here, developers can use broadside's command-line interface to initiate a basic deployment and Launch the
+configured `command` as an ECS Service:
 
 ```bash
 broadside deploy full --target production_web --tag $GIT_TAG
