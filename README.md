@@ -50,6 +50,14 @@ broadside deploy short --target production_web --tag $GIT_TAG
 
 In the case of an error or timeout during a deploy, broadside will automatically rollback to the latest stable version. You can perform manual rollbacks as well through the command-line.
 
+Beyond deploying things, broadside has a lot of other handy features.  Other things you can do with broadside include:
+
+- **Launch a bash shell directly in the remote docker image** - no messing around with tracking down the server, running `docker ps`, and all the other headaches.
+- **SSH directly onto the server running your image**
+- **Get a lot of status information about your running image**
+- **Tail the logs of a running container**
+- **Horizontally scale an existing deployment to as many instances as your AWS account can handle**
+
 [See the complete command-line reference in the wiki](https://github.com/lumoslabs/broadside/wiki/CLI-reference).
 
 
