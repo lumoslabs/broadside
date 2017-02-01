@@ -81,7 +81,12 @@ describe Broadside::EcsDeploy do
       end
 
       context 'with a service_config' do
+        let(:local_target_config) { { service_config: service_config } }
 
+        it 'sets up the service' do
+          expect(Broadside::EcsManager).to receive(:create_service).with(cluster, family, service_config)
+          expect { deploy.bootstrap }.to_not raise_error
+        end
       end
 
       context 'with an existing service' do
