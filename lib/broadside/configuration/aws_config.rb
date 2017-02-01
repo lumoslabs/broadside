@@ -1,5 +1,3 @@
-require 'aws-sdk'
-
 module Broadside
   class AwsConfig
     include VerifyInstanceVariables

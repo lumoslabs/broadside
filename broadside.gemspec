@@ -13,9 +13,9 @@ Gem::Specification.new do |spec|
   spec.homepage      = 'https://github.com/lumoslabs/broadside'
   spec.license       = 'MIT'
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec)/}) }
-  spec.bindir        = "bin"
+  spec.bindir        = 'bin'
   spec.executables   = ['broadside']
-  spec.require_paths = ["lib"]
+  spec.require_paths = ['lib']
 
   spec.add_dependency 'activesupport', '>= 3', '< 5'
   spec.add_dependency 'activemodel', '>= 3', '< 5'

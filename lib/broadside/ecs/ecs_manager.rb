@@ -1,5 +1,3 @@
-require 'aws-sdk'
-
 module Broadside
   class EcsManager
     DEFAULT_DESIRED_COUNT = 0
