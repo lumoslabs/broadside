@@ -104,6 +104,11 @@ module Broadside
       super do
         ips = EcsManager.get_running_instance_ips(@target.cluster, family)
         task_arns = Broadside::EcsManager.get_task_arns(@target.cluster, family)
+        tasks = if task_arns.nil? || task_arns.empty?
+                  'None'
+                else
+                  Broadside::EcsManager.ecs.describe_tasks(cluster: @target.cluster, tasks: task_arns)
+                end
 
         info "\n---------------\n",
           Rainbow("Current task definition information:\n").underline,
@@ -113,13 +118,10 @@ module Broadside
           Rainbow(PP.pp(EcsManager.ecs.describe_services(cluster: @target.cluster, services: [family]), '')).aliceblue,
           "\n",
           Rainbow("Task information:\n").underline,
-          Rainbow(PP.pp(Broadside::EcsManager.ecs.describe_tasks(cluster: @target.cluster, tasks: task_arns), '')).aqua,
-          "\n",
-          Rainbow("Private ips of instances running containers:\n").underline,
-          Rainbow(ips.join(' ')).blue,
+          Rainbow(PP.pp(tasks, '')).aqua,
           "\n\n",
-          Rainbow("ssh command:\n").underline,
-          Rainbow(gen_ssh_cmd(ips.first)).cyan,
+          Rainbow("IPs and SSH commands:\n").underline,
+          Rainbow(ips.map { |ip| "#{ip} #{gen_ssh_cmd(ip)}"}.join("\n")).cyan,
           "\n"
       end
     end
