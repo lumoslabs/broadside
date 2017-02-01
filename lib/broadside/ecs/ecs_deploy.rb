@@ -131,7 +131,6 @@ module Broadside
 
     def get_running_instance_ip!(index = @instance, task_arns = nil)
       ips = EcsManager.get_running_instance_ips!(@target.cluster, @target.family, task_arns)
-      raise "No running tasks found for '#{@target.name}'!" if ips.empty?
       ips.fetch(index)
     end
 

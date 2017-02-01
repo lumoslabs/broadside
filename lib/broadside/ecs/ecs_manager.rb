@@ -46,7 +46,7 @@ module Broadside
 
       def get_running_instance_ips!(cluster, family, task_arns = nil)
         ips = get_running_instance_ips(cluster, family, task_arns)
-        raise "No running tasks found for '#{family}' on cluster '#{cluster}'!" if ips.empty?
+        raise Error, "No running tasks found for '#{family}' on cluster '#{cluster}'!" if ips.empty?
         ips
       end
 
