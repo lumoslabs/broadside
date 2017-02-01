@@ -126,7 +126,7 @@ module Broadside
     def bash
       super do
         ip = get_running_instance_ip
-        debug "Running bash for running container at IP #{ip}..."
+        debug "Running bash for running container at #{ip}..."
         search_pattern = Shellwords.shellescape(family)
         cmd = "docker exec -i -t `docker ps -n 1 --quiet --filter name=#{search_pattern}` bash"
         exec(gen_ssh_cmd(ip, tty: true) + " '#{cmd}'")

@@ -36,7 +36,7 @@ module Broadside
       raise e
     end
 
-    config.verify
+    raise ArgumentError, config.errors.full_messages unless config.valid?
   end
 
   def self.config

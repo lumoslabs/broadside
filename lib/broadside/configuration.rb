@@ -1,8 +1,9 @@
 require 'logger'
+require 'active_model'
 
 module Broadside
   class Configuration
-    include VerifyInstanceVariables
+    include ActiveModel::Model
     include LoggingUtils
 
     attr_reader(
@@ -19,6 +20,8 @@ module Broadside
       :ssh,
       :timeout
     )
+
+    validates :application, :targets, :logger, presence: true
 
     def initialize
       @logger = ::Logger.new(STDOUT)
@@ -39,10 +42,6 @@ module Broadside
     def targets=(_targets)
       raise ArgumentError, ":targets must be a hash" unless _targets.is_a?(Hash)
       @targets = _targets.map { |name, config| Target.new(name, config) }
-    end
-
-    def verify(*args)
-      super(*([:application] + args))
     end
   end
 end
