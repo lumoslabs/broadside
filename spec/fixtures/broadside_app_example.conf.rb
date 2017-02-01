@@ -1,4 +1,5 @@
 Broadside.configure do |c|
+  c.aws.credentials = Aws::Credentials.new('access', 'secret')
   c.ecs.cluster = 'cluster'
   c.application = 'TEST_APP'
   c.docker_image = 'rails'
