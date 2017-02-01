@@ -69,7 +69,7 @@ module Broadside
       end
 
       def get_task_exit_code(cluster, task_arn, name)
-        task = ecs.describe_tasks({ cluster: cluster, tasks: [task_arn] }).tasks.first
+        task = ecs.describe_tasks(cluster: cluster, tasks: [task_arn]).tasks.first
         container = task.containers.select { |c| c.name == name }.first
         container.exit_code
       end
@@ -82,9 +82,10 @@ module Broadside
         all_results(:list_services, :service_arns, { cluster: cluster })
       end
 
-      def run_task(cluster, name, command)
+      def run_task(cluster, name, command, options = {})
         fail ArgumentError, "#{command} must be an array" unless command.is_a?(Array)
 
+        started_by =
         ecs.run_task(
           cluster: cluster,
           task_definition: get_latest_task_definition_arn(name),
@@ -97,7 +98,7 @@ module Broadside
             ]
           },
           count: 1,
-          started_by: "before_deploy:#{command.join(' ')}"[0...36]
+          started_by: ((options[:started_by] ? "#{options[:started_by]}:" : '') + command.join(' '))[0...36]
         )
       end
 

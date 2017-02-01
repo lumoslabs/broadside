@@ -29,11 +29,14 @@ module Broadside
 
     def full
       info "Running predeploy commands for #{family}..."
-      run_commands(@target.predeploy_commands)
+      run_commands(@target.predeploy_commands, started_by: 'predeploy')
       info 'Predeploy complete.'
 
       deploy
     end
+
+    # The `yield` calls are a little weird but this was designed with an eye towards supporting other docker
+    # based systems beyond ECS.  That day hasn't come yet, but we didn't think it was worth undoing the structure.
 
     def rollback(count = @rollback)
       info "Rolling back #{count} release for #{family}..."

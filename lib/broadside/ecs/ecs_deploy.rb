@@ -18,13 +18,7 @@ module Broadside
 
     def deploy
       super do
-        unless EcsManager.service_exists?(@target.cluster, family)
-          raise Error, "No service for '#{family}'! Please bootstrap or manually configure one."
-        end
-        unless EcsManager.get_latest_task_definition_arn(family)
-          raise Error, "No task definition for '#{family}'! Please bootstrap or manually configure one."
-        end
-
+        check_service_and_task_definition!
         update_task_revision
 
         begin
@@ -62,7 +56,7 @@ module Broadside
         )
       end
 
-      run_commands(@target.bootstrap_commands)
+      run_commands(@target.bootstrap_commands, started_by: 'bootstrap')
 
       if EcsManager.service_exists?(@target.cluster, family)
         info("Service for #{family} already exists.")
@@ -79,6 +73,7 @@ module Broadside
     def rollback(count = @rollback)
       super do
         begin
+          check_service_and_task_definition!
           EcsManager.deregister_last_n_tasks_definitions(family, count)
           update_service
         rescue StandardError
@@ -90,18 +85,21 @@ module Broadside
 
     def scale
       super do
+        check_service_and_task_definition!
         update_service
       end
     end
 
     def run
       super do
-        run_commands(@command)
+        check_task_definition!
+        run_commands(@command, started_by: 'run')
       end
     end
 
     def status
       super do
+        check_service_and_task_definition!
         ips = EcsManager.get_running_instance_ips(@target.cluster, family)
         info "\n---------------",
           "\nDeployed task definition information:\n",
@@ -144,7 +142,21 @@ module Broadside
 
     private
 
+    def check_task_definition!
+      unless EcsManager.get_latest_task_definition_arn(family)
+        raise Error, "No task definition for '#{family}'! Please bootstrap or manually configure one."
+      end
+    end
+
+    def check_service_and_task_definition!
+      unless EcsManager.service_exists?(@target.cluster, family)
+        raise Error, "No service for '#{family}'! Please bootstrap or manually configure one."
+      end
+      check_task_definition!
+    end
+
     def get_running_instance_ip
+      check_service_and_task_definition!
       EcsManager.get_running_instance_ips(@target.cluster, family).fetch(@instance)
     end
 
@@ -201,7 +213,7 @@ module Broadside
       end
     end
 
-    def run_commands(commands)
+    def run_commands(commands, options = {})
       return if commands.nil? || commands.empty?
       Broadside.config.verify(:ssh)
       update_task_revision
@@ -209,7 +221,7 @@ module Broadside
       begin
         Array.wrap(commands).each do |command|
           command_name = command.join(' ')
-          run_task_response = EcsManager.run_task(@target.cluster, family, command)
+          run_task_response = EcsManager.run_task(@target.cluster, family, command, options)
 
           unless run_task_response.successful? && run_task_response.tasks.try(:[], 0)
             raise Error, "Failed to run #{command_name} task:\n#{run_task_response.pretty_inspect}"
