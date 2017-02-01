@@ -109,7 +109,7 @@ module Broadside
 
         info "\n---------------\n",
           Rainbow("Current task definition information:\n").underline,
-          Rainbow(PP.pp(EcsManager.get_latest_task_definition(family), '', WIDTH)).blue,
+          Rainbow(PP.pp(EcsManager.get_latest_task_definition(family), '', WIDTH)).blue.bright,
           "\n",
           Rainbow("Current service information:\n").underline,
           Rainbow(PP.pp(EcsManager.ecs.describe_services(cluster: @target.cluster, services: [family]).to_hash, '', WIDTH)).aliceblue,
