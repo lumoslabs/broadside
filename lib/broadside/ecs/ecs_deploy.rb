@@ -121,7 +121,7 @@ module Broadside
           Rainbow(PP.pp(tasks, '')).aqua,
           "\n\n",
           Rainbow("IPs and SSH commands:\n").underline,
-          Rainbow(ips.map { |ip| "#{ip} #{gen_ssh_cmd(ip)}"}.join("\n")).cyan,
+          Rainbow(ips.map { |ip| "#{ip}: #{gen_ssh_cmd(ip)}"}.join("\n")).cyan,
           "\n"
       end
     end
