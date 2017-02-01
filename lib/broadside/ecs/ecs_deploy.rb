@@ -104,14 +104,14 @@ module Broadside
       super do
         ips = EcsManager.get_running_instance_ips(@target.cluster, family)
         task_arns = Broadside::EcsManager.get_task_arns(@target.cluster, family)
-        tasks = task_arns.empty? ? 'None' : Broadside::EcsManager.ecs.describe_tasks(cluster: @target.cluster, tasks: task_arns)
+        tasks = task_arns.empty? ? 'None' : Broadside::EcsManager.ecs.describe_tasks(cluster: @target.cluster, tasks: task_arns).to_hash
 
         info "\n---------------\n",
           Rainbow("Current task definition information:\n").underline,
           Rainbow(PP.pp(EcsManager.get_latest_task_definition(family), '')).blue,
           "\n",
           Rainbow("Current service information:\n").underline,
-          Rainbow(PP.pp(EcsManager.ecs.describe_services(cluster: @target.cluster, services: [family]), '')).aliceblue,
+          Rainbow(PP.pp(EcsManager.ecs.describe_services(cluster: @target.cluster, services: [family]).to_hash, '')).aliceblue,
           "\n",
           Rainbow("Task information:\n").underline,
           Rainbow(PP.pp(tasks, '')).aqua,
