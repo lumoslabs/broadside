@@ -63,16 +63,6 @@ describe Broadside::EcsDeploy do
       }
     }
   end
-  let(:task_definition_config) do
-    {
-      container_definitions: [
-        {
-          cpu: cpu,
-          memory: memory,
-        }
-      ]
-    }
-  end
 
   it 'should instantiate an object' do
     expect { deploy }.to_not raise_error
@@ -88,6 +78,10 @@ describe Broadside::EcsDeploy do
 
       it 'fails without service_config' do
         expect { deploy.bootstrap }.to raise_error(/Service doesn't exist and no :service_config/)
+      end
+
+      context 'with a service_config' do
+
       end
 
       context 'with an existing service' do
@@ -130,6 +124,16 @@ describe Broadside::EcsDeploy do
         end
 
         context 'updating service and task definitions' do
+          let(:task_definition_config) do
+            {
+              container_definitions: [
+                {
+                  cpu: cpu,
+                  memory: memory,
+                }
+              ]
+            }
+          end
           let(:local_target_config) do
             {
               task_definition_config: task_definition_config,
@@ -217,8 +221,12 @@ describe Broadside::EcsDeploy do
 
     context 'with a task_definition' do
       include_context 'with a task_definition'
+
       before do
         ecs_stub.stub_responses(:run_task, tasks: [task_arn: 'task_arn'])
+        allow(ecs_stub).to receive(:wait_until)
+        allow(deploy).to receive(:get_container_logs)
+        allow(Broadside::EcsManager).to receive(:get_task_exit_code).and_return(0)
       end
 
       it 'runs' do
