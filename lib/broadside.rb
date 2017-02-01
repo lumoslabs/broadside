@@ -1,3 +1,5 @@
+require 'active_model'
+
 require 'broadside/error'
 require 'broadside/logging_utils'
 require 'broadside/configuration/verify_instance_variables'

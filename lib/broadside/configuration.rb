@@ -1,5 +1,4 @@
 require 'logger'
-require 'active_model'
 
 module Broadside
   class Configuration
