@@ -120,6 +120,16 @@ describe Broadside::EcsDeploy do
             service_requests = api_request_log.select { |cmd| cmd.keys.first == :update_service }
             expect(service_requests.first.values.first[:desired_count]).to eq(desired_count)
           end
+
+          context 'full deploy' do
+            let(:predeploy_commands) { [%w(x y z), %w(a b c)] }
+            let(:local_target_config) { { predeploy_commands: predeploy_commands } }
+
+            it 'should run predeploy_commands' do
+              expect(deploy).to receive(:run_commands).with(predeploy_commands, started_by: "predeploy")
+              deploy.full
+            end
+          end
         end
 
         it 'can rollback' do
