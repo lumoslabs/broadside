@@ -133,18 +133,9 @@ describe Broadside::EcsDeploy do
         end
 
         it 'can rollback' do
-          expect { deploy.rollback(1) }.to_not raise_error
-          expect(api_request_log.map(&:keys).flatten).to eq([
-            :describe_services,
-            :list_task_definitions,
-            :list_task_definitions,
-            :deregister_task_definition,
-            :describe_services,
-            :list_task_definitions,
-            :list_task_definitions,
-            :update_service,
-            :describe_services
-          ])
+          deploy.rollback
+          expect(api_request_log.map(&:keys).flatten.include?(:deregister_task_definition)).to be true
+          expect(api_request_log.map(&:keys).flatten.include?(:update_service)).to be true
         end
       end
     end
