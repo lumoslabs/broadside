@@ -30,7 +30,7 @@ module Broadside
     begin
       [config_file, USER_CONFIG_FILE].each { |file| load file if File.exist?(file) }
     rescue LoadError
-      error "Encountered an error loading broadside Configuration"
+      error 'Encountered an error loading broadside configuration'
       raise
     end
     raise ArgumentError, config.errors.full_messages unless config.valid?
