@@ -15,6 +15,12 @@ module Broadside
         Broadside.config.targets.each do |_, target|
           service_tasks_running = Broadside::EcsManager.get_task_arns(target.cluster, target.family, service_name: target.family, desired_status: 'RUNNING').size
           task_def = Broadside::EcsManager.get_latest_task_definition(target.family)
+
+          if task_def.nil?
+            debug "Skipping deploy target '#{target.name}' as it does not have a configured task_definition."
+            next
+          end
+
           revision = task_def[:revision]
           container_def = task_def[:container_definitions].select { |c| c[:name] == target.family }.first
 
@@ -84,10 +90,8 @@ module Broadside
           end
 
           output << [
-            pastel.underline("Private ips of instances running tasks:"),
-            pastel.blue(ips.join(' ')) + "\n",
-            pastel.underline("ssh command:"),
-            pastel.cyan(Broadside.config.ssh_cmd(ips.first)) + "\n",
+            pastel.underline("Private IPs of instances running tasks:"),
+            pastel.cyan(ips.map { |ip| "#{ip}: #{Broadside.config.ssh_cmd(ip)}"}.join("\n")) + "\n"
           ]
         end
 
