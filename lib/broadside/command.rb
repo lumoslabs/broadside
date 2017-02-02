@@ -5,27 +5,26 @@ module Broadside
   module Command
     class << self
       def bootstrap(options)
-
         EcsDeploy.new(options[:target], options).bootstrap
       end
 
-      def overview(options)
+      def targets(options)
         table_header = nil
         table_rows = []
 
-        Broadside.config.targets.each do |name, target|
-          service_tasks_running = Broadside::EcsManager.get_task_arns(target.cluster, target.family, { service_name: target.family, desired_status: 'RUNNING' }).size
+        Broadside.config.targets.each do |_, target|
+          service_tasks_running = Broadside::EcsManager.get_task_arns(target.cluster, target.family, service_name: target.family, desired_status: 'RUNNING').size
           task_def = Broadside::EcsManager.get_latest_task_definition(target.family)
           revision = task_def[:revision]
           container_def = task_def[:container_definitions].select { |c| c[:name] == target.family }.first
 
-          row_data = target.to_h.merge({
+          row_data = target.to_h.merge(
             Image: container_def[:image],
             CPU: container_def[:cpu],
             Memory: container_def[:memory],
             Revision: revision,
             Tasks: "#{service_tasks_running}/#{target.scale}"
-          })
+          )
 
           table_header ||= row_data.keys.map(&:to_s)
           table_rows << row_data.values

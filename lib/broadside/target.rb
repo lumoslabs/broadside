@@ -42,6 +42,7 @@ module Broadside
     def initialize(name, options = {})
       @name = name
       config = options.deep_dup
+      puts config
       @bootstrap_commands = config.delete(:bootstrap_commands)
       @cluster = config.delete(:cluster) || Broadside.config.ecs.cluster
       @command = config.delete(:command)

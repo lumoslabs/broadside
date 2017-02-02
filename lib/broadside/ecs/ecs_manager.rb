@@ -59,7 +59,7 @@ module Broadside
           tasks = ecs.describe_tasks(cluster: cluster, tasks: task_arns).tasks
           container_instances = ecs.describe_container_instances(
             cluster: cluster,
-            container_instances: tasks.map(&:container_instance_arn),
+            container_instances: tasks.map(&:container_instance_arn)
           ).container_instances
 
           ec2_instance_ids = container_instances.map(&:ec2_instance_id)
@@ -75,11 +75,11 @@ module Broadside
           family: family,
           desired_status: filter[:desired_status],
           service_name: filter[:service_name],
-          started_by: filter[:started_by],
+          started_by: filter[:started_by]
         }
         # strange AWS restriction requires absence of family if service_name specified
         opts[:family] = nil if opts[:service_name]
-        opts.delete_if { |k,v| v.nil? }
+        opts.delete_if { |_k, v| v.nil? }
         all_results(:list_tasks, :task_arns, opts)
       end
 

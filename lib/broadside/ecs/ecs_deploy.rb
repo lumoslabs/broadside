@@ -10,7 +10,7 @@ module Broadside
     }
 
     def initialize(target_name, opts = {})
-      super(target_name, opts)
+      super
       Broadside.config.ecs.verify(:poll_frequency)
     end
 
@@ -170,7 +170,7 @@ module Broadside
         raise Error, "Failed to update service during deploy:\n#{update_service_response.pretty_inspect}"
       end
 
-      EcsManager.ecs.wait_until(:services_stable, { cluster: @target.cluster, services: [@target.family] }) do |w|
+      EcsManager.ecs.wait_until(:services_stable, cluster: @target.cluster, services: [@target.family]) do |w|
         timeout = Broadside.config.timeout
         w.delay = Broadside.config.ecs.poll_frequency
         w.max_attempts = timeout ? timeout / w.delay : nil
@@ -214,11 +214,10 @@ module Broadside
 
           info "#{command_name} task container logs:\n#{get_container_logs(task_arn)}"
 
-          if (code = EcsManager.get_task_exit_code(@target.cluster, task_arn, @target.family)) == 0
-            info "#{command_name} task #{task_arn} complete"
-          else
-            raise Error, "#{command_name} task #{task_arn} exited with a non-zero status code #{code}!"
-          end
+          exit_code = EcsManager.get_task_exit_code(@target.cluster, task_arn, @target.family)
+          raise Error, "#{command_name} task #{task_arn} exited with a non-zero status code #{exit_code}!" if exit_code.zero?
+
+          info "#{command_name} task #{task_arn} complete"
         end
       ensure
         EcsManager.deregister_last_n_tasks_definitions(@target.family, 1)

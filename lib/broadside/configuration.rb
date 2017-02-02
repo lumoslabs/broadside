@@ -59,15 +59,13 @@ module Broadside
     end
 
     def target_from_name!(target_name)
-      if target_exists?(target_name)
-        @targets[target_name]
-      else
-        raise Error, "Deploy target '#{target_name}' does not exist!"
-      end
+      raise Error, "Deploy target '#{target_name}' does not exist!" if target_exists?(target_name)
+
+      @targets[target_name]
     end
 
     def target_exists?(target_name)
-      @targets.has_key?(target_name)
+      @targets.key?(target_name)
     end
 
     def verify(*args)
