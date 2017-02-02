@@ -52,21 +52,18 @@ module Broadside
 
       def get_running_instance_ips(cluster, family, task_arns = nil)
         task_arns = task_arns ? Array.wrap(task_arns) : get_task_arns(cluster, family)
+        return [] if task_arns.empty?
 
-        if task_arns.empty?
-          []
-        else
-          tasks = ecs.describe_tasks(cluster: cluster, tasks: task_arns).tasks
-          container_instances = ecs.describe_container_instances(
-            cluster: cluster,
-            container_instances: tasks.map(&:container_instance_arn)
-          ).container_instances
+        tasks = ecs.describe_tasks(cluster: cluster, tasks: task_arns).tasks
+        container_instances = ecs.describe_container_instances(
+          cluster: cluster,
+          container_instances: tasks.map(&:container_instance_arn)
+        ).container_instances
 
-          ec2_instance_ids = container_instances.map(&:ec2_instance_id)
-          reservations = ec2_client.describe_instances(instance_ids: ec2_instance_ids).reservations
+        ec2_instance_ids = container_instances.map(&:ec2_instance_id)
+        reservations = ec2_client.describe_instances(instance_ids: ec2_instance_ids).reservations
 
-          reservations.map(&:instances).flatten.map(&:private_ip_address)
-        end
+        reservations.map(&:instances).flatten.map(&:private_ip_address)
       end
 
       def get_task_arns(cluster, family, filter = {})

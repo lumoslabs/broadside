@@ -129,9 +129,9 @@ module Broadside
 
     private
 
-    def get_running_instance_ip!(index = @instance, task_arns = nil)
-      ips = EcsManager.get_running_instance_ips!(@target.cluster, family, task_arns)
-      ips.fetch(index)
+    def get_running_instance_ip!
+      ips = EcsManager.get_running_instance_ips!(@target.cluster, family)
+      ips.fetch(@instance)
     end
 
     # Creates a new task revision using current directory's env vars, provided tag, and configured options.
