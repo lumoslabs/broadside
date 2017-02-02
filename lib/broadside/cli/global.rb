@@ -33,7 +33,6 @@ def call_hook(type, command)
 end
 
 pre do |global, command, options, args|
-  raise ArgumentError, "#{global[:config]} does not exist" unless File.exist?(global[:config])
   Broadside.load_config(global[:config])
   call_hook(:prehook, command)
   true
