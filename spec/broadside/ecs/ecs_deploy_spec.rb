@@ -4,7 +4,10 @@ describe Broadside::EcsDeploy do
   include_context 'deploy configuration'
   include_context 'ecs stubs'
 
-  let(:deploy) { described_class.new(test_target_name, tag: 'tag_the_bag') }
+  let(:family) { deploy.target.family }
+  let(:target) { Broadside::Target.new(test_target_name, test_target_config.merge(local_target_config)) }
+  let(:local_deploy_config) { {} }
+  let(:deploy) { described_class.new(test_target_name, local_deploy_config.merge(tag: 'tag_the_bag')) }
   let(:desired_count) { 2 }
   let(:cpu) { 1 }
   let(:memory) { 2000 }
@@ -14,43 +17,6 @@ describe Broadside::EcsDeploy do
       desired_count: desired_count,
       deployment_configuration: {
         minimum_healthy_percent: 40,
-      }
-    }
-  end
-  let(:task_definition_config) do
-    {
-      container_definitions: [
-        {
-          cpu: cpu,
-          memory: memory,
-        }
-      ]
-    }
-  end
-  let(:stub_service_response) do
-    {
-      services: [
-        {
-          service_name: test_target_name.to_s,
-          service_arn: "#{arn}:service/#{test_target_name}",
-          deployments: [{ desired_count: 1, running_count: 1 }]
-        }
-      ],
-      failures: []
-    }
-  end
-  let(:task_definition_arn) { "#{arn}:task-definition/#{test_target_name}:1" }
-  let(:stub_task_definition_response) { { task_definition_arns: [task_definition_arn] } }
-  let(:stub_describe_task_definition_response) do
-    {
-      task_definition: {
-        task_definition_arn: task_definition_arn,
-        container_definitions: [
-          {
-            name: deploy.target.family
-          }
-        ],
-        family: deploy.target.family
       }
     }
   end
@@ -65,19 +31,23 @@ describe Broadside::EcsDeploy do
     end
 
     context 'with an existing task definition' do
-      before(:each) do
-        ecs_stub.stub_responses(:list_task_definitions, stub_task_definition_response)
-        ecs_stub.stub_responses(:describe_task_definition, stub_describe_task_definition_response)
-      end
+      include_context 'with a task_definition'
 
       it 'fails without service_config' do
         expect { deploy.bootstrap }.to raise_error(/Service doesn't exist and no :service_config/)
       end
 
-      context 'with an existing service' do
-        before(:each) do
-          ecs_stub.stub_responses(:describe_services, stub_service_response)
+      context 'with a service_config' do
+        let(:local_target_config) { { service_config: service_config } }
+
+        it 'sets up the service' do
+          expect(Broadside::EcsManager).to receive(:create_service).with(cluster, family, service_config)
+          expect { deploy.bootstrap }.to_not raise_error
         end
+      end
+
+      context 'with an existing service' do
+        include_context 'with a running service'
 
         it 'succeeds' do
           expect { deploy.bootstrap }.to_not raise_error
@@ -88,7 +58,7 @@ describe Broadside::EcsDeploy do
           let(:local_target_config) { { bootstrap_commands: commands } }
 
           it 'runs bootstrap commands' do
-            expect(deploy).to receive(:run_commands).with(commands)
+            expect(deploy).to receive(:run_commands).with(commands, started_by: 'bootstrap')
             deploy.bootstrap
           end
         end
@@ -102,25 +72,30 @@ describe Broadside::EcsDeploy do
     end
 
     context 'with an existing service' do
-      before(:each) do
-        ecs_stub.stub_responses(:describe_services, stub_service_response)
-      end
+      include_context 'with a running service'
 
       it 'fails without an existing task_definition' do
         expect { deploy.short }.to raise_error(/No task definition for/)
       end
 
       context 'with an existing task definition' do
-        before(:each) do
-          ecs_stub.stub_responses(:list_task_definitions, stub_task_definition_response)
-          ecs_stub.stub_responses(:describe_task_definition, stub_describe_task_definition_response)
-        end
+        include_context 'with a task_definition'
 
         it 'short deploy does not fail' do
           expect { deploy.short }.to_not raise_error
         end
 
         context 'updating service and task definitions' do
+          let(:task_definition_config) do
+            {
+              container_definitions: [
+                {
+                  cpu: cpu,
+                  memory: memory
+                }
+              ]
+            }
+          end
           let(:local_target_config) do
             {
               task_definition_config: task_definition_config,
@@ -144,50 +119,88 @@ describe Broadside::EcsDeploy do
             service_requests = api_request_log.select { |cmd| cmd.keys.first == :update_service }
             expect(service_requests.first.values.first[:desired_count]).to eq(desired_count)
           end
+
+          context 'full deploy' do
+            let(:predeploy_commands) { [%w(x y z), %w(a b c)] }
+            let(:local_target_config) { { predeploy_commands: predeploy_commands } }
+
+            it 'should run predeploy_commands' do
+              expect(deploy).to receive(:run_commands).with(predeploy_commands, started_by: 'predeploy')
+              deploy.full
+            end
+          end
         end
 
         it 'can rollback' do
-          expect { deploy.rollback(1) }.to_not raise_error
-          expect(api_request_log.map(&:keys).flatten).to eq([
-            :list_task_definitions,
-            :deregister_task_definition,
-            :list_task_definitions,
-            :update_service,
-            :describe_services
-          ])
+          deploy.rollback
+          expect(api_request_methods.include?(:deregister_task_definition)).to be true
+          expect(api_request_methods.include?(:update_service)).to be true
         end
       end
     end
   end
 
   context 'bash' do
-    it 'fails without a running task' do
-      expect { deploy.bash }.to raise_error(Broadside::Error, /No running tasks found/)
+    it 'fails without a running service' do
+      expect { deploy.bash }.to raise_error(Broadside::Error, /No task definition for '#{family}'/)
     end
 
-    context 'with a running task' do
-      let(:task_arn) { 'some_task_arn'}
-      let(:container_arn) { 'some_container_arn' }
-      let(:instance_id) { 'i-xxxxxxxx' }
-      let(:ip) { '123.123.123.123' }
+    context 'with a task definition and service in place' do
+      include_context 'with a running service'
+      include_context 'with a task_definition'
 
-      before(:each) do
-        ecs_stub.stub_responses(:list_tasks, task_arns: [task_arn])
-        ecs_stub.stub_responses(:describe_tasks, tasks: [{ container_instance_arn: container_arn }])
-        ecs_stub.stub_responses(:describe_container_instances, container_instances: [{ ec2_instance_id: instance_id }])
-        ec2_stub.stub_responses(:describe_instances, reservations: [ instances: [ { private_ip_address: ip } ] ])
-
-        allow(deploy).to receive(:exec).with("ssh -o StrictHostKeyChecking=no -t -t #{user}@#{ip} 'docker exec -i -t `docker ps -n 1 --quiet --filter name=#{deploy.target.family}` bash'")
+      it 'fails without a running task' do
+        expect { deploy.bash }.to raise_error /No running tasks found for/
       end
 
-      it 'executes correct system command' do
-        expect { deploy.bash }.to_not raise_error
-        expect(api_request_log).to eq([
-          { list_tasks: { cluster: cluster, family: deploy.target.family } },
-          { describe_tasks: { cluster: cluster, tasks: [task_arn] } },
-          { describe_container_instances: { cluster: cluster, container_instances: [container_arn] } },
-          { describe_instances: { instance_ids: [instance_id] } }
-        ])
+      context 'with a running task' do
+        let(:task_arn) { 'some_task_arn' }
+        let(:container_arn) { 'some_container_arn' }
+        let(:instance_id) { 'i-xxxxxxxx' }
+        let(:ip) { '123.123.123.123' }
+
+        before(:each) do
+          ecs_stub.stub_responses(:list_tasks, task_arns: [task_arn])
+          ecs_stub.stub_responses(:describe_tasks, tasks: [{ container_instance_arn: container_arn }])
+          ecs_stub.stub_responses(:describe_container_instances, container_instances: [{ ec2_instance_id: instance_id }])
+          ec2_stub.stub_responses(:describe_instances, reservations: [ instances: [{ private_ip_address: ip }]])
+        end
+
+        it 'executes correct system command' do
+          expect(deploy).to receive(:exec).with("ssh -o StrictHostKeyChecking=no -t -t #{user}@#{ip} 'docker exec -i -t `docker ps -n 1 --quiet --filter name=#{family}` bash'")
+          expect { deploy.bash }.to_not raise_error
+          expect(api_request_log).to eq([
+            { list_task_definitions: { family_prefix: family } },
+            { describe_services: { cluster: cluster, services: [family] } },
+            { list_tasks: { cluster: cluster, family: family } },
+            { describe_tasks: { cluster: cluster, tasks: [task_arn] } },
+            { describe_container_instances: { cluster: cluster, container_instances: [container_arn] } },
+            { describe_instances: { instance_ids: [instance_id] } }
+          ])
+        end
+      end
+    end
+  end
+
+  context 'run' do
+    let(:local_deploy_config) { { command: %w(run some command) } }
+
+    it 'fails without a task definition' do
+      expect { deploy.run }.to raise_error(/No task definition for /)
+    end
+
+    context 'with a task_definition' do
+      include_context 'with a task_definition'
+
+      before do
+        ecs_stub.stub_responses(:run_task, tasks: [task_arn: 'task_arn'])
+        allow(ecs_stub).to receive(:wait_until)
+        allow(deploy).to receive(:get_container_logs)
+        allow(Broadside::EcsManager).to receive(:get_task_exit_code).and_return(0)
+      end
+
+      it 'runs' do
+        expect { deploy.run }.to_not raise_error
       end
     end
   end

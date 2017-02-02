@@ -45,13 +45,13 @@ describe Broadside::Target do
     ]
   end
 
-  describe '#env_vars' do
+  describe '#ecs_env_vars' do
     let(:valid_options) { { scale: 1, env_files: env_files } }
     let(:target) { described_class.new(target_name, valid_options) }
 
     shared_examples 'successfully loaded env_files' do
       it 'loads environment variables from a file' do
-        expect(target.env_vars).to eq(expected_env_vars)
+        expect(target.ecs_env_vars).to eq(expected_env_vars)
       end
     end
 

@@ -2,7 +2,7 @@ require 'logger'
 
 module Broadside
   class Configuration
-    include VerifyInstanceVariables
+    include ActiveModel::Model
     include LoggingUtils
 
     attr_reader(
@@ -19,6 +19,12 @@ module Broadside
       :ssh,
       :timeout
     )
+
+    validates :application, :targets, :logger, presence: true
+    validates_each(:ecs) { |record, attr, val| record.errors.add(attr) unless val.poll_frequency }
+    validates_each(:aws) do |record, _, val|
+      [:region, :credentials].each { |v| record.errors.add("aws.#{v}") unless val.public_send(v) }
+    end
 
     def initialize
       @logger = ::Logger.new(STDOUT)
@@ -42,8 +48,9 @@ module Broadside
       cmd = 'ssh -o StrictHostKeyChecking=no'
       cmd << ' -t -t' if options[:tty]
       cmd << " -i #{@ssh[:keyfile]}" if @ssh[:keyfile]
-      if @ssh[:proxy]
-        cmd << " -o ProxyCommand=\"ssh #{@ssh[:proxy][:host]} nc #{ip} #{@ssh[:proxy][:port]}\""
+      if (proxy = @ssh[:proxy])
+        raise ArgumentError, "Bad proxy host/port: #{proxy[:host]}/#{proxy[:port]}" unless proxy[:host] && proxy[:port]
+        cmd << " -o ProxyCommand=\"ssh #{proxy[:host]} nc #{ip} #{proxy[:port]}\""
       end
       cmd << " #{@ssh[:user]}@#{ip}"
       cmd
@@ -60,10 +67,6 @@ module Broadside
 
     def target_from_name!(name)
       @targets.fetch(name) { |k| raise Error, "Deploy target '#{name}' does not exist!" }
-    end
-
-    def verify(*args)
-      super(*([:application] + args))
     end
   end
 end

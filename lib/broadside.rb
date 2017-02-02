@@ -1,6 +1,9 @@
+require 'active_model'
+require 'active_support/core_ext'
+require 'aws-sdk'
+
 require 'broadside/error'
 require 'broadside/logging_utils'
-require 'broadside/configuration/verify_instance_variables'
 require 'broadside/configuration'
 require 'broadside/configuration/aws_config'
 require 'broadside/configuration/ecs_config'
@@ -37,7 +40,7 @@ module Broadside
       raise e
     end
 
-    config.verify
+    raise ArgumentError, config.errors.full_messages unless config.valid?
   end
 
   def self.config
