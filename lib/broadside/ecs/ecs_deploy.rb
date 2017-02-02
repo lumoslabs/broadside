@@ -80,7 +80,7 @@ module Broadside
     def logtail(options = {})
       lines = options[:lines] || 10
       super do
-        ip = get_running_instance_ip!(options[:instance])
+        ip = get_running_instance_ip!(*options[:instance])
         debug "Tailing logs for running container at #{ip}..."
 
         search_pattern = Shellwords.shellescape(family)
@@ -92,7 +92,7 @@ module Broadside
 
     def ssh(options = {})
       super do
-        ip = get_running_instance_ip!(options[:instance])
+        ip = get_running_instance_ip!(*options[:instance])
         debug "Establishing SSH connection to #{ip}..."
         exec(Broadside.config.ssh_cmd(ip))
       end
@@ -100,7 +100,7 @@ module Broadside
 
     def bash(options = {})
       super do
-        ip = get_running_instance_ip!(options[:instance])
+        ip = get_running_instance_ip!(*options[:instance])
         debug "Running bash for running container at #{ip}..."
         search_pattern = Shellwords.shellescape(family)
         cmd = "docker exec -i -t `docker ps -n 1 --quiet --filter name=#{search_pattern}` bash"
@@ -108,7 +108,10 @@ module Broadside
       end
     end
 
-    def update_service
+    def update_service(options = {})
+      scale = options[:scale] || @target.scale
+      raise ArgumentError, ':scale not provided' unless scale
+
       check_service_and_task_definition!
       task_definition_arn = EcsManager.get_latest_task_definition_arn(family)
       debug "Updating #{family} with scale=#{scale} using task_definition #{task_definition_arn}..."
