@@ -47,7 +47,7 @@ module Broadside
     end
 
     def ssh_cmd(ip, options = {})
-      raise ArgumentError, 'ssh not configured' unless @ssh
+      raise MissingVariableError, 'ssh not configured' unless @ssh
 
       cmd = 'ssh -o StrictHostKeyChecking=no'
       cmd << ' -t -t' if options[:tty]
