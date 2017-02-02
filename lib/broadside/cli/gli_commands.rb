@@ -95,22 +95,23 @@ end
 
 desc 'Deploy your application.'
 command :deploy do |d|
+  add_target_flag(d)
+
   d.desc 'Deploys WITHOUT running predeploy commands'
   d.command :short do |short|
-    add_target_flag(short)
+    add_tag_flag(full)
 
     short.action do |_, options, _|
-      Broadside::Command.deploy_short(options)
+      Broadside::EcsDeploy.new(options[:target]).short
     end
   end
 
   d.desc 'Deploys WITH running predeploy commands'
   d.command :full do |full|
     add_tag_flag(full)
-    add_target_flag(full)
 
     full.action do |_, options, _|
-      Broadside::Command.deploy_full(options)
+      Broadside::EcsDeploy.new(options[:target]).full
     end
   end
 
@@ -120,10 +121,8 @@ command :deploy do |d|
     scale.arg_name 'NUM'
     scale.flag [:s, :scale], type: Fixnum
 
-    add_target_flag(scale)
-
     scale.action do |_, options, _|
-      Broadside::Command.deploy_scale(options)
+      Broadside::EcsDeploy.new(options[:target]).update_service(options)
     end
   end
 
@@ -133,10 +132,8 @@ command :deploy do |d|
     rollback.arg_name 'COUNT'
     rollback.flag [:r, :rollback], type: Fixnum
 
-    add_target_flag(rollback)
-
     rollback.action do |_, options, _|
-      Broadside::Command.deploy_rollback(options)
+      Broadside::EcsDeploy.new(options[:target]).rollback(*options[:rollback])
     end
   end
 end

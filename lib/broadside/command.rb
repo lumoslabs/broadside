@@ -34,22 +34,6 @@ module Broadside
         info "\n" + table.render(:ascii, padding: [0, 1])
       end
 
-      def deploy_short(options)
-        EcsDeploy.new(options[:target], options).short
-      end
-
-      def deploy_full(options)
-        EcsDeploy.new(options[:target], options).full
-      end
-
-      def deploy_scale(options)
-        EcsDeploy.new(options[:target], options).scale
-      end
-
-      def deploy_rollback(options)
-        EcsDeploy.new(options[:target], options).rollback
-      end
-
       def status(options)
         target = Broadside.config.target_from_name!(options[:target])
 

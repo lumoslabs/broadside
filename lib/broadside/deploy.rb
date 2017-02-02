@@ -20,8 +20,6 @@ module Broadside
       @command  = options[:command]  || @target.command
       @instance = options[:instance] || 0
       @lines    = options[:lines]    || 10
-      @rollback = options[:rollback] || 1
-      @scale    = options[:scale]    || @target.scale
       @tag      = options[:tag]      || @target.tag
     end
 
@@ -37,16 +35,10 @@ module Broadside
       deploy
     end
 
-    def rollback(count = @rollback)
+    def rollback(count)
       info "Rolling back #{count} release for #{family}..."
       yield
       info 'Rollback complete.'
-    end
-
-    def scale
-      info "Rescaling #{family} with scale=#{@scale}"
-      yield
-      info 'Rescaling complete.'
     end
 
     def run
