@@ -188,12 +188,12 @@ describe Broadside::EcsDeploy do
 
       before do
         ecs_stub.stub_responses(:run_task, tasks: [task_arn: 'task_arn'])
-        allow(ecs_stub).to receive(:wait_until)
-        allow(deploy).to receive(:get_container_logs)
-        allow(Broadside::EcsManager).to receive(:get_task_exit_code).and_return(0)
       end
 
       it 'runs' do
+        expect(ecs_stub).to receive(:wait_until)
+        expect(deploy).to receive(:get_container_logs)
+        expect(Broadside::EcsManager).to receive(:get_task_exit_code).and_return(0)
         expect { deploy.run }.to_not raise_error
       end
     end

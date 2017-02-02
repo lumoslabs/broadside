@@ -25,6 +25,10 @@ module Broadside
     validates_each(:aws) do |record, _, val|
       [:region, :credentials].each { |v| record.errors.add("aws.#{v}") unless val.public_send(v) }
     end
+    validates_each :ssh, allow_nil: true do |record, attr, val|
+      record.errors.add(attr, 'is not a hash') unless val.is_a?(Hash)
+      record.errors.add(attr, 'ssh hash must contain a user') unless val[:user]
+    end
 
     def initialize
       @logger = ::Logger.new(STDOUT)
@@ -44,7 +48,7 @@ module Broadside
       @ecs ||= EcsConfig.new
     end
 
-    def ssh_cmd(ip, options = { tty: false })
+    def ssh_cmd(ip, options = {})
       cmd = 'ssh -o StrictHostKeyChecking=no'
       cmd << ' -t -t' if options[:tty]
       cmd << " -i #{@ssh[:keyfile]}" if @ssh[:keyfile]
