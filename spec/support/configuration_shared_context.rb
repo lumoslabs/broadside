@@ -1,19 +1,16 @@
-shared_context 'deploy configuration' do
+shared_context 'deploy variables' do
   let(:test_app) { 'TEST_APP' }
   let(:cluster) { 'cluster' }
   let(:test_target) { :test_target }
   let(:dot_env_file) { File.join(FIXTURES_PATH, '.env.rspec') }
   let(:user) { 'test-user' }
   let(:test_target_config) { { scale: 1 } }
+end
+
+shared_context 'deploy configuration' do
+  include_context 'deploy variables'
 
   before(:each) do
-    Broadside.configure do |c|
-      c.application = test_app
-      c.docker_image = 'rails'
-      c.logger.level = Logger::ERROR
-      c.ecs.cluster = cluster
-      c.ssh = { user: user }
-      c.targets = { test_target => test_target_config }
-    end
+    binding.eval File.read(File.join(FIXTURES_PATH, 'broadside_app_example.conf.rb'))
   end
 end
