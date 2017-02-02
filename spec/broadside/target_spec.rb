@@ -1,9 +1,11 @@
 require 'spec_helper'
 
 describe Broadside::Target do
+
   include_context 'deploy configuration'
 
   shared_examples 'valid_configuration?' do |succeeds, config_hash|
+    #let(:command) { %w(do something) }
     let(:valid_options) { { scale: 100 } }
     let(:target) { described_class.new(test_target_name, valid_options.merge(config_hash) )}
 
@@ -28,19 +30,15 @@ describe Broadside::Target do
     it_behaves_like 'valid_configuration?', true,  env_files: ['file', 'file2']
 
     it_behaves_like 'valid_configuration?', true,  command: nil
-    it_behaves_like 'valid_configuration?', true,  command: ['bundle', 'exec', 'resque:work']
-    it_behaves_like 'valid_configuration?', false, command: 'bundle exec rails s'
+    it_behaves_like 'valid_configuration?', true,  command: %w(do something)
+    it_behaves_like 'valid_configuration?', false, command: 'do something'
 
     it_behaves_like 'valid_configuration?', false, not_a_param: 'foo'
 
     it_behaves_like 'valid_configuration?', true,  predeploy_commands: nil
-    it_behaves_like 'valid_configuration?', false, predeploy_commands: Broadside::PredeployCommands::RAKE_DB_MIGRATE
-    it_behaves_like 'valid_configuration?', false, predeploy_commands: 'bundle exec rake db:migrate'
-    it_behaves_like 'valid_configuration?', true,  predeploy_commands: [Broadside::PredeployCommands::RAKE_DB_MIGRATE]
-    it_behaves_like 'valid_configuration?', true,  predeploy_commands: [
-      Broadside::PredeployCommands::RAKE_DB_MIGRATE,
-      ['bundle', 'exec', 'rake' 'assets:precompile']
-    ]
+    it_behaves_like 'valid_configuration?', false, predeploy_commands: %w(do something)
+    it_behaves_like 'valid_configuration?', true,  predeploy_commands: [%w(do something)]
+    it_behaves_like 'valid_configuration?', true,  predeploy_commands: [%w(do something), %w(other command)]
   end
 
   describe '#ecs_env_vars' do

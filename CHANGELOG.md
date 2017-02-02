@@ -3,6 +3,7 @@
 - **BREAKING CHANGE**: `config.git_repo=` and `config.type=` were removed.
 - **BREAKING CHANGE**: `config.base` and `config.deploy` are no longer backwards compatible
 - **BREAKING CHANGE**: `instance` can no longer be configured on a per `Target` basis
+- **BREAKING CHANGE**: No more `RAKE_DB_MIGRATE` constant
 - *NEW FEATURE*: Allow per target `:docker_image` configuration
 - *NEW FEATURE*: Put back per target `:tag` configuration
 - *NEW FEATURE*: Add `list_targets` command to display all the targets' deployed images and CPU/memory allocations
