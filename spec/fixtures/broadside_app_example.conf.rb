@@ -4,7 +4,9 @@ Broadside.configure do |c|
   c.application = test_app
   c.docker_image = 'rails'
   c.logger.level = Logger::ERROR
-  c.targets = { test_target => test_target_config }
+  c.targets = {
+    test_target_name => test_target_config
+  }
   c.ssh = {
     user: user
   }

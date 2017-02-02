@@ -1,6 +1,4 @@
 require 'open3'
-require 'pp'
-require 'rainbow'
 require 'shellwords'
 
 module Broadside
@@ -85,46 +83,33 @@ module Broadside
       end
     end
 
-    def status
-      super do
-        check_service_and_task_definition!
-        ips = EcsManager.get_running_instance_ips(@target.cluster, family)
-        info "\n---------------",
-          "\nDeployed task definition information:\n",
-          Rainbow(PP.pp(EcsManager.get_latest_task_definition(family), '')).blue,
-          "\nPrivate ips of instances running containers:\n",
-          Rainbow(ips.join(' ')).blue,
-          "\n\nssh command:\n#{Rainbow(gen_ssh_cmd(ips.first)).cyan}",
-          "\n---------------\n"
-      end
-    end
-
     def logtail
       super do
-        ip = get_running_instance_ip
+        ip = get_running_instance_ip!
         debug "Tailing logs for running container at #{ip}..."
+
         search_pattern = Shellwords.shellescape(family)
         cmd = "docker logs -f --tail=#{@lines} `docker ps -n 1 --quiet --filter name=#{search_pattern}`"
-        tail_cmd = gen_ssh_cmd(ip) + " '#{cmd}'"
+        tail_cmd = Broadside.config.ssh_cmd(ip) + " '#{cmd}'"
         exec(tail_cmd)
       end
     end
 
     def ssh
       super do
-        ip = get_running_instance_ip
+        ip = get_running_instance_ip!
         debug "Establishing SSH connection to #{ip}..."
-        exec(gen_ssh_cmd(ip))
+        exec(Broadside.config.ssh_cmd(ip))
       end
     end
 
     def bash
       super do
-        ip = get_running_instance_ip
+        ip = get_running_instance_ip!
         debug "Running bash for running container at #{ip}..."
         search_pattern = Shellwords.shellescape(family)
         cmd = "docker exec -i -t `docker ps -n 1 --quiet --filter name=#{search_pattern}` bash"
-        exec(gen_ssh_cmd(ip, tty: true) + " '#{cmd}'")
+        exec(Broadside.config.ssh_cmd(ip, tty: true) + " '#{cmd}'")
       end
     end
 
@@ -147,9 +132,9 @@ module Broadside
       check_task_definition!
     end
 
-    def get_running_instance_ip
+    def get_running_instance_ip!
       check_service_and_task_definition!
-      EcsManager.get_running_instance_ips(@target.cluster, family).fetch(@instance)
+      ips = EcsManager.get_running_instance_ips!(@target.cluster, family).fetch(@instance)
     end
 
     # Creates a new task revision using current directory's env vars, provided tag, and @target.task_definition_config
@@ -164,7 +149,7 @@ module Broadside
       updatable_container_definitions = revision[:container_definitions].select { |c| c[:name] == family }
       raise Error, 'Can only update one container definition!' if updatable_container_definitions.size != 1
 
-      # Deep merge doesn't work well with arrays (e.g. :container_definitions), so build the container first.
+      # Deep merge doesn't work well with arrays (e.g. container_definitions), so build the container first.
       updatable_container_definitions.first.merge!(container_definition)
       revision.deep_merge!((@target.task_definition_config || {}).except(:container_definitions))
 
@@ -176,11 +161,11 @@ module Broadside
     def update_service
       check_service_and_task_definition!
       task_definition_arn = EcsManager.get_latest_task_definition_arn(family)
-      debug "Updating #{family} with scale=#{@target.scale} using task_definition #{task_definition_arn}..."
+      debug "Updating #{family} with scale=#{@scale} using task_definition #{task_definition_arn}..."
 
       update_service_response = EcsManager.ecs.update_service({
         cluster: @target.cluster,
-        desired_count: @target.scale.to_i,
+        desired_count: @scale,
         service: family,
         task_definition: task_definition_arn
       }.deep_merge(@target.service_config || {}))
@@ -189,7 +174,7 @@ module Broadside
         raise Error, "Failed to update service:\n#{update_service_response.pretty_inspect}"
       end
 
-      EcsManager.ecs.wait_until(:services_stable, { cluster: @target.cluster, services: [family] }) do |w|
+      EcsManager.ecs.wait_until(:services_stable, cluster: @target.cluster, services: [family]) do |w|
         timeout = Broadside.config.timeout
         w.delay = Broadside.config.ecs.poll_frequency
         w.max_attempts = timeout ? timeout / w.delay : Float::INFINITY
@@ -226,11 +211,10 @@ module Broadside
 
           info "#{command_name} task container logs:\n#{get_container_logs(task_arn)}"
 
-          if (code = EcsManager.get_task_exit_code(@target.cluster, task_arn, family)) == 0
-            info "#{command_name} task #{task_arn} complete"
-          else
-            raise Error, "#{command_name} task #{task_arn} exited with a non-zero status code #{code}!"
-          end
+          exit_code = EcsManager.get_task_exit_code(@target.cluster, task_arn, family)
+          raise Error, "#{command_name} task #{task_arn} exit code: #{exit_code}!" unless exit_code.zero?
+
+          info "#{command_name} task #{task_arn} complete"
         end
       ensure
         EcsManager.deregister_last_n_tasks_definitions(family, 1)
@@ -238,16 +222,16 @@ module Broadside
     end
 
     def get_container_logs(task_arn)
-      ip = EcsManager.get_running_instance_ips(@target.cluster, family, task_arn).first
+      ip = EcsManager.get_running_instance_ips!(@target.cluster, family, task_arn).first
       debug "Found IP of container instance: #{ip}"
 
-      find_container_id_cmd = "#{gen_ssh_cmd(ip)} \"docker ps -aqf 'label=com.amazonaws.ecs.task-arn=#{task_arn}'\""
+      find_container_id_cmd = "#{Broadside.config.ssh_cmd(ip)} \"docker ps -aqf 'label=com.amazonaws.ecs.task-arn=#{task_arn}'\""
       debug "Running command to find container id:\n#{find_container_id_cmd}"
       container_ids = `#{find_container_id_cmd}`.split
 
       logs = ''
       container_ids.each do |container_id|
-        get_container_logs_cmd = "#{gen_ssh_cmd(ip)} \"docker logs #{container_id}\""
+        get_container_logs_cmd = "#{Broadside.config.ssh_cmd(ip)} \"docker logs #{container_id}\""
         debug "Running command to get logs of container #{container_id}:\n#{get_container_logs_cmd}"
 
         Open3.popen3(get_container_logs_cmd) do |_, stdout, stderr, _|

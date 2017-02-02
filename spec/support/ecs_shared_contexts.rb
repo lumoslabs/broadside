@@ -17,8 +17,8 @@ shared_context 'with a running service' do
     {
       services: [
         {
-          service_name: test_target.to_s,
-          service_arn: "#{arn}:service/#{test_target}",
+          service_name: test_target_name.to_s,
+          service_arn: "#{arn}:service/#{test_target_name}",
           deployments: [{ desired_count: 1, running_count: 1 }]
         }
       ],
@@ -34,7 +34,7 @@ end
 shared_context 'with a task_definition' do
   include_context 'ecs stubs'
 
-  let(:task_definition_arn) { "#{arn}:task-definition/#{test_target}:1" }
+  let(:task_definition_arn) { "#{arn}:task-definition/#{test_target_name}:1" }
   let(:stub_task_definition_response) { { task_definition_arns: [task_definition_arn] } }
   let(:stub_describe_task_definition_response) do
     {

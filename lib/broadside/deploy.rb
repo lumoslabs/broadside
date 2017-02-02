@@ -1,18 +1,20 @@
+require 'active_support/core_ext/module/delegation'
+
 module Broadside
   class Deploy
     include LoggingUtils
 
     attr_reader :command, :tag, :target
+    delegate :family, to: :target
 
-    def initialize(target, options = {})
-      @target   = target
+    def initialize(target_name, options = {})
+      @target   = Broadside.config.target_from_name!(target_name)
       @command  = options[:command]  || @target.command
       @instance = options[:instance] || 0
       @lines    = options[:lines]    || 10
       @rollback = options[:rollback] || 1
       @scale    = options[:scale]    || @target.scale
       @tag      = options[:tag]      || @target.tag
-      verify(:target)
     end
 
     def short
@@ -48,11 +50,6 @@ module Broadside
       yield
     end
 
-    def status
-      info "Status information about #{family}:"
-      yield
-    end
-
     def logtail
       yield
     end
@@ -63,10 +60,6 @@ module Broadside
 
     def bash
       yield
-    end
-
-    def family
-      "#{Broadside.config.application}_#{@target.name}"
     end
 
     private
@@ -80,19 +73,6 @@ module Broadside
     def image_tag
       verify(:tag)
       "#{@target.docker_image}:#{@tag}"
-    end
-
-    def gen_ssh_cmd(ip, options = {})
-      opts = Broadside.config.ssh || {}
-      cmd = 'ssh -o StrictHostKeyChecking=no'
-      cmd << ' -t -t' if options[:tty]
-      cmd << " -i #{opts[:keyfile]}" if opts[:keyfile]
-      if (proxy = opts[:proxy])
-        raise ArgumentError, "Bad proxy host/port: #{proxy[:host]}/#{proxy[:port]}" unless proxy[:host] && proxy[:port]
-        cmd << " -o ProxyCommand=\"ssh #{proxy[:host]} nc #{ip} #{proxy[:port]}\""
-      end
-      cmd << " #{opts[:user]}@#{ip}"
-      cmd
     end
 
     def verify(var)
