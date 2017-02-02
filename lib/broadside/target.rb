@@ -15,7 +15,6 @@ module Broadside
       :command,
       :docker_image,
       :env_files,
-      :family,
       :name,
       :predeploy_commands,
       :scale,
@@ -42,7 +41,6 @@ module Broadside
     def initialize(name, options = {})
       @name = name
       config = options.deep_dup
-      puts config
       @bootstrap_commands = config.delete(:bootstrap_commands)
       @cluster = config.delete(:cluster) || Broadside.config.ecs.cluster
       @command = config.delete(:command)
@@ -54,7 +52,6 @@ module Broadside
         dir = Broadside.config.config_file ? Pathname.new(Broadside.config.config_file).dirname : Dir.pwd
         env_file.expand_path(dir)
       end
-      @family = "#{Broadside.config.application}_#{@name}"
       @predeploy_commands = config.delete(:predeploy_commands)
       @scale = config.delete(:scale)
       @service_config = config.delete(:service_config)
@@ -75,6 +72,10 @@ module Broadside
           raise e.class, "Error parsing #{env_file}: #{e.message}", e.backtrace
         end
       end.map { |k, v| { 'name' => k, 'value' => v } }
+    end
+
+    def family
+      "#{Broadside.config.application}_#{@name}"
     end
 
     def to_h

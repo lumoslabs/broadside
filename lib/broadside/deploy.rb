@@ -1,4 +1,5 @@
 require 'active_model'
+require 'active_support/core_ext/module/delegation'
 
 module Broadside
   class Deploy
@@ -9,11 +10,10 @@ module Broadside
       :command,
       :instance,
       :lines,
-      :rollback,
-      :scale,
       :tag,
       :target
     )
+    delegate :family, to: :target
 
     def initialize(target_name, options = {})
       @target   = Broadside.config.target_from_name!(target_name)
@@ -30,7 +30,7 @@ module Broadside
     end
 
     def full
-      info "Running predeploy commands for #{@target.family}..."
+      info "Running predeploy commands for #{family}..."
       run_commands(@target.predeploy_commands)
       info 'Predeploy complete.'
 
@@ -38,13 +38,13 @@ module Broadside
     end
 
     def rollback(count = @rollback)
-      info "Rolling back #{count} release for #{@target.family}..."
+      info "Rolling back #{count} release for #{family}..."
       yield
       info 'Rollback complete.'
     end
 
     def scale
-      info "Rescaling #{@target.family} with scale=#{@scale}"
+      info "Rescaling #{family} with scale=#{@scale}"
       yield
       info 'Rescaling complete.'
     end
@@ -69,7 +69,7 @@ module Broadside
     private
 
     def deploy
-      info "Deploying #{image_tag} to #{@target.family}..."
+      info "Deploying #{image_tag} to #{family}..."
       yield
       info 'Deployment complete.'
     end

@@ -16,11 +16,11 @@ module Broadside
 
     def deploy
       super do
-        unless EcsManager.service_exists?(@target.cluster, @target.family)
-          raise Error, "No service for '#{@target.family}'! Please bootstrap or manually configure one."
+        unless EcsManager.service_exists?(@target.cluster, family)
+          raise Error, "No service for '#{family}'! Please bootstrap or manually configure one."
         end
-        unless EcsManager.get_latest_task_definition_arn(@target.family)
-          raise Error, "No task definition for '#{@target.family}'! Please bootstrap or manually configure one."
+        unless EcsManager.get_latest_task_definition_arn(family)
+          raise Error, "No task definition for '#{family}'! Please bootstrap or manually configure one."
         end
 
         update_task_revision
@@ -43,18 +43,18 @@ module Broadside
     end
 
     def bootstrap
-      if EcsManager.get_latest_task_definition_arn(@target.family)
-        info("Task definition for #{@target.family} already exists.")
+      if EcsManager.get_latest_task_definition_arn(family)
+        info("Task definition for #{family} already exists.")
       else
         unless @target.task_definition_config
-          raise ArgumentError, "No first task definition and no :task_definition_config in '#{@target.family}' configuration"
+          raise ArgumentError, "No first task definition and no :task_definition_config in '#{family}' configuration"
         end
 
-        info "Creating an initial task definition for '#{@target.family}' from the config..."
+        info "Creating an initial task definition for '#{family}' from the config..."
 
         EcsManager.ecs.register_task_definition(
           @target.task_definition_config.merge(
-            family: @target.family,
+            family: family,
             container_definitions: [DEFAULT_CONTAINER_DEFINITION.merge(container_definition)]
           )
         )
@@ -62,22 +62,22 @@ module Broadside
 
       run_commands(@target.bootstrap_commands)
 
-      if EcsManager.service_exists?(@target.cluster, @target.family)
-        info("Service for #{@target.family} already exists.")
+      if EcsManager.service_exists?(@target.cluster, family)
+        info("Service for #{family} already exists.")
       else
         unless @target.service_config
-          raise ArgumentError, "Service doesn't exist and no :service_config in '#{@target.family}' configuration"
+          raise ArgumentError, "Service doesn't exist and no :service_config in '#{family}' configuration"
         end
 
-        info "Service '#{@target.family}' doesn't exist, creating..."
-        EcsManager.create_service(@target.cluster, @target.family, @target.service_config)
+        info "Service '#{family}' doesn't exist, creating..."
+        EcsManager.create_service(@target.cluster, family, @target.service_config)
       end
     end
 
     def rollback(count = @rollback)
       super do
         begin
-          EcsManager.deregister_last_n_tasks_definitions(@target.family, count)
+          EcsManager.deregister_last_n_tasks_definitions(family, count)
           update_service
         rescue StandardError
           error 'Rollback failed to complete!'
@@ -102,7 +102,7 @@ module Broadside
       super do
         ip = get_running_instance_ip!
         debug "Tailing logs for running container at ip #{ip}..."
-        search_pattern = Shellwords.shellescape(@target.family)
+        search_pattern = Shellwords.shellescape(family)
         cmd = "docker logs -f --tail=#{@lines} `docker ps -n 1 --quiet --filter name=#{search_pattern}`"
         tail_cmd = Broadside.config.ssh_cmd(ip) + " '#{cmd}'"
         exec(tail_cmd)
@@ -121,7 +121,7 @@ module Broadside
       super do
         ip = get_running_instance_ip!
         debug "Running bash for running container at IP #{ip}..."
-        search_pattern = Shellwords.shellescape(@target.family)
+        search_pattern = Shellwords.shellescape(family)
         cmd = "docker exec -i -t `docker ps -n 1 --quiet --filter name=#{search_pattern}` bash"
         exec(Broadside.config.ssh_cmd(ip, tty: true) + " '#{cmd}'")
       end
@@ -130,20 +130,20 @@ module Broadside
     private
 
     def get_running_instance_ip!(index = @instance, task_arns = nil)
-      ips = EcsManager.get_running_instance_ips!(@target.cluster, @target.family, task_arns)
+      ips = EcsManager.get_running_instance_ips!(@target.cluster, family, task_arns)
       ips.fetch(index)
     end
 
     # Creates a new task revision using current directory's env vars, provided tag, and configured options.
     # Currently can only handle a single container definition.
     def update_task_revision
-      revision = EcsManager.get_latest_task_definition(@target.family).except(
+      revision = EcsManager.get_latest_task_definition(family).except(
         :requires_attributes,
         :revision,
         :status,
         :task_definition_arn
       )
-      updatable_container_definitions = revision[:container_definitions].select { |c| c[:name] == @target.family }
+      updatable_container_definitions = revision[:container_definitions].select { |c| c[:name] == family }
       raise Error, "Can only update one container definition!" if updatable_container_definitions.size != 1
 
       # Deep merge doesn't work well with arrays (e.g. container_definitions), so build the container first.
@@ -156,13 +156,13 @@ module Broadside
 
     # reloads the service using the latest task definition
     def update_service
-      task_definition_arn = EcsManager.get_latest_task_definition_arn(@target.family)
-      debug "Updating #{@target.family} with scale=#{@scale} using task_definition #{task_definition_arn}..."
+      task_definition_arn = EcsManager.get_latest_task_definition_arn(family)
+      debug "Updating #{family} with scale=#{@scale} using task_definition #{task_definition_arn}..."
 
       update_service_response = EcsManager.ecs.update_service({
         cluster: @target.cluster,
         desired_count: @scale,
-        service: @target.family,
+        service: family,
         task_definition: task_definition_arn
       }.deep_merge(@target.service_config || {}))
 
@@ -170,7 +170,7 @@ module Broadside
         raise Error, "Failed to update service during deploy:\n#{update_service_response.pretty_inspect}"
       end
 
-      EcsManager.ecs.wait_until(:services_stable, cluster: @target.cluster, services: [@target.family]) do |w|
+      EcsManager.ecs.wait_until(:services_stable, cluster: @target.cluster, services: [family]) do |w|
         timeout = Broadside.config.timeout
         w.delay = Broadside.config.ecs.poll_frequency
         w.max_attempts = timeout ? timeout / w.delay : nil
@@ -195,7 +195,7 @@ module Broadside
       begin
         Array.wrap(commands).each do |command|
           command_name = command.join(' ')
-          run_task_response = EcsManager.run_task(@target.cluster, @target.family, command)
+          run_task_response = EcsManager.run_task(@target.cluster, family, command)
 
           unless run_task_response.successful? && run_task_response.tasks.try(:[], 0)
             raise Error, "Failed to run #{command_name} task:\n#{run_task_response.pretty_inspect}"
@@ -214,18 +214,18 @@ module Broadside
 
           info "#{command_name} task container logs:\n#{get_container_logs(task_arn)}"
 
-          exit_code = EcsManager.get_task_exit_code(@target.cluster, task_arn, @target.family)
+          exit_code = EcsManager.get_task_exit_code(@target.cluster, task_arn, family)
           raise Error, "#{command_name} task #{task_arn} exited with a non-zero status code #{exit_code}!" if exit_code.zero?
 
           info "#{command_name} task #{task_arn} complete"
         end
       ensure
-        EcsManager.deregister_last_n_tasks_definitions(@target.family, 1)
+        EcsManager.deregister_last_n_tasks_definitions(family, 1)
       end
     end
 
     def get_container_logs(task_arn)
-      ip = EcsManager.get_running_instance_ips!(@target.cluster, @target.family, task_arn).first
+      ip = EcsManager.get_running_instance_ips!(@target.cluster, family, task_arn).first
       debug "Found IP of container instance: #{ip}"
 
       find_container_id_cmd = "#{Broadside.config.ssh_cmd(ip)} \"docker ps -aqf 'label=com.amazonaws.ecs.task-arn=#{task_arn}'\""
@@ -253,7 +253,7 @@ module Broadside
       end
 
       (configured_containers.try(:first) || {}).merge(
-        name: @target.family,
+        name: family,
         command: @command,
         environment: @target.env_vars,
         image: image_tag

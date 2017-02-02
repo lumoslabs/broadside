@@ -58,14 +58,8 @@ module Broadside
       end
     end
 
-    def target_from_name!(target_name)
-      raise Error, "Deploy target '#{target_name}' does not exist!" if target_exists?(target_name)
-
-      @targets[target_name]
-    end
-
-    def target_exists?(target_name)
-      @targets.key?(target_name)
+    def target_from_name!(name)
+      @targets.fetch(name) { |k| raise Error, "Deploy target '#{name}' does not exist!" }
     end
 
     def verify(*args)
