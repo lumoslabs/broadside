@@ -41,15 +41,15 @@ module Broadside
       yield
     end
 
-    def logtail
+    def logtail(options = {})
       yield
     end
 
-    def ssh
+    def ssh(options = {})
       yield
     end
 
-    def bash
+    def bash(options = {})
       yield
     end
 
