@@ -36,7 +36,7 @@ end
 
 desc 'Gets information about what is currently deployed.'
 command :status do |status|
-  status.desc 'Dump even more information'
+  status.desc 'Additionally displays service and task information'
   status.arg_name 'VERBOSE'
   status.switch :verbose, negatable: false
 

@@ -17,7 +17,7 @@ module Broadside
           task_def = Broadside::EcsManager.get_latest_task_definition(target.family)
 
           if task_def.nil?
-            debug "Skipping deploy target '#{target.name}' as it does not have a configured task_definition."
+            warn "Skipping deploy target '#{target.name}' as it does not have a configured task_definition."
             next
           end
 
