@@ -64,11 +64,11 @@ module Broadside
       end
 
       def logtail(options)
-        EcsDeploy.new(options[:target], options).logtail
+        EcsDeploy.new(options[:target]).logtail(options)
       end
 
       def ssh(options)
-        EcsDeploy.new(options[:target], options).ssh
+        EcsDeploy.new(options[:target]).ssh
       end
 
       def bash(options)

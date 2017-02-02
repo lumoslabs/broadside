@@ -77,29 +77,30 @@ module Broadside
       end
     end
 
-    def logtail
+    def logtail(options = {})
+      lines = options[:lines] || 10
       super do
-        ip = get_running_instance_ip!
+        ip = get_running_instance_ip!(options[:instance])
         debug "Tailing logs for running container at #{ip}..."
 
         search_pattern = Shellwords.shellescape(family)
-        cmd = "docker logs -f --tail=#{@lines} `docker ps -n 1 --quiet --filter name=#{search_pattern}`"
+        cmd = "docker logs -f --tail=#{lines} `docker ps -n 1 --quiet --filter name=#{search_pattern}`"
         tail_cmd = Broadside.config.ssh_cmd(ip) + " '#{cmd}'"
         exec(tail_cmd)
       end
     end
 
-    def ssh
+    def ssh(options = {})
       super do
-        ip = get_running_instance_ip!
+        ip = get_running_instance_ip!(options[:instance])
         debug "Establishing SSH connection to #{ip}..."
         exec(Broadside.config.ssh_cmd(ip))
       end
     end
 
-    def bash
+    def bash(options = {})
       super do
-        ip = get_running_instance_ip!
+        ip = get_running_instance_ip!(options[:instance])
         debug "Running bash for running container at #{ip}..."
         search_pattern = Shellwords.shellescape(family)
         cmd = "docker exec -i -t `docker ps -n 1 --quiet --filter name=#{search_pattern}` bash"
@@ -107,54 +108,6 @@ module Broadside
       end
     end
 
-    # Creates a new task revision using current directory's env vars, provided tag, and @target.task_definition_config
-    def update_service(options = {})
-      scale = options[:scale] || @target.scale
-      raise ArgumentError, ':scale not provided' unless scale
-
-      check_task_definition!
-      revision = EcsManager.get_latest_task_definition(family).except(
-        :requires_attributes,
-        :revision,
-        :status,
-        :task_definition_arn
-      )
-      updatable_container_definitions = revision[:container_definitions].select { |c| c[:name] == family }
-      raise Error, 'Can only update one container definition!' if updatable_container_definitions.size != 1
-
-      # Deep merge doesn't work well with arrays (e.g. container_definitions), so build the container first.
-      updatable_container_definitions.first.merge!(container_definition)
-      revision.deep_merge!((@target.task_definition_config || {}).except(:container_definitions))
-
-      task_definition = EcsManager.ecs.register_task_definition(revision).task_definition
-      debug "Successfully created #{task_definition.task_definition_arn}"
-    end
-
-    private
-
-    def check_task_definition!
-      unless EcsManager.get_latest_task_definition_arn(family)
-        raise Error, "No task definition for '#{family}'! Please bootstrap or manually configure one."
-      end
-    end
-
-    def check_service!
-      unless EcsManager.service_exists?(@target.cluster, family)
-        raise Error, "No service for '#{family}'! Please bootstrap or manually configure one."
-      end
-    end
-
-    def check_service_and_task_definition!
-      check_task_definition!
-      check_service!
-    end
-
-    def get_running_instance_ip!
-      check_service_and_task_definition!
-      EcsManager.get_running_instance_ips!(@target.cluster, family).fetch(@instance)
-    end
-
-    # Reloads the service using the latest task definition and @target.service_config
     def update_service
       check_service_and_task_definition!
       task_definition_arn = EcsManager.get_latest_task_definition_arn(family)
@@ -186,6 +139,50 @@ module Broadside
           end
         end
       end
+    end
+
+    private
+
+    def check_task_definition!
+      unless EcsManager.get_latest_task_definition_arn(family)
+        raise Error, "No task definition for '#{family}'! Please bootstrap or manually configure one."
+      end
+    end
+
+    def check_service!
+      unless EcsManager.service_exists?(@target.cluster, family)
+        raise Error, "No service for '#{family}'! Please bootstrap or manually configure one."
+      end
+    end
+
+    def check_service_and_task_definition!
+      check_task_definition!
+      check_service!
+    end
+
+    # Creates a new task revision using current directory's env vars, provided tag, and @target.task_definition_config
+    def update_task_revision
+      check_task_definition!
+      revision = EcsManager.get_latest_task_definition(family).except(
+        :requires_attributes,
+        :revision,
+        :status,
+        :task_definition_arn
+      )
+      updatable_container_definitions = revision[:container_definitions].select { |c| c[:name] == family }
+      raise Error, 'Can only update one container definition!' if updatable_container_definitions.size != 1
+
+      # Deep merge doesn't work well with arrays (e.g. container_definitions), so build the container first.
+      updatable_container_definitions.first.merge!(container_definition)
+      revision.deep_merge!((@target.task_definition_config || {}).except(:container_definitions))
+
+      task_definition = EcsManager.ecs.register_task_definition(revision).task_definition
+      debug "Successfully created #{task_definition.task_definition_arn}"
+    end
+
+    def get_running_instance_ip!(instance_index = 0)
+      check_service_and_task_definition!
+      EcsManager.get_running_instance_ips!(@target.cluster, family).fetch(instance_index)
     end
 
     def run_commands(commands, options = {})

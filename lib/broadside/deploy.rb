@@ -11,7 +11,6 @@ module Broadside
       @target   = Broadside.config.target_from_name!(target_name)
       @command  = options[:command]  || @target.command
       @instance = options[:instance] || 0
-      @lines    = options[:lines]    || 10
       @tag      = options[:tag]      || @target.tag
     end
 
