@@ -1,6 +1,6 @@
 require 'broadside'
 require 'pry-byebug'
-Dir["./spec/support/**/*.rb"].sort.each { |f| require f }
+Dir['./spec/support/**/*.rb'].sort.each { |f| require f }
 
 FIXTURES_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 

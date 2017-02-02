@@ -31,7 +31,7 @@ describe Broadside::EcsManager do
   end
 
   context 'all_results' do
-    let(:task_definition_arns) { ["arn:task-definition/task:1", "arn:task-definition/other_task:1"] }
+    let(:task_definition_arns) { ['arn:task-definition/task:1', 'arn:task-definition/other_task:1'] }
     let(:stub_task_definition_responses) do
       [
         { task_definition_arns: [task_definition_arns[0]], next_token: 'MzQ3N' },

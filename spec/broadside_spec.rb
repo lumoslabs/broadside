@@ -14,9 +14,8 @@ describe Broadside do
     end
 
     it 'calls load for both the system and app config files' do
-      expect(Broadside).to receive(:load).with(app_config_path)
       expect(Broadside).to receive(:load).with(system_config_path)
-
+      expect(Broadside).to receive(:load).with(app_config_path)
       expect(Broadside.config).to receive(:valid?).and_return(true)
       Broadside.load_config(app_config_path)
     end

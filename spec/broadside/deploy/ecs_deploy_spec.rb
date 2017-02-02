@@ -184,10 +184,10 @@ describe Broadside::EcsDeploy do
   end
 
   context 'run' do
-    let(:local_deploy_config) { { command: ['run', 'some', 'command'] } }
+    let(:local_deploy_config) { { command: %w(run some command) } }
 
     it 'fails without a task definition' do
-      expect { deploy.run }.to raise_error /No task definition for /
+      expect { deploy.run }.to raise_error(/No task definition for /)
     end
 
     context 'with a task_definition' do
