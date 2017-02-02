@@ -97,7 +97,7 @@ desc 'Deploy your application.'
 command :deploy do |d|
   d.desc 'Deploys WITHOUT running predeploy commands'
   d.command :short do |short|
-    add_tag_flag(full)
+    add_tag_flag(short)
     add_target_flag(short)
 
     short.action do |_, options, _|
