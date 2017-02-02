@@ -56,17 +56,17 @@ module Broadside
       cmd
     end
 
+    # Transform deploy target configs to Target objects
     def targets=(_targets)
       raise ArgumentError, ":targets must be a hash" unless _targets.is_a?(Hash)
-      # transform deploy target configs to target objects
+
       @targets = _targets.inject({}) do |h, (target_name, config)|
-        h[target_name] = Target.new(target_name, config)
-        h
+        h.merge(target_name => Target.new(target_name, config))
       end
     end
 
-    def target_from_name!(name)
-      @targets.fetch(name) { |k| raise Error, "Deploy target '#{name}' does not exist!" }
+    def get_target_by_name!(name)
+      @targets.fetch(name) { |k| raise ArgumentError, "Deploy target '#{name}' does not exist!" }
     end
   end
 end

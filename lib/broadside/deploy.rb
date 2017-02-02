@@ -8,7 +8,7 @@ module Broadside
     delegate :family, to: :target
 
     def initialize(target_name, options = {})
-      @target   = Broadside.config.target_from_name!(target_name)
+      @target   = Broadside.config.get_target_by_name!(target_name)
       @command  = options[:command]  || @target.command
       @instance = options[:instance] || 0
       @lines    = options[:lines]    || 10

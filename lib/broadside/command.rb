@@ -51,7 +51,7 @@ module Broadside
       end
 
       def status(options)
-        target = Broadside.config.target_from_name!(options[:target])
+        target = Broadside.config.get_target_by_name!(options[:target])
 
         info "Getting status information about #{target.family}"
         ips = EcsManager.get_running_instance_ips(target.cluster, target.family)

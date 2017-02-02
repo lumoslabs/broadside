@@ -3,11 +3,9 @@ require 'spec_helper'
 describe Broadside::Target do
   include_context 'deploy configuration'
 
-  let(:target_name) { 'tarbaby_target' }
-
   shared_examples 'valid_configuration?' do |succeeds, config_hash|
     let(:valid_options) { { scale: 100 } }
-    let(:target) { described_class.new(target_name, valid_options.merge(config_hash) )}
+    let(:target) { described_class.new(test_target_name, valid_options.merge(config_hash) )}
 
     it 'validates target configuration' do
       if succeeds
@@ -47,7 +45,8 @@ describe Broadside::Target do
 
   describe '#ecs_env_vars' do
     let(:valid_options) { { scale: 1, env_files: env_files } }
-    let(:target) { described_class.new(target_name, valid_options) }
+    let(:target) { described_class.new(test_target_name, valid_options) }
+    let(:dot_env_file) { File.join(FIXTURES_PATH, '.env.rspec') }
 
     shared_examples 'successfully loaded env_files' do
       it 'loads environment variables from a file' do
@@ -59,7 +58,7 @@ describe Broadside::Target do
       let(:env_files) { dot_env_file }
       let(:expected_env_vars) do
         [
-          { 'name' => 'TEST_KEY1', 'value' => 'TEST_VALUE1'},
+          { 'name' => 'TEST_KEY1', 'value' => 'TEST_VALUE1' },
           { 'name' => 'TEST_KEY2', 'value' => 'TEST_VALUE2'}
         ]
       end
@@ -72,8 +71,8 @@ describe Broadside::Target do
       let(:expected_env_vars) do
         [
           { 'name' => 'TEST_KEY1', 'value' => 'TEST_VALUE1' },
-          { 'name' => 'TEST_KEY2', 'value' => 'TEST_VALUE_OVERRIDE'},
-          { 'name' => 'TEST_KEY3', 'value' => 'TEST_VALUE3'}
+          { 'name' => 'TEST_KEY2', 'value' => 'TEST_VALUE_OVERRIDE' },
+          { 'name' => 'TEST_KEY3', 'value' => 'TEST_VALUE3' }
         ]
       end
 
