@@ -55,7 +55,7 @@ command :run do |run|
   run.flag [:command], type: Array
 
   add_tag_flag(run)
-  add_command_flags(cmd)
+  add_command_flags(run)
 
   run.action do |_, options, _|
     Broadside::Command.run(options)
@@ -69,7 +69,7 @@ command :logtail do |logtail|
   logtail.arg_name 'TAIL_LINES'
   logtail.flag [:l, :lines], type: Fixnum
 
-  add_command_flags(cmd)
+  add_command_flags(logtail)
 
   logtail.action do |_, options, _|
     Broadside::Command.logtail(options)
@@ -78,7 +78,7 @@ end
 
 desc 'Establish a secure shell on an instance running the container.'
 command :ssh do |ssh|
-  add_command_flags(cmd)
+  add_command_flags(ssh)
 
   ssh.action do |_, options, _|
     Broadside::Command.ssh(options)
@@ -87,7 +87,7 @@ end
 
 desc 'Establish a shell inside a running container.'
 command :bash do |bash|
-  add_command_flags(cmd)
+  add_command_flags(bash)
 
   bash.action do |_, options, _|
     Broadside::Command.bash(options)
@@ -96,11 +96,11 @@ end
 
 desc 'Deploy your application.'
 command :deploy do |d|
-  add_target_flag(d)
 
   d.desc 'Deploys WITHOUT running predeploy commands'
   d.command :short do |short|
-    add_tag_flag(full)
+    add_target_flag(d)
+    add_tag_flag(short)
 
     short.action do |_, options, _|
       Broadside::EcsDeploy.new(options[:target]).short
@@ -109,6 +109,7 @@ command :deploy do |d|
 
   d.desc 'Deploys WITH running predeploy commands'
   d.command :full do |full|
+    add_target_flag(d)
     add_tag_flag(full)
 
     full.action do |_, options, _|

@@ -10,6 +10,7 @@
 - Make `env_files` configuration optional
 - No more `Utils` module, just `LoggingUtils`
 - Exceptions will be raised if you try to configure a target with an invalid hash key
+- Task runs have a more relevant `started_by` tag
 
 # 2.0.0
 - **BREAKING CHANGE**: `rake db:migrate` is no longer the default `predeploy_command`
