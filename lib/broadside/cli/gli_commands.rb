@@ -99,8 +99,8 @@ command :deploy do |d|
 
   d.desc 'Deploys WITHOUT running predeploy commands'
   d.command :short do |short|
-    add_target_flag(d)
     add_tag_flag(short)
+    add_target_flag(short)
 
     short.action do |_, options, _|
       Broadside::EcsDeploy.new(options[:target]).short
@@ -109,8 +109,8 @@ command :deploy do |d|
 
   d.desc 'Deploys WITH running predeploy commands'
   d.command :full do |full|
-    add_target_flag(d)
     add_tag_flag(full)
+    add_target_flag(full)
 
     full.action do |_, options, _|
       Broadside::EcsDeploy.new(options[:target]).full
@@ -123,6 +123,8 @@ command :deploy do |d|
     scale.arg_name 'NUM'
     scale.flag [:s, :scale], type: Fixnum
 
+    add_target_flag(scale)
+
     scale.action do |_, options, _|
       Broadside::EcsDeploy.new(options[:target]).update_service(options)
     end
@@ -133,6 +135,8 @@ command :deploy do |d|
     rollback.desc 'Number of releases to rollback'
     rollback.arg_name 'COUNT'
     rollback.flag [:r, :rollback], type: Fixnum
+
+    add_target_flag(rollback)
 
     rollback.action do |_, options, _|
       Broadside::EcsDeploy.new(options[:target]).rollback(*options[:rollback])
