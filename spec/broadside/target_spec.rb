@@ -5,9 +5,8 @@ describe Broadside::Target do
   include_context 'deploy configuration'
 
   shared_examples 'valid_configuration?' do |succeeds, config_hash|
-    #let(:command) { %w(do something) }
     let(:valid_options) { { scale: 100 } }
-    let(:target) { described_class.new(test_target_name, valid_options.merge(config_hash) )}
+    let(:target) { described_class.new(test_target_name, valid_options.merge(config_hash)) }
 
     it 'validates target configuration' do
       if succeeds
