@@ -73,5 +73,19 @@ module Broadside
         end
       end.map { |k, v| { 'name' => k, 'value' => v } }
     end
+
+    def family
+      "#{Broadside.config.application}_#{@name}"
+    end
+
+    def to_h
+      {
+        Target: @name,
+        Image: "#{@docker_image}:#{@tag}",
+        Cluster: @cluster,
+        CPU: @cpu,
+        Memory: @memory
+      }
+    end
   end
 end
