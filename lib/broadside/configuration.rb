@@ -27,7 +27,7 @@ module Broadside
     end
     validates_each :ssh, allow_nil: true do |record, attr, val|
       record.errors.add(attr, 'is not a hash') unless val.is_a?(Hash)
-      record.errors.add(attr, 'ssh hash must contain a user') unless val[:user]
+      record.errors.add(attr, 'must contain a user') unless val[:user]
     end
 
     def initialize
@@ -36,8 +36,6 @@ module Broadside
       @logger.datetime_format = '%Y-%m-%d_%H:%M:%S'
       @timeout = 600
       @type = 'ecs'
-      @ssh = {}
-      @targets = {}
     end
 
     def aws
@@ -49,11 +47,13 @@ module Broadside
     end
 
     def ssh_cmd(ip, options = {})
+      raise ArgumentError, 'ssh not configured' unless @ssh
+
       cmd = 'ssh -o StrictHostKeyChecking=no'
       cmd << ' -t -t' if options[:tty]
       cmd << " -i #{@ssh[:keyfile]}" if @ssh[:keyfile]
       if (proxy = @ssh[:proxy])
-        raise ArgumentError, "Bad proxy host/port: #{proxy[:host]}/#{proxy[:port]}" unless proxy[:host] && proxy[:port]
+        raise ArgumentError, "Bad proxy: #{proxy[:host]}/#{proxy[:port]}" unless proxy[:host] && proxy[:port]
         cmd << " -o ProxyCommand=\"ssh #{proxy[:host]} nc #{ip} #{proxy[:port]}\""
       end
       cmd << " #{@ssh[:user]}@#{ip}"

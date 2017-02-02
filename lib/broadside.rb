@@ -24,21 +24,8 @@ module Broadside
   end
 
   def self.load_config(config_file)
-    begin
-      load USER_CONFIG_FILE if File.exists?(USER_CONFIG_FILE)
-    rescue LoadError => e
-      error "Encountered an error loading system configuration file '#{USER_CONFIG_FILE}' !"
-      raise e
-    end
-
-    begin
-      config.config_file = config_file
-      load config_file
-    rescue LoadError => e
-      error "Encountered an error loading required configuration file '#{config_file}' !"
-      raise e
-    end
-
+    config.config_file = config_file
+    [config_file, USER_CONFIG_FILE].each { |file| load file if File.exist?(file) }
     raise ArgumentError, config.errors.full_messages unless config.valid?
   end
 

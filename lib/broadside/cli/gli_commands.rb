@@ -27,7 +27,7 @@ command :bootstrap do |bootstrap|
   end
 end
 
-desc 'Gives an overview of the deploy targets'
+desc 'Gives an overview of all of the deploy targets'
 command :targets do |targets|
   targets.action do |_, options, _|
     Broadside::Command.targets(options)
