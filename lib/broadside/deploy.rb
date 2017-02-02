@@ -10,7 +10,6 @@ module Broadside
     def initialize(target_name, options = {})
       @target   = Broadside.config.target_from_name!(target_name)
       @command  = options[:command]  || @target.command
-      @instance = options[:instance] || 0
       @tag      = options[:tag]      || @target.tag
     end
 
