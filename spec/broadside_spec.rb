@@ -2,8 +2,6 @@ require 'spec_helper'
 
 describe Broadside do
   describe '#load_config' do
-    include_context 'deploy variables'
-
     let(:system_config_path) { File.join(FIXTURES_PATH, 'broadside_system_example.conf.rb') }
     let(:app_config_path) { File.join(FIXTURES_PATH, 'broadside_app_example.conf.rb') }
     let(:ssh_system_user) { { user: 'system-default-user' } }
