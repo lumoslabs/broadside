@@ -17,6 +17,11 @@ def add_instance_flag(cmd)
   cmd.flag [:n, :instance], type: Fixnum
 end
 
+def add_command_flags(cmd)
+  add_instance_flag(cmd)
+  add_target_flag(cmd)
+end
+
 desc 'Bootstrap your service and task definition from the configured definition.'
 command :bootstrap do |bootstrap|
   add_tag_flag(bootstrap)
@@ -50,8 +55,7 @@ command :run do |run|
   run.flag [:command], type: Array
 
   add_tag_flag(run)
-  add_instance_flag(run)
-  add_target_flag(run)
+  add_command_flags(cmd)
 
   run.action do |_, options, _|
     Broadside::Command.run(options)
@@ -65,8 +69,7 @@ command :logtail do |logtail|
   logtail.arg_name 'TAIL_LINES'
   logtail.flag [:l, :lines], type: Fixnum
 
-  add_instance_flag(logtail)
-  add_target_flag(logtail)
+  add_command_flags(cmd)
 
   logtail.action do |_, options, _|
     Broadside::Command.logtail(options)
@@ -75,8 +78,7 @@ end
 
 desc 'Establish a secure shell on an instance running the container.'
 command :ssh do |ssh|
-  add_instance_flag(ssh)
-  add_target_flag(ssh)
+  add_command_flags(cmd)
 
   ssh.action do |_, options, _|
     Broadside::Command.ssh(options)
@@ -85,8 +87,7 @@ end
 
 desc 'Establish a shell inside a running container.'
 command :bash do |bash|
-  add_instance_flag(bash)
-  add_target_flag(bash)
+  add_command_flags(cmd)
 
   bash.action do |_, options, _|
     Broadside::Command.bash(options)
