@@ -65,13 +65,13 @@ module Broadside
         debug "Getting status information about #{family}"
         output = [
           "\n---------------",
-          pastel.underline("Current task definition information:"),
-          pastel.blue(PP.pp(EcsManager.get_latest_task_definition(family), '')),
+          pastel.underline('Current task definition information:'),
+          pastel.blue(PP.pp(EcsManager.get_latest_task_definition(family), ''))
         ]
 
         if options[:verbose]
           output << [
-            pastel.underline("Current service information:"),
+            pastel.underline('Current service information:'),
             pastel.bright_blue(PP.pp(EcsManager.ecs.describe_services(cluster: cluster, services: [family]), ''))
           ]
         end
@@ -84,14 +84,14 @@ module Broadside
 
           if options[:verbose]
             output << [
-              pastel.underline("Task information:"),
+              pastel.underline('Task information:'),
               pastel.bright_cyan(PP.pp(Broadside::EcsManager.ecs.describe_tasks(cluster: cluster, tasks: task_arns), ''))
             ]
           end
 
           output << [
-            pastel.underline("Private IPs of instances running tasks:"),
-            pastel.cyan(ips.map { |ip| "#{ip}: #{Broadside.config.ssh_cmd(ip)}"}.join("\n")) + "\n"
+            pastel.underline('Private IPs of instances running tasks:'),
+            pastel.cyan(ips.map { |ip| "#{ip}: #{Broadside.config.ssh_cmd(ip)}" }.join("\n")) + "\n"
           ]
         end
 
