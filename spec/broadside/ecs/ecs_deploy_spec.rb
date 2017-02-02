@@ -142,7 +142,7 @@ describe Broadside::EcsDeploy do
 
   context 'bash' do
     it 'fails without a running service' do
-      expect { deploy.bash }.to raise_error(Broadside::Error, /No service for '#{family}'/)
+      expect { deploy.bash }.to raise_error(Broadside::Error, /No task definition for '#{family}'/)
     end
 
     context 'with a task definition and service in place' do
@@ -170,8 +170,8 @@ describe Broadside::EcsDeploy do
           expect(deploy).to receive(:exec).with("ssh -o StrictHostKeyChecking=no -t -t #{user}@#{ip} 'docker exec -i -t `docker ps -n 1 --quiet --filter name=#{family}` bash'")
           expect { deploy.bash }.to_not raise_error
           expect(api_request_log).to eq([
-            { describe_services: { cluster: cluster, services: [family] } },
             { list_task_definitions: { family_prefix: family } },
+            { describe_services: { cluster: cluster, services: [family] } },
             { list_tasks: { cluster: cluster, family: family } },
             { describe_tasks: { cluster: cluster, tasks: [task_arn] } },
             { describe_container_instances: { cluster: cluster, container_instances: [container_arn] } },
