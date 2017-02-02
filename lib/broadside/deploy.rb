@@ -76,7 +76,7 @@ module Broadside
     end
 
     def verify(var)
-      raise MissingVariableError, "Missing #{self.class.to_s.split("::").last} variable '#{var}'!" if send(var).nil?
+      raise MissingVariableError, "Missing #{self.class.to_s.split('::').last} variable '#{var}'!" if send(var).nil?
     end
   end
 end

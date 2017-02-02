@@ -134,7 +134,7 @@ module Broadside
 
     def get_running_instance_ip!
       check_service_and_task_definition!
-      ips = EcsManager.get_running_instance_ips!(@target.cluster, family).fetch(@instance)
+      EcsManager.get_running_instance_ips!(@target.cluster, family).fetch(@instance)
     end
 
     # Creates a new task revision using current directory's env vars, provided tag, and @target.task_definition_config

@@ -91,7 +91,7 @@ describe Broadside::EcsDeploy do
               container_definitions: [
                 {
                   cpu: cpu,
-                  memory: memory,
+                  memory: memory
                 }
               ]
             }
@@ -154,7 +154,7 @@ describe Broadside::EcsDeploy do
       end
 
       context 'with a running task' do
-        let(:task_arn) { 'some_task_arn'}
+        let(:task_arn) { 'some_task_arn' }
         let(:container_arn) { 'some_container_arn' }
         let(:instance_id) { 'i-xxxxxxxx' }
         let(:ip) { '123.123.123.123' }
@@ -163,7 +163,7 @@ describe Broadside::EcsDeploy do
           ecs_stub.stub_responses(:list_tasks, task_arns: [task_arn])
           ecs_stub.stub_responses(:describe_tasks, tasks: [{ container_instance_arn: container_arn }])
           ecs_stub.stub_responses(:describe_container_instances, container_instances: [{ ec2_instance_id: instance_id }])
-          ec2_stub.stub_responses(:describe_instances, reservations: [ instances: [{ private_ip_address: ip }] ])
+          ec2_stub.stub_responses(:describe_instances, reservations: [ instances: [{ private_ip_address: ip }]])
         end
 
         it 'executes correct system command' do
