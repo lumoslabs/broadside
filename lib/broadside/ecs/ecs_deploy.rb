@@ -246,7 +246,7 @@ module Broadside
       configured_containers = (@target.task_definition_config || {})[:container_definitions]
 
       if configured_containers && configured_containers.size > 1
-        raise ArgumentError, 'Creating > 1 container definition not supported yet'
+        raise Error, 'Creating > 1 container definition not supported yet'
       end
 
       (configured_containers.try(:first) || {}).merge(

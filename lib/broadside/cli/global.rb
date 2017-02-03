@@ -16,20 +16,20 @@ flag [:c, :config]
 
 def call_hook(type, command)
   hook = Broadside.config.public_send(type)
+  return if hook.nil?
+  raise "#{type} hook is not a callable proc" unless hook.is_a?(Proc)
 
-  if hook.is_a?(Proc)
-    hook_args =
-      if command.parent.is_a?(GLI::Command)
-        {
-          command: command.parent.name,
-          subcommand: command.name
-        }
-      else
-        { command: command.name }
-      end
-    debug "Calling", type, "with args", hook_args
-    hook.call(hook_args)
-  end
+  hook_args =
+    if command.parent.is_a?(GLI::Command)
+      {
+        command: command.parent.name,
+        subcommand: command.name
+      }
+    else
+      { command: command.name }
+    end
+  debug "Calling #{type} with args '#{hook_args}'"
+  hook.call(hook_args)
 end
 
 pre do |global, command, options, args|
@@ -44,11 +44,10 @@ post do |global, command, options, args|
 end
 
 on_error do |exception|
-  # false skips default error handling
   case exception
   when Broadside::MissingVariableError
     error exception.message, "Run your last command with --help for more information."
-    false
+    false # false skips default error handling
   else
     true
   end

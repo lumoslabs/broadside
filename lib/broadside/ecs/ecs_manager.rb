@@ -63,17 +63,16 @@ module Broadside
       end
 
       def get_task_arns(cluster, family, filter = {})
-        opts = {
+        options = {
           cluster: cluster,
-          family: family,
+          # Strange AWS restriction requires absence of family if service_name specified
+          family: filter[:service_name] ? nil : family,
           desired_status: filter[:desired_status],
           service_name: filter[:service_name],
           started_by: filter[:started_by]
-        }
-        # strange AWS restriction requires absence of family if service_name specified
-        opts[:family] = nil if opts[:service_name]
-        opts.delete_if { |_k, v| v.nil? }
-        all_results(:list_tasks, :task_arns, opts)
+        }.reject { |_, v| v.nil? }
+
+        all_results(:list_tasks, :task_arns, options)
       end
 
       def get_task_definition_arns(family)

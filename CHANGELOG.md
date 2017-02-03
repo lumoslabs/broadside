@@ -1,14 +1,16 @@
 # 3.0.0
-#### Breaking Changes
+### Breaking Changes
 - `ssh`, `bash`, `logtail`, `status`, and `run` are now top level commands, not subcommands of `deploy`
 - `config.git_repo=` and `config.type=` were removed.
 - `config.base` and `config.deploy` are no longer backwards compatible
 - `instance` can no longer be configured on a per `Target` basis
+- No more `RAKE_DB_MIGRATE` constant
 
 #### Added Features
-- Allow configuration of separate docker images per target
-- Readd ability to configured a default tag per target
+- Allow configuration of separate `:docker_image` per target
+- Readd ability to configured a default `:tag` per target
 - Add `targets` command to display all the targets' deployed images and CPU/memory allocations
+- `broadside status` has an added `--verbose` switch that displays service and task information
 
 #### General Improvements
 - Only load `env_files` for the selected target (rather than preloading from unrelated targets)
@@ -16,7 +18,6 @@
 - `Utils` has been replaced in favor of `LoggingUtils`
 - Exceptions will be raised if a target is configured with an invalid hash key
 - Tasks run have a more relevant `started_by` tag
-- `broadside status` has an added `--verbose` switch that displays service and task information
 
 # 2.0.0
 #### Breaking Changes
