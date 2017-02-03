@@ -27,7 +27,6 @@ describe Broadside::Configuration do
 
   describe '#ssh_cmd' do
     let(:ip) { '123.123.123.123' }
-    let(:keyfile) { 'path_to_keyfile' }
     let(:ssh_config) { {} }
 
     before(:each) do
@@ -39,6 +38,7 @@ describe Broadside::Configuration do
     end
 
     context 'with configured SSH user and keyfile' do
+      let(:keyfile) { 'path_to_keyfile' }
       let(:ssh_config) { { user: user, keyfile: keyfile } }
 
       it 'generates an SSH command string with keyfile flag and user set' do
