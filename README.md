@@ -24,12 +24,14 @@ Broadside.configure do |config|
         ['bundle', 'exec', 'rake', 'data:migrate']
       ]
     },
+    # If you have multiple images or clusters, you can configure them per target
     staging_web: {
       scale: 1,
       command: ['bundle', 'exec', 'puma'],
       env_file: '.env.staging',
-      tag: 'latest',
-      cluster: 'staging-cluster'
+      tag: 'latest',                                          # Set a default tag for this target
+      cluster: 'staging-cluster',                             # Overrides config.ecs.cluster
+      docker_image: 'docker.io/lumoslabs/staging hello_world' # Overrides config.docker_image
     },
     json_stream: {
       scale: 1,
@@ -42,7 +44,7 @@ Broadside.configure do |config|
 end
 ```
 
-From here, developers can use broadside's command-line interface to initiate a basic deployment and Launch the
+From here, developers can use broadside's command-line interface to initiate a basic deployment and launch the
 configured `command` as an ECS Service:
 
 ```bash
