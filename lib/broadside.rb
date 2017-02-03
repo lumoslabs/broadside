@@ -28,7 +28,11 @@ module Broadside
 
     config.config_file = config_file
     begin
-      [config_file, USER_CONFIG_FILE].each { |file| load file if File.exist?(file) }
+      [USER_CONFIG_FILE, config_file].each do |file|
+        next unless File.exist?(file)
+        debug "Loading config from #{file}"
+        load file
+      end
     rescue LoadError
       error 'Encountered an error loading broadside configuration'
       raise
