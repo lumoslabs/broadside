@@ -28,7 +28,7 @@ Broadside.configure do |config|
       scale: 1,
       command: ['bundle', 'exec', 'puma'],
       env_file: '.env.staging',
-      tag: 'latest_staging',
+      tag: 'latest',
       cluster: 'staging-cluster'
     },
     json_stream: {
