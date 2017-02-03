@@ -12,6 +12,8 @@
 - Add `targets` command to display all the targets' deployed images and CPU/memory allocations
 - `broadside status` has an added `--verbose` switch that displays service and task information
 - Add option for ssh proxy user and proxy keyfile
+- Add flag for changing loglevel
+- Add `--debug` switch that enables GLI debug output
 
 #### General Improvements
 - Only load `env_files` for the selected target (rather than preloading from unrelated targets)
@@ -19,6 +21,7 @@
 - `Utils` has been replaced in favor of `LoggingUtils`
 - Exceptions will be raised if a target is configured with an invalid hash key
 - Tasks run have a more relevant `started_by` tag
+- Default loglevel changed to INFO
 
 # 2.0.0
 #### Breaking Changes
