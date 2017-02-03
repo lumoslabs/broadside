@@ -9,7 +9,7 @@ Broadside offers a simple command-line interface to perform deployments on ECS. 
 
 ### Things You Can Do With Broadside
 
-- **Deploy a docker image to an ECS cluster and launch a command as an ECS service
+- **Deploy a docker image to an ECS cluster and launch a command as an ECS service**
 - **Launch a bash shell directly in the remote docker image** - no messing around with tracking down the server, running `docker ps`, and all the other headaches.
 - **SSH directly onto the server running your image**
 - **Run arbitrary commands in a container that is spun up and spun down as you need it**
