@@ -1,7 +1,6 @@
 require 'spec_helper'
 
 describe Broadside::Target do
-
   include_context 'deploy configuration'
 
   shared_examples 'valid_configuration?' do |succeeds, config_hash|

@@ -70,7 +70,7 @@ module Broadside
     end
 
     def get_target_by_name!(name)
-      @targets.fetch(name) { |k| raise ArgumentError, "Deploy target '#{name}' does not exist!" }
+      @targets.fetch(name) { raise ArgumentError, "Deploy target '#{name}' does not exist!" }
     end
   end
 end
