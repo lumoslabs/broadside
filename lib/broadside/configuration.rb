@@ -57,7 +57,8 @@ module Broadside
         raise MissingVariableError, "Bad proxy: #{proxy[:host]}/#{proxy[:port]}" unless proxy[:host] && proxy[:port]
         cmd << " -o ProxyCommand=\"ssh #{proxy[:host]} nc #{ip} #{proxy[:port]}\""
       end
-      cmd << " #{@ssh[:user]}@" if @ssh[:user]
+      cmd << ' '
+      cmd << "#{@ssh[:user]}@" if @ssh[:user]
       cmd << ip.to_s
       cmd
     end
