@@ -48,7 +48,7 @@ From here, developers can use broadside's command-line interface to initiate a b
 configured `command` as an ECS Service:
 
 ```bash
-broadside deploy full --target production_web --tag $GIT_TAG
+bundle exec broadside deploy full --target production_web --tag v.1.1.example.tag
 ```
 
 In the case of an error or timeout during a deploy, broadside will automatically rollback to the latest stable version. You can perform manual rollbacks as well through the command-line.
