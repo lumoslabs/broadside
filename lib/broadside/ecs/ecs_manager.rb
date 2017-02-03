@@ -1,7 +1,3 @@
-require 'active_support/core_ext/array'
-require 'active_support/core_ext/hash'
-require 'aws-sdk'
-
 module Broadside
   class EcsManager
     DEFAULT_DESIRED_COUNT = 0
@@ -16,14 +12,14 @@ module Broadside
         )
       end
 
-      def create_service(cluster, name, options = {})
+      def create_service(cluster, name, service_config = {})
         ecs.create_service(
           {
             cluster: cluster,
             desired_count: DEFAULT_DESIRED_COUNT,
             service_name: name,
             task_definition: name
-          }.deep_merge(options)
+          }.deep_merge(service_config)
         )
       end
 
@@ -44,14 +40,20 @@ module Broadside
         get_task_definition_arns(name).last
       end
 
+      def get_running_instance_ips!(cluster, family, task_arns = nil)
+        ips = get_running_instance_ips(cluster, family, task_arns)
+        raise Error, "No running tasks found for '#{family}' on cluster '#{cluster}'!" if ips.empty?
+        ips
+      end
+
       def get_running_instance_ips(cluster, family, task_arns = nil)
         task_arns = task_arns ? Array.wrap(task_arns) : get_task_arns(cluster, family)
-        raise Error, "No running tasks found for '#{family}' on cluster '#{cluster}'!" if task_arns.empty?
+        return [] if task_arns.empty?
 
         tasks = ecs.describe_tasks(cluster: cluster, tasks: task_arns).tasks
         container_instances = ecs.describe_container_instances(
           cluster: cluster,
-          container_instances: tasks.map(&:container_instance_arn),
+          container_instances: tasks.map(&:container_instance_arn)
         ).container_instances
 
         ec2_instance_ids = container_instances.map(&:ec2_instance_id)
@@ -60,8 +62,17 @@ module Broadside
         reservations.map(&:instances).flatten.map(&:private_ip_address)
       end
 
-      def get_task_arns(cluster, family)
-        all_results(:list_tasks, :task_arns, { cluster: cluster, family: family })
+      def get_task_arns(cluster, family, filter = {})
+        options = {
+          cluster: cluster,
+          # Strange AWS restriction requires absence of family if service_name specified
+          family: filter[:service_name] ? nil : family,
+          desired_status: filter[:desired_status],
+          service_name: filter[:service_name],
+          started_by: filter[:started_by]
+        }.reject { |_, v| v.nil? }
+
+        all_results(:list_tasks, :task_arns, options)
       end
 
       def get_task_definition_arns(family)
@@ -69,7 +80,7 @@ module Broadside
       end
 
       def get_task_exit_code(cluster, task_arn, name)
-        task = ecs.describe_tasks({ cluster: cluster, tasks: [task_arn] }).tasks.first
+        task = ecs.describe_tasks(cluster: cluster, tasks: [task_arn]).tasks.first
         container = task.containers.select { |c| c.name == name }.first
         container.exit_code
       end
@@ -82,10 +93,10 @@ module Broadside
         all_results(:list_services, :service_arns, { cluster: cluster })
       end
 
-      def run_task(cluster, name, command)
+      def run_task(cluster, name, command, options = {})
         fail ArgumentError, "#{command} must be an array" unless command.is_a?(Array)
 
-        ecs.run_task(
+        response = ecs.run_task(
           cluster: cluster,
           task_definition: get_latest_task_definition_arn(name),
           overrides: {
@@ -97,8 +108,14 @@ module Broadside
             ]
           },
           count: 1,
-          started_by: "before_deploy:#{command.join(' ')}"[0...36]
+          started_by: ((options[:started_by] ? "#{options[:started_by]}:" : '') + command.join(' '))[0...36]
         )
+
+        unless response.successful? && response.tasks.try(:[], 0)
+          raise Error, "Failed to run '#{command.join(' ')}' task:\n#{response.pretty_inspect}"
+        end
+
+        response
       end
 
       def service_exists?(cluster, family)
