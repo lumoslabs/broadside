@@ -11,9 +11,8 @@
 - Readd ability to configured a default `:tag` per target
 - Add `targets` command to display all the targets' deployed images and CPU/memory allocations
 - `broadside status` has an added `--verbose` switch that displays service and task information
-- Add option for ssh proxy user and proxy keyfile
-- Add flag for changing loglevel
-- Add `--debug` switch that enables GLI debug output
+- [#11](https://github.com/lumoslabs/broadside/issues/11): Add option for ssh proxy user and proxy keyfile
+- [#2](https://github.com/lumoslabs/broadside/issues/2): Add flag for changing loglevel, and add `--debug` switch that enables GLI debug output
 
 #### General Improvements
 - Only load `env_files` for the selected target (rather than preloading from unrelated targets)
@@ -25,11 +24,11 @@
 
 # 2.0.0
 #### Breaking Changes
-- `rake db:migrate` is no longer the default `predeploy_command`
+- [#27](https://github.com/lumoslabs/broadside/issues/27) `rake db:migrate` is no longer the default `predeploy_command`
 - Remove ability to configure a default tag for each target
 
 #### Added Features
-- ECS cluster can be configured for each target by setting `config.ecs.cluster`
+- [#38](https://github.com/lumoslabs/broadside/issues/38) ECS cluster can be configured for each target by setting `config.ecs.cluster`
 
 #### General Improvements
 - `base` configuration has been removed - the main `Configuration` object holds all the `base` config. `Broadside.config.base` may be called but will display a deprecation warning.
