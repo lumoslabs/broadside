@@ -37,7 +37,7 @@ module Broadside
         end
 
         table = TTY::Table.new(header: table_header, rows: table_rows)
-        info "\n" + table.render(:ascii, padding: [0, 1])
+        puts table.render(:ascii, padding: [0, 1])
       end
 
       def deploy_short(options)
@@ -64,7 +64,6 @@ module Broadside
         debug "Getting status information about #{family}"
 
         output = [
-          "\n---------------",
           pastel.underline('Current task definition information:'),
           pastel.blue(PP.pp(EcsManager.get_latest_task_definition(family), ''))
         ]
@@ -95,7 +94,7 @@ module Broadside
           ]
         end
 
-        info output.join("\n")
+        puts output.join("\n")
       end
 
       def run(options)
