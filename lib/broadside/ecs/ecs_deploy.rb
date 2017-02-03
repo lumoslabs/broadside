@@ -86,7 +86,7 @@ module Broadside
     def logtail
       super do
         ip = get_running_instance_ip!
-        debug "Tailing logs for running container at #{ip}..."
+        info "Tailing logs for running container at #{ip}..."
 
         search_pattern = Shellwords.shellescape(family)
         cmd = "docker logs -f --tail=#{@lines} `docker ps -n 1 --quiet --filter name=#{search_pattern}`"
@@ -98,7 +98,7 @@ module Broadside
     def ssh
       super do
         ip = get_running_instance_ip!
-        debug "Establishing SSH connection to #{ip}..."
+        info "Establishing SSH connection to #{ip}..."
         exec(Broadside.config.ssh_cmd(ip))
       end
     end
@@ -106,7 +106,7 @@ module Broadside
     def bash
       super do
         ip = get_running_instance_ip!
-        debug "Running bash for running container at #{ip}..."
+        info "Running bash for running container at #{ip}..."
         search_pattern = Shellwords.shellescape(family)
         cmd = "docker exec -i -t `docker ps -n 1 --quiet --filter name=#{search_pattern}` bash"
         exec(Broadside.config.ssh_cmd(ip, tty: true) + " '#{cmd}'")
@@ -181,11 +181,11 @@ module Broadside
         seen_event_id = nil
 
         w.before_wait do |attempt, response|
-          debug "(#{attempt}/#{w.max_attempts}) Polling ECS for events..."
+          info "(#{attempt}/#{w.max_attempts}) Polling ECS for events..."
           # skip first event since it doesn't apply to current request
           if response.services[0].events.first && response.services[0].events.first.id != seen_event_id && attempt > 1
             seen_event_id = response.services[0].events.first.id
-            debug response.services[0].events.first.message
+            info response.services[0].events.first.message
           end
         end
       end
@@ -205,7 +205,7 @@ module Broadside
             w.max_attempts = nil
             w.delay = Broadside.config.ecs.poll_frequency
             w.before_attempt do |attempt|
-              debug "Attempt #{attempt}: waiting for #{command_name} to complete..."
+              info "Attempt #{attempt}: waiting for #{command_name} to complete..."
             end
           end
 

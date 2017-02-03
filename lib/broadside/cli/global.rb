@@ -14,6 +14,13 @@ default_value 'config/broadside.conf.rb'
 arg_name 'FILE'
 flag [:c, :config]
 
+desc 'Enables debug mode'
+switch [:D, :debug], negatable: false
+
+desc 'Log level output'
+arg_name 'LOGLEVEL'
+flag [:l, :loglevel], must_match: %w(debug info warn error fatal)
+
 def call_hook(type, command)
   hook = Broadside.config.public_send(type)
   return if hook.nil?
@@ -34,6 +41,14 @@ end
 
 pre do |global, command, options, args|
   Broadside.load_config(global[:config])
+
+  if global[:debug]
+    Broadside.config.logger.level = ::Logger::DEBUG
+    ENV['GLI_DEBUG'] = 'true'
+  elsif global[:loglevel]
+    Broadside.config.logger.level = ::Logger.const_get(global[:loglevel].upcase)
+  end
+
   call_hook(:prehook, command)
   true
 end
