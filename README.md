@@ -11,9 +11,9 @@ Applications using broadside employ a configuration file that looks something li
 
 ```ruby
 Broadside.configure do |config|
-  config.application =  'hello_world'
+  config.application = 'hello_world'
   config.docker_image = 'docker.io/lumoslabs/hello_world'
-  config.ecs.cluster =  'production-cluster'
+  config.ecs.cluster = 'production-cluster'
   config.targets = {
     production_web: {
       scale: 7,
