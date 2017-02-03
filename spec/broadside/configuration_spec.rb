@@ -27,12 +27,7 @@ describe Broadside::Configuration do
 
   describe '#ssh_cmd' do
     let(:ip) { '123.123.123.123' }
-    let(:user) { 'test-user' }
     let(:keyfile) { 'path_to_keyfile' }
-    let(:proxy_user) { 'proxy-user' }
-    let(:proxy_host) { 'proxy-host' }
-    let(:proxy_port) { '22' }
-    let(:proxy_keyfile) { 'path_to_proxy_keyfile' }
     let(:ssh_config) { {} }
 
     before(:each) do
@@ -62,6 +57,10 @@ describe Broadside::Configuration do
     end
 
     context 'with ssh proxy' do
+      let(:proxy_user) { 'proxy-user' }
+      let(:proxy_host) { 'proxy-host' }
+      let(:proxy_port) { '22' }
+      let(:proxy_keyfile) { 'path_to_proxy_keyfile' }
       let(:ssh_config) do
         {
           user: user,
