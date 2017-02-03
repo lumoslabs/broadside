@@ -21,12 +21,13 @@ module Broadside
     )
 
     validates :application, :targets, :logger, presence: true
+
     validates_each(:ecs) do |record, attr, val|
       record.errors.add(attr, 'invalid poll_frequency') unless val && val.poll_frequency.is_a?(Fixnum)
     end
     validates_each(:aws) do |record, attr, val|
-      [:region, :credentials].each do |v|
-        record.errors.add(attr, "invalid #{v}") unless val && val.public_send(v)
+      [:region, :credentials].each do |property|
+        record.errors.add(attr, "invalid #{property}") unless val && val.public_send(property)
       end
     end
     validates_each(:ssh) do |record, attr, val|
