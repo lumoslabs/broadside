@@ -37,7 +37,6 @@ end
 desc 'Gets information about what is currently deployed.'
 command :status do |status|
   status.desc 'Additionally displays service and task information'
-  status.arg_name 'VERBOSE'
   status.switch :verbose, negatable: false
 
   add_target_flag(status)
