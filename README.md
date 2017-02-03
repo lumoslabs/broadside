@@ -7,6 +7,17 @@ Amazon ECS presents a low barrier to entry for production-level docker applicati
 
 Broadside offers a simple command-line interface to perform deployments on ECS. It does not attempt to handle operational tasks like infrastructure setup and configuration, which are better suited for tools like [terraform](https://www.terraform.io/).
 
+### Things You Can Do With Broadside
+
+- **Deploy a docker image to an ECS cluster and launch a command as an ECS service
+- **Launch a bash shell directly in the remote docker image** - no messing around with tracking down the server, running `docker ps`, and all the other headaches.
+- **SSH directly onto the server running your image**
+- **Run arbitrary commands in a container that is spun up and spun down as you need it**
+- **Get a lot of status information about your running image**
+- **Tail the logs of a running container**
+- **Horizontally scale an existing deployment to as many instances as your AWS account can handle**
+
+### Example Config for Quickstarters
 Applications using broadside employ a configuration file that looks something like:
 
 ```ruby
@@ -53,16 +64,7 @@ bundle exec broadside deploy full --target production_web --tag v.1.1.example.ta
 
 In the case of an error or timeout during a deploy, broadside will automatically rollback to the latest stable version. You can perform manual rollbacks as well through the command-line.
 
-Beyond deploying things, broadside has a lot of other handy features.  Other things you can do with broadside include:
-
-- **Launch a bash shell directly in the remote docker image** - no messing around with tracking down the server, running `docker ps`, and all the other headaches.
-- **SSH directly onto the server running your image**
-- **Run arbitrary commands in a container that is spun up and spun down as you need it**
-- **Get a lot of status information about your running image**
-- **Tail the logs of a running container**
-- **Horizontally scale an existing deployment to as many instances as your AWS account can handle**
-
-[See the complete command-line reference in the wiki](https://github.com/lumoslabs/broadside/wiki/CLI-reference).
+[For more in depth information on `Broadside` commands, see the complete command-line reference in the wiki](https://github.com/lumoslabs/broadside/wiki/CLI-reference).
 
 
 ## Installation
