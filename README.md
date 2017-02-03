@@ -12,7 +12,7 @@ Applications using broadside employ a configuration file that looks something li
 ```ruby
 Broadside.configure do |config|
   config.application = 'hello_world'
-  config.docker_image = 'docker.io/lumoslabs/hello_world'
+  config.docker_image = 'lumoslabs/hello_world'
   config.ecs.cluster = 'production-cluster'
   config.targets = {
     production_web: {
@@ -29,9 +29,9 @@ Broadside.configure do |config|
       scale: 1,
       command: ['bundle', 'exec', 'puma'],
       env_file: '.env.staging',
-      tag: 'latest',                                          # Set a default tag for this target
-      cluster: 'staging-cluster',                             # Overrides config.ecs.cluster
-      docker_image: 'docker.io/lumoslabs/staging hello_world' # Overrides config.docker_image
+      tag: 'latest',                                # Set a default tag for this target
+      cluster: 'staging-cluster',                   # Overrides config.ecs.cluster
+      docker_image: 'lumoslabs/staging_hello_world' # Overrides config.docker_image
     },
     json_stream: {
       scale: 1,
