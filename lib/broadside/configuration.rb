@@ -22,10 +22,12 @@ module Broadside
 
     validates :application, :targets, :logger, presence: true
     validates_each(:ecs) do |record, attr, val|
-      record.errors.add(attr, "Invalid poll_frequency: '#{val.poll_frequency}'") unless val.poll_frequency.is_a?(Fixnum)
+      record.errors.add(attr, "invalid poll_frequency") unless val && val.poll_frequency.is_a?(Fixnum)
     end
     validates_each(:aws) do |record, attr, val|
-      [:region, :credentials].each { |v| record.errors.add(attr, "missing #{v}") unless val.public_send(v) }
+      [:region, :credentials].each do |v|
+        record.errors.add(attr, "invalid #{v}") unless val && val.public_send(v)
+      end
     end
     validates_each :ssh, allow_nil: true do |record, attr, val|
       record.errors.add(attr, 'is not a hash') unless val.is_a?(Hash)
