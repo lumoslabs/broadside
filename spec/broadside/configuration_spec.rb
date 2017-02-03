@@ -28,8 +28,15 @@ describe Broadside::Configuration do
   context 'ssh' do
     let(:ip) { '123.123.123.123' }
 
-    it 'should build the ssh command' do
+    it 'should build the ssh command with a user' do
       expect(Broadside.config.ssh_cmd(ip)).to eq("ssh -o StrictHostKeyChecking=no #{user}@#{ip}")
+    end
+
+    it 'should build the ssh command without a user' do
+      Broadside.configure do |config|
+        config.ssh = {}
+      end
+      expect(Broadside.config.ssh_cmd(ip)).to eq("ssh -o StrictHostKeyChecking=no #{ip}")
     end
   end
 end
