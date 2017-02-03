@@ -21,11 +21,16 @@ module Broadside
     )
 
     validates :application, :targets, :logger, presence: true
-    validates_each(:ecs) { |record, attr, val| record.errors.add(attr) unless val.poll_frequency }
-    validates_each(:aws) do |record, _, val|
-      [:region, :credentials].each { |v| record.errors.add("aws.#{v}") unless val.public_send(v) }
+
+    validates_each(:ecs) do |record, attr, val|
+      record.errors.add(attr, 'invalid poll_frequency') unless val && val.poll_frequency.is_a?(Integer)
     end
-    validates_each :ssh, allow_nil: true do |record, attr, val|
+    validates_each(:aws) do |record, attr, val|
+      [:region, :credentials].each do |property|
+        record.errors.add(attr, "invalid #{property}") unless val && val.public_send(property)
+      end
+    end
+    validates_each(:ssh) do |record, attr, val|
       record.errors.add(attr, 'is not a hash') unless val.is_a?(Hash)
     end
 
@@ -33,6 +38,7 @@ module Broadside
       @logger = ::Logger.new(STDOUT)
       @logger.level = ::Logger::DEBUG
       @logger.datetime_format = '%Y-%m-%d_%H:%M:%S'
+      @ssh = {}
       @timeout = 600
       @type = 'ecs'
     end
@@ -46,8 +52,6 @@ module Broadside
     end
 
     def ssh_cmd(ip, options = {})
-      raise MissingVariableError, 'ssh not configured' unless @ssh
-
       cmd = 'ssh -o StrictHostKeyChecking=no'
       cmd << ' -t -t' if options[:tty]
       cmd << " -i #{@ssh[:keyfile]}" if @ssh[:keyfile]
@@ -55,7 +59,8 @@ module Broadside
         raise MissingVariableError, "Bad proxy: #{proxy[:host]}/#{proxy[:port]}" unless proxy[:host] && proxy[:port]
         cmd << " -o ProxyCommand=\"ssh #{proxy[:host]} nc #{ip} #{proxy[:port]}\""
       end
-      cmd << " #{@ssh[:user]}@" if @ssh[:user]
+      cmd << ' '
+      cmd << "#{@ssh[:user]}@" if @ssh[:user]
       cmd << ip.to_s
       cmd
     end
