@@ -27,7 +27,6 @@ module Broadside
     end
     validates_each :ssh, allow_nil: true do |record, attr, val|
       record.errors.add(attr, 'is not a hash') unless val.is_a?(Hash)
-      record.errors.add(attr, 'must contain a user') unless val[:user]
     end
 
     def initialize
@@ -56,7 +55,8 @@ module Broadside
         raise ArgumentError, "Bad proxy: #{proxy[:host]}/#{proxy[:port]}" unless proxy[:host] && proxy[:port]
         cmd << " -o ProxyCommand=\"ssh #{proxy[:host]} nc #{ip} #{proxy[:port]}\""
       end
-      cmd << " #{@ssh[:user]}@#{ip}"
+      cmd << " #{@ssh[:user]}@" if @ssh[:user]
+      cmd << "#{ip}"
       cmd
     end
 
