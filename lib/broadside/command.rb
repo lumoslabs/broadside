@@ -58,8 +58,11 @@ module Broadside
 
       def status(options)
         target = Broadside.config.get_target_by_name!(options[:target])
+        cluster = target.cluster
+        family = target.family
+        pastel = Pastel.new
         debug "Getting status information about #{family}"
-        
+
         output = [
           "\n---------------",
           pastel.underline('Current task definition information:'),
