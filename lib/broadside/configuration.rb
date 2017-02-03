@@ -57,7 +57,7 @@ module Broadside
       cmd << " -i #{@ssh[:keyfile]}" if @ssh[:keyfile]
       if (proxy = @ssh[:proxy])
         raise MissingVariableError, "Bad proxy: #{proxy[:host]}/#{proxy[:port]}" unless proxy[:host] && proxy[:port]
-        cmd << " -o ProxyCommand=\"ssh -q "
+        cmd << ' -o ProxyCommand=\"ssh -q '
         cmd << "-i #{@ssh[:proxy][:keyfile]} " if @ssh[:proxy][:keyfile]
         cmd << "#{@ssh[:proxy][:user]}@" if @ssh[:proxy][:user]
         cmd << "#{proxy[:host]} nc #{ip} #{proxy[:port]}\""
