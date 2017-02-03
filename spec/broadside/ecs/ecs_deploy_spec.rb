@@ -20,7 +20,7 @@ describe Broadside::EcsDeploy do
     }
   end
 
-  context 'bootstrap' do
+  describe '#bootstrap' do
     it 'fails without task_definition_config' do
       expect { deploy.bootstrap }.to raise_error(/No first task definition and no :task_definition_config/)
     end
@@ -61,7 +61,7 @@ describe Broadside::EcsDeploy do
     end
   end
 
-  context 'deploy' do
+  describe '#deploy' do
     it 'fails without an existing service' do
       expect { deploy.short }.to raise_error(/No service for '#{deploy.target.family}'!/)
     end
@@ -134,7 +134,7 @@ describe Broadside::EcsDeploy do
     end
   end
 
-  context 'bash' do
+  describe '#bash' do
     it 'fails without a running service' do
       expect { deploy.bash }.to raise_error(Broadside::Error, /No task definition for '#{family}'/)
     end
@@ -176,7 +176,7 @@ describe Broadside::EcsDeploy do
     end
   end
 
-  context 'run' do
+  describe '#run' do
     let(:local_deploy_config) { { command: %w(run some command) } }
 
     it 'fails without a task definition' do

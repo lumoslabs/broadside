@@ -11,6 +11,7 @@
 - Readd ability to configured a default `:tag` per target
 - Add `targets` command to display all the targets' deployed images and CPU/memory allocations
 - `broadside status` has an added `--verbose` switch that displays service and task information
+- Add option for ssh proxy user and proxy keyfile
 
 #### General Improvements
 - Only load `env_files` for the selected target (rather than preloading from unrelated targets)
