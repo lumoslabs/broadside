@@ -22,14 +22,14 @@ module Broadside
 
     validates :application, :targets, :logger, presence: true
     validates_each(:ecs) do |record, attr, val|
-      record.errors.add(attr, "invalid poll_frequency") unless val && val.poll_frequency.is_a?(Fixnum)
+      record.errors.add(attr, 'invalid poll_frequency') unless val && val.poll_frequency.is_a?(Fixnum)
     end
     validates_each(:aws) do |record, attr, val|
       [:region, :credentials].each do |v|
         record.errors.add(attr, "invalid #{v}") unless val && val.public_send(v)
       end
     end
-    validates_each :ssh, allow_nil: true do |record, attr, val|
+    validates_each(:ssh) do |record, attr, val|
       record.errors.add(attr, 'is not a hash') unless val.is_a?(Hash)
     end
 
@@ -37,6 +37,7 @@ module Broadside
       @logger = ::Logger.new(STDOUT)
       @logger.level = ::Logger::DEBUG
       @logger.datetime_format = '%Y-%m-%d_%H:%M:%S'
+      @ssh = {}
       @timeout = 600
       @type = 'ecs'
     end
@@ -50,8 +51,6 @@ module Broadside
     end
 
     def ssh_cmd(ip, options = {})
-      raise MissingVariableError, 'ssh not configured' unless @ssh
-
       cmd = 'ssh -o StrictHostKeyChecking=no'
       cmd << ' -t -t' if options[:tty]
       cmd << " -i #{@ssh[:keyfile]}" if @ssh[:keyfile]
