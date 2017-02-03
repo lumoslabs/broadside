@@ -56,7 +56,7 @@ module Broadside
         cmd << " -o ProxyCommand=\"ssh #{proxy[:host]} nc #{ip} #{proxy[:port]}\""
       end
       cmd << " #{@ssh[:user]}@" if @ssh[:user]
-      cmd << "#{ip}"
+      cmd << ip.to_s
       cmd
     end
 
