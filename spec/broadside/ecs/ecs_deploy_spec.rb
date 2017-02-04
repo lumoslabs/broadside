@@ -185,5 +185,4 @@ describe Broadside::EcsDeploy do
       end
     end
   end
->>>>>>> origin/exit
 end
