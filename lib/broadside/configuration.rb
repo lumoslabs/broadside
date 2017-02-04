@@ -5,10 +5,8 @@ module Broadside
     include ActiveModel::Model
     include LoggingUtils
 
-    attr_reader(
-      :targets,
-      :type
-    )
+    attr_reader :targets
+
     attr_accessor(
       :application,
       :config_file,
