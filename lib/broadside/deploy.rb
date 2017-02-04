@@ -31,7 +31,7 @@ module Broadside
       info 'Rollback complete.'
     end
 
-    def scale
+    def scale(options = {})
       info "Rescaling #{family} with scale=#{@scale}..."
       yield
       info 'Rescaling complete.'
