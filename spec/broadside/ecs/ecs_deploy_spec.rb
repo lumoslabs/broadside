@@ -175,27 +175,4 @@ describe Broadside::EcsDeploy do
       end
     end
   end
-
-  describe '#run' do
-    let(:local_deploy_config) { { command: %w(run some command) } }
-
-    it 'fails without a task definition' do
-      expect { deploy.run }.to raise_error(/No task definition for /)
-    end
-
-    context 'with a task_definition' do
-      include_context 'with a task_definition'
-
-      before do
-        ecs_stub.stub_responses(:run_task, tasks: [task_arn: 'task_arn'])
-      end
-
-      it 'runs' do
-        expect(ecs_stub).to receive(:wait_until)
-        expect(deploy).to receive(:get_container_logs)
-        expect(Broadside::EcsManager).to receive(:get_task_exit_code).and_return(0)
-        expect { deploy.run }.to_not raise_error
-      end
-    end
-  end
 end

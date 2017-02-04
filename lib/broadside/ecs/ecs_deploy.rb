@@ -77,12 +77,6 @@ module Broadside
       end
     end
 
-    def run
-      super do
-        run_commands([@command], started_by: 'run')
-      end
-    end
-
     def logtail(options = {})
       lines = options[:lines] || 10
       super do
@@ -112,6 +106,36 @@ module Broadside
         search_pattern = Shellwords.shellescape(family)
         cmd = "docker exec -i -t `docker ps -n 1 --quiet --filter name=#{search_pattern}` bash"
         exec(Broadside.config.ssh_cmd(ip, tty: true) + " '#{cmd}'")
+      end
+    end
+
+    def run_commands(commands, options = {})
+      return if commands.nil? || commands.empty?
+      update_task_revision
+
+      begin
+        commands.each do |command|
+          command_name = "'#{command.join(' ')}'"
+          task_arn = EcsManager.run_task(@target.cluster, family, command, options).tasks[0].task_arn
+          info "Launched #{command_name} task #{task_arn}, waiting for completion..."
+
+          EcsManager.ecs.wait_until(:tasks_stopped, { cluster: @target.cluster, tasks: [task_arn] }) do |w|
+            w.max_attempts = nil
+            w.delay = Broadside.config.ecs.poll_frequency
+            w.before_attempt do |attempt|
+              info "Attempt #{attempt}: waiting for #{command_name} to complete..."
+            end
+          end
+
+          info "#{command_name} task container logs:\n#{get_container_logs(task_arn)}"
+
+          exit_code = EcsManager.get_task_exit_code(@target.cluster, task_arn, family)
+          raise Error, "#{command_name} task #{task_arn} exit code: #{exit_code}!" unless exit_code.zero?
+
+          info "#{command_name} task #{task_arn} complete"
+        end
+      ensure
+        EcsManager.deregister_last_n_tasks_definitions(family, 1)
       end
     end
 
@@ -195,36 +219,6 @@ module Broadside
       end
     end
 
-    def run_commands(commands, options = {})
-      return if commands.nil? || commands.empty?
-      update_task_revision
-
-      begin
-        commands.each do |command|
-          command_name = "'#{command.join(' ')}'"
-          task_arn = EcsManager.run_task(@target.cluster, family, command, options).tasks[0].task_arn
-          info "Launched #{command_name} task #{task_arn}, waiting for completion..."
-
-          EcsManager.ecs.wait_until(:tasks_stopped, { cluster: @target.cluster, tasks: [task_arn] }) do |w|
-            w.max_attempts = nil
-            w.delay = Broadside.config.ecs.poll_frequency
-            w.before_attempt do |attempt|
-              info "Attempt #{attempt}: waiting for #{command_name} to complete..."
-            end
-          end
-
-          info "#{command_name} task container logs:\n#{get_container_logs(task_arn)}"
-
-          exit_code = EcsManager.get_task_exit_code(@target.cluster, task_arn, family)
-          raise Error, "#{command_name} task #{task_arn} exit code: #{exit_code}!" unless exit_code.zero?
-
-          info "#{command_name} task #{task_arn} complete"
-        end
-      ensure
-        EcsManager.deregister_last_n_tasks_definitions(family, 1)
-      end
-    end
-
     def get_container_logs(task_arn)
       ip = EcsManager.get_running_instance_ips!(@target.cluster, family, task_arn).first
       debug "Found IP of container instance: #{ip}"
@@ -255,7 +249,7 @@ module Broadside
 
       (configured_containers.try(:first) || {}).merge(
         name: family,
-        command: @command,
+        command: @target.command,
         environment: @target.ecs_env_vars,
         image: image_tag
       )

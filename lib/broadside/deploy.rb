@@ -7,7 +7,6 @@ module Broadside
 
     def initialize(target_name, options = {})
       @target   = Broadside.config.get_target_by_name!(target_name)
-      @command  = options[:command]  || @target.command
       @tag      = options[:tag]      || @target.tag
     end
 
@@ -36,12 +35,6 @@ module Broadside
       info "Rescaling #{family} with scale=#{@scale}..."
       yield
       info 'Rescaling complete.'
-    end
-
-    def run
-      verify(:command)
-      info "Running #{command}..."
-      yield
     end
 
     def logtail(options = {})
