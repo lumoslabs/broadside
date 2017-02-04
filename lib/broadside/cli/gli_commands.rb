@@ -28,7 +28,7 @@ command :bootstrap do |bootstrap|
   add_target_flag(bootstrap)
 
   bootstrap.action do |_, options, _|
-    EcsDeploy.new(options[:target], options).bootstrap
+    Broadside::EcsDeploy.new(options[:target], options).bootstrap
   end
 end
 
