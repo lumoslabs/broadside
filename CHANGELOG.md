@@ -8,7 +8,7 @@
 
 #### Added Features
 - Allow configuration of separate `:docker_image` per target
-- Readd ability to configured a default `:tag` per target
+- Put back ability to configure a default `:tag` per target
 - Add `targets` command to display all the targets' deployed images and CPU/memory allocations
 - `broadside status` has an added `--verbose` switch that displays service and task information
 - [#11](https://github.com/lumoslabs/broadside/issues/11): Add option for ssh proxy user and proxy keyfile
