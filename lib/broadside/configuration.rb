@@ -37,7 +37,6 @@ module Broadside
       @logger.datetime_format = '%Y-%m-%d_%H:%M:%S'
       @ssh = {}
       @timeout = 600
-      @type = 'ecs'
     end
 
     def aws
