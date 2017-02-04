@@ -1,23 +1,38 @@
 # 3.0.0
-- **BREAKING CHANGE**: `ssh`, `bash`, `logtail`, `status`, and `run` are now top level commands, not subcommands of `deploy`
-- **BREAKING CHANGE**: `config.git_repo=` and `config.type=` were removed.
-- **BREAKING CHANGE**: `config.base` and `config.deploy` are no longer backwards compatible
-- **BREAKING CHANGE**: `instance` can no longer be configured on a per `Target` basis
-- *NEW FEATURE*: Allow per target `:docker_image` configuration
-- *NEW FEATURE*: Put back per target `:tag` configuration
-- *NEW FEATURE*: Add `list_targets` command to display all the targets' deployed images and CPU/memory allocations
-- Only load `env_files` for the selected target (AKA don't preload everything when you aren't using it)
+### Breaking Changes
+- `ssh`, `bash`, `logtail`, `status`, and `run` are now top level commands, not subcommands of `deploy`
+- `config.git_repo=` and `config.type=` were removed.
+- `config.base` and `config.deploy` are no longer backwards compatible
+- `instance` can no longer be configured on a per `Target` basis
+- No more `RAKE_DB_MIGRATE` constant
+
+#### Added Features
+- Allow configuration of separate `:docker_image` per target
+- Readd ability to configured a default `:tag` per target
+- Add `targets` command to display all the targets' deployed images and CPU/memory allocations
+- `broadside status` has an added `--verbose` switch that displays service and task information
+- [#11](https://github.com/lumoslabs/broadside/issues/11): Add option for ssh proxy user and proxy keyfile
+- [#2](https://github.com/lumoslabs/broadside/issues/2): Add flag for changing loglevel, and add `--debug` switch that enables GLI debug output
+
+#### General Improvements
+- Only load `env_files` for the selected target (rather than preloading from unrelated targets)
 - Make `env_files` configuration optional
-- No more `Utils` module, just `LoggingUtils`
-- Exceptions will be raised if you try to configure a target with an invalid hash key
-- Task runs have a more relevant `started_by` tag
+- `Utils` has been replaced in favor of `LoggingUtils`
+- Exceptions will be raised if a target is configured with an invalid hash key
+- Tasks run have a more relevant `started_by` tag
+- Default loglevel changed to INFO
 
 # 2.0.0
-- **BREAKING CHANGE**: `rake db:migrate` is no longer the default `predeploy_command`
-- **BREAKING CHANGE**: Remove per target `tag:` config - `--tag` must be passed on the command line
-- *NEW FEATURE*: `:cluster` can be configured on a per target basis to overload `config.ecs.cluster`
-- There is no more `base` configuration - the main `Configuration` object holds all the `base` config.  You can still call `Broadside.config.base` though you will get a deprecation warning.
-- There is no more `deploy` configuration - most of that is handled in the main `Configuration` object and in `targets=`. You can still call `Broadside.config.deploy` though you will get a deprecation warning.
+#### Breaking Changes
+- [#27](https://github.com/lumoslabs/broadside/issues/27) `rake db:migrate` is no longer the default `predeploy_command`
+- Remove ability to configure a default tag for each target
+
+#### Added Features
+- [#38](https://github.com/lumoslabs/broadside/issues/38) ECS cluster can be configured for each target by setting `config.ecs.cluster`
+
+#### General Improvements
+- `base` configuration has been removed - the main `Configuration` object holds all the `base` config. `Broadside.config.base` may be called but will display a deprecation warning.
+- `deploy` configuration has been removed - primarily handled through the main `Configuration` object and in `targets=`. `Broadside.config.deploy` may be called but will display a deprecation warning.
 - `Target` is a first class object
 - `Deploy` is composed of a `Target` plus command line options
 

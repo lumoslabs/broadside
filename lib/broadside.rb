@@ -10,7 +10,6 @@ require 'broadside/configuration/ecs_config'
 require 'broadside/command'
 require 'broadside/target'
 require 'broadside/deploy'
-require 'broadside/predeploy_commands'
 require 'broadside/ecs/ecs_deploy'
 require 'broadside/ecs/ecs_manager'
 require 'broadside/version'
@@ -25,21 +24,19 @@ module Broadside
   end
 
   def self.load_config(config_file)
-    begin
-      load USER_CONFIG_FILE if File.exists?(USER_CONFIG_FILE)
-    rescue LoadError => e
-      error "Encountered an error loading system configuration file '#{USER_CONFIG_FILE}' !"
-      raise e
-    end
+    raise ArgumentError, "#{config_file} does not exist" unless File.exist?(config_file)
 
+    config.config_file = config_file
     begin
-      config.config_file = config_file
-      load config_file
-    rescue LoadError => e
-      error "Encountered an error loading required configuration file '#{config_file}' !"
-      raise e
+      [USER_CONFIG_FILE, config_file].each do |file|
+        next unless File.exist?(file)
+        debug "Loading config from #{file}"
+        load file
+      end
+    rescue LoadError
+      error 'Encountered an error loading broadside configuration'
+      raise
     end
-
     raise ArgumentError, config.errors.full_messages unless config.valid?
   end
 

@@ -21,19 +21,26 @@ module Broadside
     )
 
     validates :application, :targets, :logger, presence: true
-    validates_each(:ecs) { |record, attr, val| record.errors.add(attr) unless val.poll_frequency }
-    validates_each(:aws) do |record, _, val|
-      [:region, :credentials].each { |v| record.errors.add("aws.#{v}") unless val.public_send(v) }
+
+    validates_each(:ecs) do |record, attr, val|
+      record.errors.add(attr, 'invalid poll_frequency') unless val && val.poll_frequency.is_a?(Integer)
+    end
+    validates_each(:aws) do |record, attr, val|
+      [:region, :credentials].each do |property|
+        record.errors.add(attr, "invalid #{property}") unless val && val.public_send(property)
+      end
+    end
+    validates_each(:ssh) do |record, attr, val|
+      record.errors.add(attr, 'is not a hash') unless val.is_a?(Hash)
     end
 
     def initialize
       @logger = ::Logger.new(STDOUT)
-      @logger.level = ::Logger::DEBUG
+      @logger.level = ::Logger::INFO
       @logger.datetime_format = '%Y-%m-%d_%H:%M:%S'
+      @ssh = {}
       @timeout = 600
       @type = 'ecs'
-      @ssh = {}
-      @targets = {}
     end
 
     def aws
@@ -44,29 +51,35 @@ module Broadside
       @ecs ||= EcsConfig.new
     end
 
-    def ssh_cmd(ip, options = { tty: false })
+    def ssh_cmd(ip, options = {})
       cmd = 'ssh -o StrictHostKeyChecking=no'
       cmd << ' -t -t' if options[:tty]
       cmd << " -i #{@ssh[:keyfile]}" if @ssh[:keyfile]
       if (proxy = @ssh[:proxy])
-        raise ArgumentError, "Bad proxy host/port: #{proxy[:host]}/#{proxy[:port]}" unless proxy[:host] && proxy[:port]
-        cmd << " -o ProxyCommand=\"ssh #{proxy[:host]} nc #{ip} #{proxy[:port]}\""
+        raise MissingVariableError, 'Bad SSH proxy: requires host and port' unless proxy[:host] && proxy[:port]
+        cmd << ' -o ProxyCommand="ssh -q'
+        cmd << " -i #{proxy[:keyfile]}" if proxy[:keyfile]
+        cmd << ' '
+        cmd << "#{proxy[:user]}@" if proxy[:user]
+        cmd << "#{proxy[:host]} nc #{ip} #{proxy[:port]}\""
       end
-      cmd << " #{@ssh[:user]}@#{ip}"
+      cmd << ' '
+      cmd << "#{@ssh[:user]}@" if @ssh[:user]
+      cmd << ip.to_s
       cmd
     end
 
+    # Transform deploy target configs to Target objects
     def targets=(_targets)
       raise ArgumentError, ":targets must be a hash" unless _targets.is_a?(Hash)
-      # transform deploy target configs to target objects
+
       @targets = _targets.inject({}) do |h, (target_name, config)|
-        h[target_name] = Target.new(target_name, config)
-        h
+        h.merge(target_name => Target.new(target_name, config))
       end
     end
 
-    def target_from_name!(name)
-      @targets.fetch(name) { |k| raise Error, "Deploy target '#{name}' does not exist!" }
+    def get_target_by_name!(name)
+      @targets.fetch(name) { raise ArgumentError, "Deploy target '#{name}' does not exist!" }
     end
   end
 end

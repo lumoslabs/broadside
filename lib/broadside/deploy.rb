@@ -1,5 +1,3 @@
-require 'active_support/core_ext/module/delegation'
-
 module Broadside
   class Deploy
     include LoggingUtils
@@ -8,7 +6,7 @@ module Broadside
     delegate :family, to: :target
 
     def initialize(target_name, options = {})
-      @target   = Broadside.config.target_from_name!(target_name)
+      @target   = Broadside.config.get_target_by_name!(target_name)
       @command  = options[:command]  || @target.command
       @tag      = options[:tag]      || @target.tag
     end

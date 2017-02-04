@@ -1,12 +1,23 @@
 # Broadside [![Build Status](https://travis-ci.org/lumoslabs/broadside.svg?branch=master)](https://travis-ci.org/lumoslabs/broadside)
 
-A command-line tool for deploying applications on AWS EC2 Container Service (ECS)
+A [GLI](https://github.com/davetron5000/gli) based command-line tool for deploying applications on AWS EC2 Container Service (ECS)
 
 ## Overview
 Amazon ECS presents a low barrier to entry for production-level docker applications. Combined with ECS's built-in blue-green deployment, Elastic Load Balancers, Autoscale Groups, and CloudWatch, one can set up a robust cluster that can scale to serve any number of applications in a short amount of time. Broadside seeks to leverage these benefits and improve the deployment process for developers.
 
 Broadside offers a simple command-line interface to perform deployments on ECS. It does not attempt to handle operational tasks like infrastructure setup and configuration, which are better suited for tools like [terraform](https://www.terraform.io/).
 
+### Things You Can Do With Broadside
+
+- **Deploy a docker image to an ECS cluster and launch a command as an ECS service**
+- **Launch a bash shell directly in the remote docker image** - no messing around with tracking down the server, running `docker ps`, and all the other headaches.
+- **SSH directly onto the server running your image**
+- **Run arbitrary commands in a container that is spun up and spun down as you need it**
+- **Get a lot of status information about your running image**
+- **Tail the logs of a running container**
+- **Horizontally scale an existing deployment to as many instances as your AWS account can handle**
+
+### Example Config for Quickstarters
 Applications using broadside employ a configuration file that looks something like:
 
 ```ruby
@@ -20,60 +31,40 @@ Broadside.configure do |config|
       command: ['bundle', 'exec', 'unicorn', '-c', 'config/unicorn.conf.rb'],
       env_file: '.env.production'
       predeploy_commands: [
-        Broadside::Predeploy::RAKE_DB_MIGRATE, # RAKE_DB_MIGRATE is just a constant for your convenience
+        ['bundle', 'exec', 'rake', 'db:migrate'],
         ['bundle', 'exec', 'rake', 'data:migrate']
       ]
     },
+    # If you have multiple images or clusters, you can configure them per target
     staging_web: {
-      cluster: 'staging-cluster', # Overrides config.ecs.cluster for this target only
       scale: 1,
       command: ['bundle', 'exec', 'puma'],
-      env_file: '../.env.staging',
-      tag: 'latest_staging' # Either configure the tag per target or pass --tag to the deploy command
+      env_file: '.env.staging',
+      tag: 'latest',                                # Set a default tag for this target
+      cluster: 'staging-cluster',                   # Overrides config.ecs.cluster
+      docker_image: 'lumoslabs/staging_hello_world' # Overrides config.docker_image
     },
-    # Example with a task_definition and service configuration which you use to bootstrap a service and
-    # initial task definition.  Accepts all the options AWS does - read their documentation for details:
-    #
-    # Service config: https://docs.aws.amazon.com/sdkforruby/api/Aws/ECS/Client.html#create_service-instance_method
-    # Task Definition Config: https://docs.aws.amazon.com/sdkforruby/api/Aws/ECS/Client.html#register_task_definition-instance_method
-    json_blob_stream: {
+    json_stream: {
       scale: 1,
       command: ['java', '-cp', '*:.', 'path.to.MyClass'],
-      service_config: {
-        deployment_configuration: {
-          minimum_healthy_percent: 0.5,
-        }
-      },
-      task_definition_config: {
-        container_definitions: [
-          {
-            cpu: 1,
-            memory: 2000,
-          }
-        ]
-      }
+      # This target has a task_definition and service config which you use to bootstrap a new AWS Service
+      service_config: { deployment_configuration: { minimum_healthy_percent: 0.5 } },
+      task_definition_config: { container_definitions: [ { cpu: 1, memory: 2000, } ] }
     }
   }
 end
 ```
 
-From here, developers can use broadside's command-line interface to initiate a basic deployment:
+From here, developers can use broadside's command-line interface to initiate a basic deployment and launch the
+configured `command` as an ECS Service:
 
 ```bash
-broadside deploy short --target production_web --tag $GIT_TAG
+bundle exec broadside deploy full --target production_web --tag v.1.1.example.tag
 ```
-
-If you run:
-
-```bash
-broadside deploy full --target production_web --tag $GIT_TAG
-```
-
-the `deploy full` will run the configured `predeploy_commands` prior to the actual deployment.
 
 In the case of an error or timeout during a deploy, broadside will automatically rollback to the latest stable version. You can perform manual rollbacks as well through the command-line.
 
-[See the complete command-line reference in the wiki](https://github.com/lumoslabs/broadside/wiki/CLI-reference).
+[For more in depth information on `Broadside` commands, see the complete command-line reference in the wiki](https://github.com/lumoslabs/broadside/wiki/CLI-reference).
 
 
 ## Installation

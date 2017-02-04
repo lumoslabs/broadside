@@ -5,13 +5,12 @@ describe Broadside::EcsDeploy do
   include_context 'ecs stubs'
 
   let(:family) { deploy.target.family }
-  let(:target) { Broadside::Target.new(test_target_name, test_target_config.merge(local_target_config)) }
+  let(:target) { Broadside::Target.new(test_target_name, test_target_config) }
   let(:local_deploy_config) { {} }
   let(:deploy) { described_class.new(test_target_name, local_deploy_config.merge(tag: 'tag_the_bag')) }
   let(:desired_count) { 2 }
   let(:cpu) { 1 }
   let(:memory) { 2000 }
-  let(:arn) { 'arn:aws:ecs:us-east-1:1234' }
   let(:service_config) do
     {
       desired_count: desired_count,
@@ -21,11 +20,7 @@ describe Broadside::EcsDeploy do
     }
   end
 
-  it 'should instantiate an object' do
-    expect { deploy }.to_not raise_error
-  end
-
-  context 'bootstrap' do
+  describe '#bootstrap' do
     it 'fails without task_definition_config' do
       expect { deploy.bootstrap }.to raise_error(/No first task definition and no :task_definition_config/)
     end
@@ -66,7 +61,7 @@ describe Broadside::EcsDeploy do
     end
   end
 
-  context 'deploy' do
+  describe '#deploy' do
     it 'fails without an existing service' do
       expect { deploy.short }.to raise_error(/No service for '#{deploy.target.family}'!/)
     end
@@ -108,7 +103,6 @@ describe Broadside::EcsDeploy do
 
             register_requests = api_request_log.select { |cmd| cmd.keys.first == :register_task_definition }
             expect(register_requests.size).to eq(1)
-
             expect(register_requests.first.values.first[:container_definitions].first[:cpu]).to eq(cpu)
             expect(register_requests.first.values.first[:container_definitions].first[:memory]).to eq(memory)
           end
@@ -140,7 +134,7 @@ describe Broadside::EcsDeploy do
     end
   end
 
-  context 'bash' do
+  describe '#bash' do
     it 'fails without a running service' do
       expect { deploy.bash }.to raise_error(Broadside::Error, /No task definition for '#{family}'/)
     end
@@ -182,7 +176,7 @@ describe Broadside::EcsDeploy do
     end
   end
 
-  context 'run' do
+  describe '#run' do
     let(:local_deploy_config) { { command: %w(run some command) } }
 
     it 'fails without a task definition' do
@@ -194,12 +188,12 @@ describe Broadside::EcsDeploy do
 
       before do
         ecs_stub.stub_responses(:run_task, tasks: [task_arn: 'task_arn'])
-        allow(ecs_stub).to receive(:wait_until)
-        allow(deploy).to receive(:get_container_logs)
-        allow(Broadside::EcsManager).to receive(:get_task_exit_code).and_return(0)
       end
 
       it 'runs' do
+        expect(ecs_stub).to receive(:wait_until)
+        expect(deploy).to receive(:get_container_logs)
+        expect(Broadside::EcsManager).to receive(:get_task_exit_code).and_return(0)
         expect { deploy.run }.to_not raise_error
       end
     end

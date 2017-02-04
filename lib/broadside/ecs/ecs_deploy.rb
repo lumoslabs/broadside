@@ -81,7 +81,7 @@ module Broadside
       lines = options[:lines] || 10
       super do
         ip = get_running_instance_ip!(*options[:instance])
-        debug "Tailing logs for running container at #{ip}..."
+        info "Tailing logs for running container at #{ip}..."
 
         search_pattern = Shellwords.shellescape(family)
         cmd = "docker logs -f --tail=#{lines} `docker ps -n 1 --quiet --filter name=#{search_pattern}`"
@@ -93,7 +93,7 @@ module Broadside
     def ssh(options = {})
       super do
         ip = get_running_instance_ip!(*options[:instance])
-        debug "Establishing SSH connection to #{ip}..."
+        info "Establishing SSH connection to #{ip}..."
         exec(Broadside.config.ssh_cmd(ip))
       end
     end
@@ -101,7 +101,8 @@ module Broadside
     def bash(options = {})
       super do
         ip = get_running_instance_ip!(*options[:instance])
-        debug "Running bash for running container at #{ip}..."
+        info "Running bash for running container at #{ip}..."
+
         search_pattern = Shellwords.shellescape(family)
         cmd = "docker exec -i -t `docker ps -n 1 --quiet --filter name=#{search_pattern}` bash"
         exec(Broadside.config.ssh_cmd(ip, tty: true) + " '#{cmd}'")
@@ -202,7 +203,7 @@ module Broadside
             w.max_attempts = nil
             w.delay = Broadside.config.ecs.poll_frequency
             w.before_attempt do |attempt|
-              debug "Attempt #{attempt}: waiting for #{command_name} to complete..."
+              info "Attempt #{attempt}: waiting for #{command_name} to complete..."
             end
           end
 
@@ -243,7 +244,7 @@ module Broadside
       configured_containers = (@target.task_definition_config || {})[:container_definitions]
 
       if configured_containers && configured_containers.size > 1
-        raise ArgumentError, 'Creating > 1 container definition not supported yet'
+        raise Error, 'Creating > 1 container definition not supported yet'
       end
 
       (configured_containers.try(:first) || {}).merge(

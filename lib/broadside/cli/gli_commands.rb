@@ -32,7 +32,7 @@ command :bootstrap do |bootstrap|
   end
 end
 
-desc 'Gives an overview of the deploy targets'
+desc 'Gives an overview of all of the deploy targets'
 command :targets do |targets|
   targets.action do |_, options, _|
     Broadside::Command.targets(options)
@@ -41,6 +41,9 @@ end
 
 desc 'Gets information about what is currently deployed.'
 command :status do |status|
+  status.desc 'Additionally displays service and task information'
+  status.switch :verbose, negatable: false
+
   add_target_flag(status)
 
   status.action do |_, options, _|
