@@ -103,8 +103,7 @@ module Broadside
       end
 
       def ssh(options)
-        target = Broadside.config.get_target_by_name!(options[:target])
-        ip = get_running_instance_ip!(target.name, *options[:instance])
+        ip = get_running_instance_ip!(options[:target], *options[:instance])
         info "Establishing SSH connection to #{ip}..."
 
         exec(Broadside.config.ssh_cmd(ip))
