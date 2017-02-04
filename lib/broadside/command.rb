@@ -1,4 +1,5 @@
 require 'pp'
+require 'shellwords'
 require 'tty-table'
 
 module Broadside
@@ -127,8 +128,7 @@ module Broadside
       end
 
       def docker_ps_cmd(family)
-        search_pattern = Shellwords.shellescape(family)
-        "docker ps -n 1 --quiet --filter name=#{search_pattern}"
+        "docker ps -n 1 --quiet --filter name=#{Shellwords.shellescape(family)}"
       end
     end
   end
