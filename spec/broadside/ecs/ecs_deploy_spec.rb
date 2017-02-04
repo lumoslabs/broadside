@@ -133,4 +133,57 @@ describe Broadside::EcsDeploy do
       end
     end
   end
+
+  describe '#run_commands' do
+    let(:commands) { [%w(run some command)] }
+
+    it 'fails without a task definition' do
+      expect { deploy.send(:run_commands, commands) }.to raise_error(Broadside::Error, /No task definition for/)
+    end
+
+    context 'with a task_definition' do
+      include_context 'with a task_definition'
+
+      let(:exit_code) { 0 }
+      let(:reason) { nil }
+      let(:task_exit_status) do
+        {
+          exit_code: exit_code,
+          reason: reason
+        }
+      end
+
+      before(:each) do
+        ecs_stub.stub_responses(:run_task, tasks: [task_arn: 'task_arn'])
+        ecs_stub.stub_responses(:wait_until, true)
+        allow(Broadside::EcsManager).to receive(:get_task_exit_status).and_return(task_exit_status)
+      end
+
+      it 'runs' do
+        expect(ecs_stub).to receive(:wait_until)
+        expect(deploy).to receive(:get_container_logs)
+        expect { deploy.send(:run_commands, commands) }.to_not raise_error
+      end
+
+      context 'tries to start a task that does not produce an exit code' do
+        let(:exit_code) { nil }
+        let(:reason) { 'CannotPullContainerError: Tag BLARGH not found in repository lumoslabs/my_project' }
+
+        it 'raises an error displaying the failure reason' do
+          expect(ecs_stub).to receive(:wait_until)
+          expect { deploy.send(:run_commands, commands) }.to raise_error(Broadside::Error, /#{reason}/)
+        end
+      end
+
+      context 'starts a task that produces a non-zero exit code' do
+        let(:exit_code) { 9000 }
+
+        it 'raises an error and displays the exit code' do
+          expect(ecs_stub).to receive(:wait_until)
+          expect { deploy.send(:run_commands, commands) }.to raise_error(Broadside::Error, /#{exit_code}/)
+        end
+      end
+    end
+  end
+>>>>>>> origin/exit
 end

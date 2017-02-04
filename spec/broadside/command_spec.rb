@@ -14,34 +14,6 @@ describe Broadside::Command do
     expect(Broadside::EcsDeploy).to receive(:new).and_return(deploy)
   end
 
-  describe '#run' do
-    let(:context_deploy_config) { run_options }
-    let(:run_options) { { tag: tag } }
-
-    it 'fails without a task definition' do
-      expect { described_class.run(run_options) }.to raise_error(/No task definition/)
-    end
-
-    context 'with a task_definition' do
-      include_context 'with a task_definition'
-
-      let(:command) { %w(run some command) }
-      let(:command_options) { run_options.merge(command: command) }
-
-      before do
-        ecs_stub.stub_responses(:run_task, tasks: [task_arn: 'task_arn'])
-      end
-
-      it 'runs' do
-        expect(ecs_stub).to receive(:wait_until)
-        expect(Broadside::EcsManager).to receive(:get_running_instance_ips).and_return(['123.123.123.123'])
-        expect(deploy).to receive(:`).and_return('')
-        expect(Broadside::EcsManager).to receive(:get_task_exit_code).and_return(0)
-        expect { described_class.run(command_options) }.to_not raise_error
-      end
-    end
-  end
-
   describe '#bash' do
     it 'fails without a running service' do
       expect { described_class.bash(deploy_config) }.to raise_error(Broadside::Error, /No task definition/)
