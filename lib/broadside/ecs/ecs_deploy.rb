@@ -87,7 +87,7 @@ module Broadside
           task_arn = EcsManager.run_task(@target.cluster, family, command, options).tasks[0].task_arn
           info "Launched #{command_name} task #{task_arn}, waiting for completion..."
 
-          EcsManager.ecs.wait_until(:tasks_stopped, { cluster: @target.cluster, tasks: [task_arn] }) do |w|
+          EcsManager.ecs.wait_until(:tasks_stopped, cluster: @target.cluster, tasks: [task_arn]) do |w|
             w.max_attempts = nil
             w.delay = Broadside.config.ecs.poll_frequency
             w.before_attempt do |attempt|

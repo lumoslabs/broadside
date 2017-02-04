@@ -71,14 +71,16 @@ describe Broadside::Command do
         it 'executes correct system command' do
           expect(described_class).to receive(:exec).with("ssh -o StrictHostKeyChecking=no -t -t #{user}@#{ip} 'docker exec -i -t `docker ps -n 1 --quiet --filter name=#{family}` bash'")
           expect { described_class.bash(deploy_config) }.to_not raise_error
-          expect(api_request_log).to eq([
-            { list_task_definitions: { family_prefix: family } },
-            { describe_services: { cluster: cluster, services: [family] } },
-            { list_tasks: { cluster: cluster, family: family } },
-            { describe_tasks: { cluster: cluster, tasks: [task_arn] } },
-            { describe_container_instances: { cluster: cluster, container_instances: [container_arn] } },
-            { describe_instances: { instance_ids: [instance_id] } }
-          ])
+          expect(api_request_log).to eq(
+            [
+              { list_task_definitions: { family_prefix: family } },
+              { describe_services: { cluster: cluster, services: [family] } },
+              { list_tasks: { cluster: cluster, family: family } },
+              { describe_tasks: { cluster: cluster, tasks: [task_arn] } },
+              { describe_container_instances: { cluster: cluster, container_instances: [container_arn] } },
+              { describe_instances: { instance_ids: [instance_id] } }
+            ]
+          )
         end
       end
     end
