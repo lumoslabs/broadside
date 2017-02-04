@@ -1,11 +1,16 @@
 module Broadside
   class EcsConfig
-    # Cluster can be overridden in a Target
-    attr_accessor :cluster, :poll_frequency
+    attr_accessor(
+      :cluster,
+      :credentials,
+      :poll_frequency,
+      :region
+    )
 
     def initialize
-      @cluster = nil
+      @credentials = Aws::SharedCredentials.new.credentials
       @poll_frequency = 2
+      @region = 'us-east-1'
     end
   end
 end
