@@ -6,10 +6,6 @@ module Broadside
     extend LoggingUtils
 
     class << self
-      def bootstrap(options)
-        EcsDeploy.new(options[:target], options).bootstrap
-      end
-
       def targets(options)
         table_header = nil
         table_rows = []
