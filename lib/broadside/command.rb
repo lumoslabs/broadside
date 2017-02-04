@@ -65,6 +65,7 @@ module Broadside
         end
 
         task_arns = Broadside::EcsManager.get_task_arns(cluster, family)
+
         if task_arns.empty?
           output << ["No running tasks found.\n"]
         else
@@ -96,11 +97,8 @@ module Broadside
         ip = get_running_instance_ip!(target.name, *options[:instance])
         info "Tailing logs for running container at #{ip}..."
 
-        search_pattern = Shellwords.shellescape(target.family)
-        cmd = "docker logs -f --tail=#{lines} `docker ps -n 1 --quiet --filter name=#{search_pattern}`"
-        tail_cmd = Broadside.config.ssh_cmd(ip) + " '#{cmd}'"
-
-        exec(tail_cmd)
+        cmd = "docker logs -f --tail=#{lines} `#{docker_ps_cmd(target.family)}`"
+        exec(Broadside.config.ssh_cmd(ip) + " '#{cmd}'")
       end
 
       def ssh(options)
@@ -116,8 +114,7 @@ module Broadside
         ip = get_running_instance_ip!(target.name, *options[:instance])
         info "Running bash for running container at #{ip}..."
 
-        search_pattern = Shellwords.shellescape(target.family)
-        cmd = "docker exec -i -t `docker ps -n 1 --quiet --filter name=#{search_pattern}` bash"
+        cmd = "docker exec -i -t `#{docker_ps_cmd(target.family)}` bash"
         exec(Broadside.config.ssh_cmd(ip, tty: true) + " '#{cmd}'")
       end
 
@@ -127,6 +124,11 @@ module Broadside
         deploy = EcsDeploy.new(target_name)
         deploy.check_service_and_task_definition!
         EcsManager.get_running_instance_ips!(deploy.target.cluster, deploy.target.family).fetch(instance_index)
+      end
+
+      def docker_ps_cmd(family)
+        search_pattern = Shellwords.shellescape(family)
+        "docker ps -n 1 --quiet --filter name=#{search_pattern}"
       end
     end
   end
