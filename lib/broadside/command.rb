@@ -29,12 +29,14 @@ module Broadside
           end
 
           revision = task_def[:revision]
-          container_def = task_def[:container_definitions].select { |c| c[:name] == target.family }.first
+          container_definitions = task_def[:container_definitions].select { |c| c[:name] == target.family }
+          warn "Only displaying 1/#{container_definitions.size} containers" if container_definitions.size > 1
+          container_definition = container_definitions.first
 
           row_data = target.to_h.merge(
-            Image: container_def[:image],
-            CPU: container_def[:cpu],
-            Memory: container_def[:memory],
+            Image: container_definition[:image],
+            CPU: container_definition[:cpu],
+            Memory: container_definition[:memory],
             Revision: revision,
             Tasks: "#{service_tasks_running}/#{target.scale}"
           )
@@ -101,6 +103,7 @@ module Broadside
         search_pattern = Shellwords.shellescape(deploy.family)
         cmd = "docker logs -f --tail=#{lines} `docker ps -n 1 --quiet --filter name=#{search_pattern}`"
         tail_cmd = Broadside.config.ssh_cmd(ip) + " '#{cmd}'"
+
         exec(tail_cmd)
       end
 
@@ -108,6 +111,7 @@ module Broadside
         deploy = EcsDeploy.new(options[:target])
         ip = deploy.get_running_instance_ip!(*options[:instance])
         info "Establishing SSH connection to #{ip}..."
+
         exec(Broadside.config.ssh_cmd(ip))
       end
 
