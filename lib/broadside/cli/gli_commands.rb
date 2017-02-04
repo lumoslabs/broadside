@@ -128,7 +128,7 @@ command :deploy do |d|
     add_target_flag(scale)
 
     scale.action do |_, options, _|
-      Broadside::EcsDeploy.new(options[:target]).update_service(options)
+      Broadside::EcsDeploy.new(options[:target]).scale(options)
     end
   end
 

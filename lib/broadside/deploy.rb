@@ -38,6 +38,12 @@ module Broadside
       yield
     end
 
+    def scale
+      info "Rescaling #{family} with scale=#{@scale}..."
+      yield
+      info 'Rescaling complete.'
+    end
+
     def logtail(options = {})
       yield
     end

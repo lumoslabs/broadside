@@ -71,6 +71,12 @@ module Broadside
       end
     end
 
+    def scale(options = {})
+      super do
+        update_service(options)
+      end
+    end
+
     def run
       super do
         run_commands([@command], started_by: 'run')
@@ -106,42 +112,6 @@ module Broadside
         search_pattern = Shellwords.shellescape(family)
         cmd = "docker exec -i -t `docker ps -n 1 --quiet --filter name=#{search_pattern}` bash"
         exec(Broadside.config.ssh_cmd(ip, tty: true) + " '#{cmd}'")
-      end
-    end
-
-    def update_service(options = {})
-      scale = options[:scale] || @target.scale
-      raise ArgumentError, ':scale not provided' unless scale
-
-      check_service_and_task_definition!
-      task_definition_arn = EcsManager.get_latest_task_definition_arn(family)
-      debug "Updating #{family} with scale=#{scale} using task_definition #{task_definition_arn}..."
-
-      update_service_response = EcsManager.ecs.update_service({
-        cluster: @target.cluster,
-        desired_count: scale,
-        service: family,
-        task_definition: task_definition_arn
-      }.deep_merge(@target.service_config || {}))
-
-      unless update_service_response.successful?
-        raise Error, "Failed to update service:\n#{update_service_response.pretty_inspect}"
-      end
-
-      EcsManager.ecs.wait_until(:services_stable, cluster: @target.cluster, services: [family]) do |w|
-        timeout = Broadside.config.timeout
-        w.delay = Broadside.config.ecs.poll_frequency
-        w.max_attempts = timeout ? timeout / w.delay : Float::INFINITY
-        seen_event_id = nil
-
-        w.before_wait do |attempt, response|
-          debug "(#{attempt}/#{w.max_attempts}) Polling ECS for events..."
-          # skip first event since it doesn't apply to current request
-          if response.services[0].events.first && response.services[0].events.first.id != seen_event_id && attempt > 1
-            seen_event_id = response.services[0].events.first.id
-            debug response.services[0].events.first.message
-          end
-        end
       end
     end
 
@@ -182,6 +152,42 @@ module Broadside
 
       task_definition = EcsManager.ecs.register_task_definition(revision).task_definition
       debug "Successfully created #{task_definition.task_definition_arn}"
+    end
+
+    def update_service(options = {})
+      scale = options[:scale] || @target.scale
+      raise ArgumentError, ':scale not provided' unless scale
+
+      check_service_and_task_definition!
+      task_definition_arn = EcsManager.get_latest_task_definition_arn(family)
+      debug "Updating #{family} with scale=#{scale} using task_definition #{task_definition_arn}..."
+
+      update_service_response = EcsManager.ecs.update_service({
+        cluster: @target.cluster,
+        desired_count: scale,
+        service: family,
+        task_definition: task_definition_arn
+      }.deep_merge(@target.service_config || {}))
+
+      unless update_service_response.successful?
+        raise Error, "Failed to update service:\n#{update_service_response.pretty_inspect}"
+      end
+
+      EcsManager.ecs.wait_until(:services_stable, cluster: @target.cluster, services: [family]) do |w|
+        timeout = Broadside.config.timeout
+        w.delay = Broadside.config.ecs.poll_frequency
+        w.max_attempts = timeout ? timeout / w.delay : Float::INFINITY
+        seen_event_id = nil
+
+        w.before_wait do |attempt, response|
+          debug "(#{attempt}/#{w.max_attempts}) Polling ECS for events..."
+          # skip first event since it doesn't apply to current request
+          if response.services[0].events.first && response.services[0].events.first.id != seen_event_id && attempt > 1
+            seen_event_id = response.services[0].events.first.id
+            debug response.services[0].events.first.message
+          end
+        end
+      end
     end
 
     def get_running_instance_ip!(instance_index = 0)
