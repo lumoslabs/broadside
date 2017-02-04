@@ -79,10 +79,14 @@ module Broadside
         all_results(:list_task_definitions, :task_definition_arns, { family_prefix: family })
       end
 
-      def get_task_exit_code(cluster, task_arn, name)
+      def get_task_exit_status(cluster, task_arn, name)
         task = ecs.describe_tasks(cluster: cluster, tasks: [task_arn]).tasks.first
         container = task.containers.select { |c| c.name == name }.first
-        container.exit_code
+
+        {
+          exit_code: container.exit_code,
+          reason: container.reason
+        }
       end
 
       def list_task_definition_families
@@ -94,7 +98,7 @@ module Broadside
       end
 
       def run_task(cluster, name, command, options = {})
-        fail ArgumentError, "#{command} must be an array" unless command.is_a?(Array)
+        raise ArgumentError, "#{command} must be an array" unless command.is_a?(Array)
 
         response = ecs.run_task(
           cluster: cluster,
