@@ -37,18 +37,6 @@ module Broadside
       info 'Rescaling complete.'
     end
 
-    def logtail(options = {})
-      yield
-    end
-
-    def ssh(options = {})
-      yield
-    end
-
-    def bash(options = {})
-      yield
-    end
-
     private
 
     def deploy

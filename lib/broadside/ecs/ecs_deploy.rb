@@ -77,38 +77,6 @@ module Broadside
       end
     end
 
-    def logtail(options = {})
-      lines = options[:lines] || 10
-      super do
-        ip = get_running_instance_ip!(*options[:instance])
-        info "Tailing logs for running container at #{ip}..."
-
-        search_pattern = Shellwords.shellescape(family)
-        cmd = "docker logs -f --tail=#{lines} `docker ps -n 1 --quiet --filter name=#{search_pattern}`"
-        tail_cmd = Broadside.config.ssh_cmd(ip) + " '#{cmd}'"
-        exec(tail_cmd)
-      end
-    end
-
-    def ssh(options = {})
-      super do
-        ip = get_running_instance_ip!(*options[:instance])
-        info "Establishing SSH connection to #{ip}..."
-        exec(Broadside.config.ssh_cmd(ip))
-      end
-    end
-
-    def bash(options = {})
-      super do
-        ip = get_running_instance_ip!(*options[:instance])
-        info "Running bash for running container at #{ip}..."
-
-        search_pattern = Shellwords.shellescape(family)
-        cmd = "docker exec -i -t `docker ps -n 1 --quiet --filter name=#{search_pattern}` bash"
-        exec(Broadside.config.ssh_cmd(ip, tty: true) + " '#{cmd}'")
-      end
-    end
-
     def run_commands(commands, options = {})
       return if commands.nil? || commands.empty?
       update_task_revision
@@ -139,6 +107,11 @@ module Broadside
       end
     end
 
+    def get_running_instance_ip!(instance_index = 0)
+      check_service_and_task_definition!
+      EcsManager.get_running_instance_ips!(@target.cluster, family).fetch(instance_index)
+    end
+
     private
 
     def check_task_definition!
@@ -156,11 +129,6 @@ module Broadside
     def check_service_and_task_definition!
       check_task_definition!
       check_service!
-    end
-
-    def get_running_instance_ip!(instance_index = 0)
-      check_service_and_task_definition!
-      EcsManager.get_running_instance_ips!(@target.cluster, family).fetch(instance_index)
     end
 
     # Creates a new task revision using current directory's env vars, provided tag, and @target.task_definition_config

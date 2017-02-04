@@ -3,6 +3,8 @@ require 'tty-table'
 
 module Broadside
   module Command
+    extend LoggingUtils
+
     class << self
       def bootstrap(options)
         EcsDeploy.new(options[:target], options).bootstrap
@@ -13,8 +15,13 @@ module Broadside
         table_rows = []
 
         Broadside.config.targets.each do |_, target|
-          service_tasks_running = Broadside::EcsManager.get_task_arns(target.cluster, target.family, service_name: target.family, desired_status: 'RUNNING').size
           task_def = Broadside::EcsManager.get_latest_task_definition(target.family)
+          service_tasks_running = Broadside::EcsManager.get_task_arns(
+            target.cluster,
+            target.family,
+            service_name: target.family,
+            desired_status: 'RUNNING'
+          ).size
 
           if task_def.nil?
             warn "Skipping deploy target '#{target.name}' as it does not have a configured task_definition."
@@ -86,15 +93,32 @@ module Broadside
       end
 
       def logtail(options)
-        EcsDeploy.new(options[:target]).logtail(options)
+        lines = options[:lines] || 10
+        deploy = EcsDeploy.new(options[:target])
+        ip = deploy.get_running_instance_ip!(*options[:instance])
+        info "Tailing logs for running container at #{ip}..."
+
+        search_pattern = Shellwords.shellescape(deploy.family)
+        cmd = "docker logs -f --tail=#{lines} `docker ps -n 1 --quiet --filter name=#{search_pattern}`"
+        tail_cmd = Broadside.config.ssh_cmd(ip) + " '#{cmd}'"
+        exec(tail_cmd)
       end
 
       def ssh(options)
-        EcsDeploy.new(options[:target]).ssh(options)
+        deploy = EcsDeploy.new(options[:target])
+        ip = deploy.get_running_instance_ip!(*options[:instance])
+        info "Establishing SSH connection to #{ip}..."
+        exec(Broadside.config.ssh_cmd(ip))
       end
 
       def bash(options)
-        EcsDeploy.new(options[:target], options).bash(options)
+        deploy = EcsDeploy.new(options[:target])
+        ip = deploy.get_running_instance_ip!(*options[:instance])
+        info "Running bash for running container at #{ip}..."
+
+        search_pattern = Shellwords.shellescape(deploy.family)
+        cmd = "docker exec -i -t `docker ps -n 1 --quiet --filter name=#{search_pattern}` bash"
+        exec(Broadside.config.ssh_cmd(ip, tty: true) + " '#{cmd}'")
       end
     end
   end
