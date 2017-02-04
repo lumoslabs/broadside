@@ -12,7 +12,7 @@ module Broadside
         table_rows = []
 
         Broadside.config.targets.each do |_, target|
-          task_def = Broadside::EcsManager.get_latest_task_definition(target.family)
+          task_definition = Broadside::EcsManager.get_latest_task_definition(target.family)
           service_tasks_running = Broadside::EcsManager.get_task_arns(
             target.cluster,
             target.family,
@@ -20,21 +20,20 @@ module Broadside
             desired_status: 'RUNNING'
           ).size
 
-          if task_def.nil?
+          if task_definition.nil?
             warn "Skipping deploy target '#{target.name}' as it does not have a configured task_definition."
             next
           end
 
-          revision = task_def[:revision]
-          container_definitions = task_def[:container_definitions].select { |c| c[:name] == target.family }
+          container_definitions = task_definition[:container_definitions].select { |c| c[:name] == target.family }
           warn "Only displaying 1/#{container_definitions.size} containers" if container_definitions.size > 1
           container_definition = container_definitions.first
 
-          row_data = target.to_h.merge(
+          row_data = target.to_hash.merge(
             Image: container_definition[:image],
             CPU: container_definition[:cpu],
             Memory: container_definition[:memory],
-            Revision: revision,
+            Revision: task_definition[:revision],
             Tasks: "#{service_tasks_running}/#{target.scale}"
           )
 

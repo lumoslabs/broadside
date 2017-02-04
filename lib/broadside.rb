@@ -37,6 +37,7 @@ module Broadside
       error 'Encountered an error loading broadside configuration'
       raise
     end
+
     raise ArgumentError, config.errors.full_messages unless config.valid?
   end
 
