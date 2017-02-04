@@ -25,6 +25,7 @@ module Broadside
         record.errors.add(attr, "invalid #{property}") unless val && val.public_send(property)
       end
     end
+
     validates_each(:ssh) do |record, attr, val|
       record.errors.add(attr, 'is not a hash') unless val.is_a?(Hash)
     end
@@ -51,6 +52,7 @@ module Broadside
       cmd << " -i #{@ssh[:keyfile]}" if @ssh[:keyfile]
       if (proxy = @ssh[:proxy])
         raise MissingVariableError, 'Bad SSH proxy: requires host and port' unless proxy[:host] && proxy[:port]
+
         cmd << ' -o ProxyCommand="ssh -q'
         cmd << " -i #{proxy[:keyfile]}" if proxy[:keyfile]
         cmd << ' '
