@@ -6,8 +6,8 @@ module Broadside
     delegate :family, to: :target
 
     def initialize(target_name, options = {})
-      @target   = Broadside.config.get_target_by_name!(target_name)
-      @tag      = options[:tag]      || @target.tag
+      @target = Broadside.config.get_target_by_name!(target_name)
+      @tag    = options[:tag] || @target.tag
     end
 
     def short
