@@ -71,15 +71,15 @@ module Broadside
       end
     end
 
-    def run
-      super do
-        run_commands([@command], started_by: 'run')
-      end
-    end
-
     def scale(options = {})
       super do
         update_service(options)
+      end
+    end
+
+    def run
+      super do
+        run_commands([@command], started_by: 'run')
       end
     end
 
