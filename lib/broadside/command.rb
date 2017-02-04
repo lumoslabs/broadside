@@ -90,11 +90,11 @@ module Broadside
       end
 
       def ssh(options)
-        EcsDeploy.new(options[:target]).ssh
+        EcsDeploy.new(options[:target]).ssh(options)
       end
 
       def bash(options)
-        EcsDeploy.new(options[:target], options).bash
+        EcsDeploy.new(options[:target], options).bash(options)
       end
     end
   end
