@@ -21,6 +21,7 @@
 - Exceptions will be raised if a target is configured with an invalid hash key
 - Tasks run have a more relevant `started_by` tag
 - Default loglevel changed to INFO
+- [#21](https://github.com/lumoslabs/broadside/issues/21) Print more useful messages when tasks die without exit codes.
 
 # 2.0.0
 #### Breaking Changes
