@@ -111,6 +111,11 @@ module Broadside
       check_service_and_task_definition!
       EcsManager.get_running_instance_ips!(@target.cluster, family).fetch(instance_index)
     end
+    
+    def check_service_and_task_definition!
+      check_task_definition!
+      check_service!
+    end
 
     private
 
@@ -124,11 +129,6 @@ module Broadside
       unless EcsManager.service_exists?(@target.cluster, family)
         raise Error, "No service for '#{family}'! Please bootstrap or manually configure one."
       end
-    end
-
-    def check_service_and_task_definition!
-      check_task_definition!
-      check_service!
     end
 
     # Creates a new task revision using current directory's env vars, provided tag, and @target.task_definition_config

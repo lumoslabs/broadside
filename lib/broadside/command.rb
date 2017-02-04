@@ -92,11 +92,11 @@ module Broadside
 
       def logtail(options)
         lines = options[:lines] || 10
-        deploy = EcsDeploy.new(options[:target])
-        ip = deploy.get_running_instance_ip!(*options[:instance])
+        target = Broadside.config.get_target_by_name!(options[:target])
+        ip = get_running_instance_ip!(target.name, *options[:instance])
         info "Tailing logs for running container at #{ip}..."
 
-        search_pattern = Shellwords.shellescape(deploy.family)
+        search_pattern = Shellwords.shellescape(target.family)
         cmd = "docker logs -f --tail=#{lines} `docker ps -n 1 --quiet --filter name=#{search_pattern}`"
         tail_cmd = Broadside.config.ssh_cmd(ip) + " '#{cmd}'"
 
@@ -104,21 +104,29 @@ module Broadside
       end
 
       def ssh(options)
-        deploy = EcsDeploy.new(options[:target])
-        ip = deploy.get_running_instance_ip!(*options[:instance])
+        target = Broadside.config.get_target_by_name!(options[:target])
+        ip = get_running_instance_ip!(target.name, *options[:instance])
         info "Establishing SSH connection to #{ip}..."
 
         exec(Broadside.config.ssh_cmd(ip))
       end
 
       def bash(options)
-        deploy = EcsDeploy.new(options[:target])
-        ip = deploy.get_running_instance_ip!(*options[:instance])
+        target = Broadside.config.get_target_by_name!(options[:target])
+        ip = get_running_instance_ip!(target.name, *options[:instance])
         info "Running bash for running container at #{ip}..."
 
-        search_pattern = Shellwords.shellescape(deploy.family)
+        search_pattern = Shellwords.shellescape(target.family)
         cmd = "docker exec -i -t `docker ps -n 1 --quiet --filter name=#{search_pattern}` bash"
         exec(Broadside.config.ssh_cmd(ip, tty: true) + " '#{cmd}'")
+      end
+
+      private
+
+      def get_running_instance_ip!(target_name, instance_index = 0)
+        deploy = EcsDeploy.new(target_name)
+        deploy.check_service_and_task_definition!
+        EcsManager.get_running_instance_ips!(deploy.target.cluster, deploy.target.family).fetch(instance_index)
       end
     end
   end
