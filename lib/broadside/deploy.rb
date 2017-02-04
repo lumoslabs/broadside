@@ -31,17 +31,17 @@ module Broadside
       yield
       info 'Rollback complete.'
     end
+    
+    def scale
+      info "Rescaling #{family} with scale=#{@scale}..."
+      yield
+      info 'Rescaling complete.'
+    end
 
     def run
       verify(:command)
       info "Running #{command}..."
       yield
-    end
-
-    def scale
-      info "Rescaling #{family} with scale=#{@scale}..."
-      yield
-      info 'Rescaling complete.'
     end
 
     def logtail(options = {})
