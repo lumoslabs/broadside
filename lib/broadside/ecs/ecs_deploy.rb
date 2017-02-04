@@ -134,6 +134,11 @@ module Broadside
       check_service!
     end
 
+    def get_running_instance_ip!(instance_index = 0)
+      check_service_and_task_definition!
+      EcsManager.get_running_instance_ips!(@target.cluster, family).fetch(instance_index)
+    end
+
     # Creates a new task revision using current directory's env vars, provided tag, and @target.task_definition_config
     def update_task_revision
       check_task_definition!
@@ -152,11 +157,6 @@ module Broadside
 
       task_definition = EcsManager.ecs.register_task_definition(revision).task_definition
       debug "Successfully created #{task_definition.task_definition_arn}"
-    end
-    
-    def get_running_instance_ip!(instance_index = 0)
-      check_service_and_task_definition!
-      EcsManager.get_running_instance_ips!(@target.cluster, family).fetch(instance_index)
     end
 
     def update_service(options = {})
