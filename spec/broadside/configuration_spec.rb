@@ -65,14 +65,14 @@ describe Broadside::Configuration do
           }
         end
 
-        it 'raises an error if proxy host or port are missing' do
-          expect { Broadside.config.ssh_cmd(ip) }.to raise_error(Broadside::MissingVariableError)
+        it 'is invalid if proxy is incorrectly configured' do
+          expect(Broadside.config.valid?).to be false
         end
 
         context 'with proxy user, host, and port' do
           let(:proxy_user) { 'proxy-user' }
           let(:proxy_host) { 'proxy-host' }
-          let(:proxy_port) { '22' }
+          let(:proxy_port) { 22 }
           let(:ssh_proxy_config) do
             {
               user: proxy_user,
