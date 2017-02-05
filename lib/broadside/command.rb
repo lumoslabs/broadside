@@ -12,8 +12,8 @@ module Broadside
         table_rows = []
 
         Broadside.config.targets.each do |_, target|
-          task_definition = Broadside::EcsManager.get_latest_task_definition(target.family)
-          service_tasks_running = Broadside::EcsManager.get_task_arns(
+          task_definition = EcsManager.get_latest_task_definition(target.family)
+          service_tasks_running = EcsManager.get_task_arns(
             target.cluster,
             target.family,
             service_name: target.family,
@@ -64,7 +64,7 @@ module Broadside
           ]
         end
 
-        task_arns = Broadside::EcsManager.get_task_arns(cluster, family)
+        task_arns = EcsManager.get_task_arns(cluster, family)
 
         if task_arns.empty?
           output << ["No running tasks found.\n"]
@@ -74,7 +74,7 @@ module Broadside
           if options[:verbose]
             output << [
               pastel.underline('Task information:'),
-              pastel.bright_cyan(PP.pp(Broadside::EcsManager.ecs.describe_tasks(cluster: cluster, tasks: task_arns), ''))
+              pastel.bright_cyan(PP.pp(EcsManager.ecs.describe_tasks(cluster: cluster, tasks: task_arns), ''))
             ]
           end
 
