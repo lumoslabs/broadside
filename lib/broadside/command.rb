@@ -94,7 +94,7 @@ module Broadside
       def logtail(options)
         lines = options[:lines] || 10
         target = Broadside.config.get_target_by_name!(options[:target])
-        ip = get_running_instance_ip!(target.name, *options[:instance])
+        ip = get_running_instance_ip!(target, *options[:instance])
         info "Tailing logs for running container at #{ip}..."
 
         cmd = "docker logs -f --tail=#{lines} `#{docker_ps_cmd(target.family)}`"
@@ -102,7 +102,8 @@ module Broadside
       end
 
       def ssh(options)
-        ip = get_running_instance_ip!(options[:target], *options[:instance])
+        target = Broadside.config.get_target_by_name!(options[:target])
+        ip = get_running_instance_ip!(target, *options[:instance])
         info "Establishing SSH connection to #{ip}..."
 
         exec(Broadside.config.ssh_cmd(ip))
@@ -110,7 +111,7 @@ module Broadside
 
       def bash(options)
         target = Broadside.config.get_target_by_name!(options[:target])
-        ip = get_running_instance_ip!(target.name, *options[:instance])
+        ip = get_running_instance_ip!(target, *options[:instance])
         info "Running bash for running container at #{ip}..."
 
         cmd = "docker exec -i -t `#{docker_ps_cmd(target.family)}` bash"
@@ -119,10 +120,9 @@ module Broadside
 
       private
 
-      def get_running_instance_ip!(target_name, instance_index = 0)
-        deploy = EcsDeploy.new(target_name)
-        deploy.check_service_and_task_definition!
-        EcsManager.get_running_instance_ips!(deploy.target.cluster, deploy.target.family).fetch(instance_index)
+      def get_running_instance_ip!(target, instance_index = 0)
+        target.check_service_and_task_definition!
+        EcsManager.get_running_instance_ips!(target.cluster, target.family).fetch(instance_index)
       end
 
       def docker_ps_cmd(family)

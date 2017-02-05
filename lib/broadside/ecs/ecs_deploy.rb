@@ -8,21 +8,16 @@ module Broadside
       memory: 1024
     }
 
-    def deploy
-      super do
-        check_service!
-        update_task_revision
+    def short
+      deploy
+    end
 
-        begin
-          update_service
-        rescue SignalException::Interrupt, StandardError => e
-          msg = e.is_a?(SignalException::Interrupt) ? 'Caught interrupt signal' : "#{e.class}: #{e.message}"
-          error "#{msg}, rolling back..."
-          rollback(1)
-          error 'Deployment did not finish successfully.'
-          raise e
-        end
-      end
+    def full
+      info "Running predeploy commands for #{family}..."
+      run_commands(@target.predeploy_commands, started_by: 'predeploy')
+      info 'Predeploy complete.'
+
+      deploy
     end
 
     def bootstrap
@@ -58,22 +53,24 @@ module Broadside
     end
 
     def rollback(count = 1)
-      super do
-        check_service_and_task_definition!
-        begin
-          EcsManager.deregister_last_n_tasks_definitions(family, count)
-          update_service
-        rescue StandardError
-          error 'Rollback failed to complete!'
-          raise
-        end
+      info "Rolling back #{count} release for #{family}..."
+      @target.check_service_and_task_definition!
+
+      begin
+        EcsManager.deregister_last_n_tasks_definitions(family, count)
+        update_service
+      rescue StandardError
+        error 'Rollback failed to complete!'
+        raise
       end
+
+      info 'Rollback complete.'
     end
 
     def scale(options = {})
-      super do
-        update_service(options)
-      end
+      info "Rescaling #{family} with scale=#{@scale}..."
+      update_service(options)
+      info 'Rescaling complete.'
     end
 
     def run_commands(commands, options = {})
@@ -110,28 +107,11 @@ module Broadside
       end
     end
 
-    def check_service_and_task_definition!
-      check_task_definition!
-      check_service!
-    end
-
     private
-
-    def check_task_definition!
-      unless EcsManager.get_latest_task_definition_arn(family)
-        raise Error, "No task definition for '#{family}'! Please bootstrap or manually configure one."
-      end
-    end
-
-    def check_service!
-      unless EcsManager.service_exists?(cluster, family)
-        raise Error, "No service for '#{family}'! Please bootstrap or manually configure one."
-      end
-    end
 
     # Creates a new task revision using current directory's env vars, provided tag, and @target.task_definition_config
     def update_task_revision
-      check_task_definition!
+      @target.check_task_definition!
       revision = EcsManager.get_latest_task_definition(family).except(
         :requires_attributes,
         :revision,
@@ -153,7 +133,7 @@ module Broadside
       scale = options[:scale] || @target.scale
       raise ArgumentError, ':scale not provided' unless scale
 
-      check_service_and_task_definition!
+      @target.check_service_and_task_definition!
       task_definition_arn = EcsManager.get_latest_task_definition_arn(family)
       debug "Updating #{family} with scale=#{scale} using task_definition #{task_definition_arn}..."
 
@@ -219,6 +199,21 @@ module Broadside
         environment: @target.ecs_env_vars,
         image: image_tag
       )
+    end
+
+    def deploy
+      @target.check_service!
+      update_task_revision
+
+      begin
+        update_service
+      rescue SignalException::Interrupt, StandardError => e
+        msg = e.is_a?(SignalException::Interrupt) ? 'Caught interrupt signal' : "#{e.class}: #{e.message}"
+        error "#{msg}, rolling back..."
+        rollback(1)
+        error 'Deployment did not finish successfully.'
+        raise e
+      end
     end
   end
 end

@@ -10,10 +10,6 @@ describe Broadside::Command do
   let(:deploy) { Broadside::EcsDeploy.new(deploy_config[:target], deploy_config) }
   let(:family) { Broadside.config.get_target_by_name!(deploy_config[:target]).family }
 
-  before do
-    expect(Broadside::EcsDeploy).to receive(:new).and_return(deploy)
-  end
-
   describe '#bash' do
     it 'fails without a running service' do
       expect { described_class.bash(deploy_config) }.to raise_error(Broadside::Error, /No task definition/)

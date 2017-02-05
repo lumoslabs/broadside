@@ -82,5 +82,23 @@ module Broadside
         Cluster: @cluster
       }
     end
+
+    
+    def check_service_and_task_definition!
+      check_task_definition!
+      check_service!
+    end
+
+    def check_task_definition!
+      unless EcsManager.get_latest_task_definition_arn(family)
+        raise Error, "No task definition for '#{family}'! Please bootstrap or manually configure one."
+      end
+    end
+
+    def check_service!
+      unless EcsManager.service_exists?(cluster, family)
+        raise Error, "No service for '#{family}'! Please bootstrap or manually configure one."
+      end
+    end
   end
 end
