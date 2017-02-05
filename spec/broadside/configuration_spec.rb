@@ -13,14 +13,14 @@ describe Broadside::Configuration do
 
   it 'should raise an error when missing aws variables' do
     Broadside.configure do |config|
-      config.aws.region = nil
+      config.ecs.region = nil
     end
     expect(Broadside.config.valid?).to be false
   end
 
   it 'should raise an error when ecs.poll_frequency is invalid' do
     Broadside.configure do |config|
-      config.ecs.poll_frequency = 'notanumber'
+      config.ecs.poll_frequency = nil
     end
     expect(Broadside.config.valid?).to be false
   end

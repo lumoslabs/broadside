@@ -3,6 +3,7 @@
 - `ssh`, `bash`, `logtail`, `status`, and `run` are now top level commands, not subcommands of `deploy`
 - `config.git_repo=` and `config.type=` were removed.
 - `config.base` and `config.deploy` are no longer backwards compatible
+- `config.aws` region and credentials are now configured at `config.ecs.region` and `config.ecs.credentials`
 - `instance` can no longer be configured on a per `Target` basis
 - No more `RAKE_DB_MIGRATE` constant
 
