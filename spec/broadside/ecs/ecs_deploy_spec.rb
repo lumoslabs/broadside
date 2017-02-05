@@ -138,7 +138,7 @@ describe Broadside::EcsDeploy do
     let(:commands) { [%w(run some command)] }
 
     it 'fails without a task definition' do
-      expect { deploy.send(:run_commands, commands) }.to raise_error(Broadside::Error, /No task definition for/)
+      expect { deploy.run_commands(commands) }.to raise_error(Broadside::Error, /No task definition for/)
     end
 
     context 'with a task_definition' do
@@ -162,7 +162,7 @@ describe Broadside::EcsDeploy do
       it 'runs' do
         expect(ecs_stub).to receive(:wait_until)
         expect(deploy).to receive(:get_container_logs)
-        expect { deploy.send(:run_commands, commands) }.to_not raise_error
+        expect { deploy.run_commands(commands) }.to_not raise_error
       end
 
       context 'tries to start a task that does not produce an exit code' do
@@ -171,7 +171,7 @@ describe Broadside::EcsDeploy do
 
         it 'raises an error displaying the failure reason' do
           expect(ecs_stub).to receive(:wait_until)
-          expect { deploy.send(:run_commands, commands) }.to raise_error(Broadside::Error, /#{reason}/)
+          expect { deploy.run_commands(commands) }.to raise_error(Broadside::Error, /#{reason}/)
         end
       end
 
@@ -180,7 +180,7 @@ describe Broadside::EcsDeploy do
 
         it 'raises an error and displays the exit code' do
           expect(ecs_stub).to receive(:wait_until)
-          expect { deploy.send(:run_commands, commands) }.to raise_error(Broadside::Error, /#{exit_code}/)
+          expect { deploy.run_commands(commands) }.to raise_error(Broadside::Error, /#{exit_code}/)
         end
       end
     end
