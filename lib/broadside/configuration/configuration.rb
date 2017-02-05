@@ -5,7 +5,10 @@ module Broadside
     include ActiveModel::Model
     include LoggingUtils
 
-    attr_reader :targets
+    attr_reader(
+      :ecs,
+      :targets
+    )
     attr_accessor(
       :application,
       :config_file,
@@ -29,15 +32,12 @@ module Broadside
     end
 
     def initialize
+      @ecs ||= EcsConfiguration.new
       @logger = ::Logger.new(STDOUT)
       @logger.level = ::Logger::INFO
       @logger.datetime_format = '%Y-%m-%d_%H:%M:%S'
       @ssh = {}
       @timeout = 600
-    end
-
-    def ecs
-      @ecs ||= EcsConfiguration.new
     end
 
     # Transform deploy target configs to Target objects
