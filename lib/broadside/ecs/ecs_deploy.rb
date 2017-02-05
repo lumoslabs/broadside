@@ -24,10 +24,7 @@ module Broadside
       if EcsManager.get_latest_task_definition_arn(family)
         info "Task definition for #{family} already exists."
       else
-        unless @target.task_definition_config
-          raise ConfigurationError, "No task definition and no :task_definition_config in '#{family}' configuration"
-        end
-
+        raise ConfigurationError, "No :task_definition_config in target" unless @target.task_definition_config
         info "Creating an initial task definition for '#{family}' from the config..."
 
         EcsManager.ecs.register_task_definition(
@@ -43,10 +40,7 @@ module Broadside
       if EcsManager.service_exists?(cluster, family)
         info("Service for #{family} already exists.")
       else
-        unless @target.service_config
-          raise ConfigurationError, "Service doesn't exist and no :service_config in '#{family}' configuration"
-        end
-
+        raise ConfigurationError, "No :service_config in target" unless @target.service_config
         info "Service '#{family}' doesn't exist, creating..."
         EcsManager.create_service(cluster, family, @target.service_config)
       end
@@ -93,10 +87,10 @@ module Broadside
 
           exit_status = EcsManager.get_task_exit_status(cluster, task_arn, family)
           if exit_status[:exit_code].nil?
-            raise EcsError, "#{command_name} task #{task_arn} failed to start:\n'#{exit_status[:reason]}'"
+            raise EcsError, "#{command_name} task #{task_arn} failed:\n'#{exit_status[:reason]}'"
           end
           unless exit_status[:exit_code].zero?
-            raise EcsError, "#{command_name} task #{task_arn} failed. Non-zero exit code: #{exit_status[:exit_code]}!"
+            raise EcsError, "#{command_name} task #{task_arn} nonzero exit code: #{exit_status[:exit_code]}!"
           end
 
           info "#{command_name} task container logs:\n#{get_container_logs(task_arn)}"
@@ -156,7 +150,7 @@ module Broadside
 
         w.before_wait do |attempt, response|
           info "(#{attempt}/#{w.max_attempts || Float::INFINITY}) Polling ECS for events..."
-          # skip first event since it doesn't apply to current request
+          # Skip first event since it doesn't apply to current request
           if response.services[0].events.first && response.services[0].events.first.id != seen_event_id && attempt > 1
             seen_event_id = response.services[0].events.first.id
             info response.services[0].events.first.message
@@ -210,7 +204,7 @@ module Broadside
       rescue SignalException::Interrupt, StandardError => e
         msg = e.is_a?(SignalException::Interrupt) ? 'Caught interrupt signal' : "#{e.class}: #{e.message}"
         error "#{msg}, rolling back..."
-        rollback(1)
+        rollback
         error 'Deployment did not finish successfully.'
         raise e
       end
