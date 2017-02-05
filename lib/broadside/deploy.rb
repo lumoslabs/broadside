@@ -2,13 +2,13 @@ module Broadside
   class Deploy
     include LoggingUtils
 
-    attr_reader :command, :tag, :target
+    attr_reader :tag, :target
     delegate :family, to: :target
     delegate :cluster, to: :target
 
     def initialize(target_name, options = {})
       @target = Broadside.config.get_target_by_name!(target_name)
-      @tag    = options[:tag] || @target.tag
+      @tag = options[:tag] || @target.tag
     end
 
     def short

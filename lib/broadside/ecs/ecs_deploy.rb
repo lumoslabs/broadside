@@ -167,11 +167,11 @@ module Broadside
       EcsManager.ecs.wait_until(:services_stable, cluster: cluster, services: [family]) do |w|
         timeout = Broadside.config.timeout
         w.delay = Broadside.config.ecs.poll_frequency
-        w.max_attempts = timeout ? timeout / w.delay : Float::INFINITY
+        w.max_attempts = timeout ? timeout / w.delay : nil
         seen_event_id = nil
 
         w.before_wait do |attempt, response|
-          info "(#{attempt}/#{w.max_attempts}) Polling ECS for events..."
+          info "(#{attempt}/#{w.max_attempts || Float::INFINITY}) Polling ECS for events..."
           # skip first event since it doesn't apply to current request
           if response.services[0].events.first && response.services[0].events.first.id != seen_event_id && attempt > 1
             seen_event_id = response.services[0].events.first.id

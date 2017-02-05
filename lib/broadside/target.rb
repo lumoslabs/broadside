@@ -77,10 +77,8 @@ module Broadside
     def to_hash
       {
         Target: @name,
-        Image: "#{@docker_image}:#{@tag}",
-        Cluster: @cluster,
-        CPU: @cpu,
-        Memory: @memory
+        Image: "#{@docker_image}:#{@tag || 'no_tag_configured'}",
+        Cluster: @cluster
       }
     end
   end
