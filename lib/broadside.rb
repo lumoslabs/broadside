@@ -25,8 +25,8 @@ module Broadside
 
   def self.load_config(config_file)
     raise ConfigurationError, "#{config_file} does not exist" unless File.exist?(config_file)
-
     config.config_file = config_file
+
     begin
       if File.exist?(USER_CONFIG_FILE)
         debug "Loading user configuration from #{USER_CONFIG_FILE}"

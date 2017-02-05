@@ -32,7 +32,7 @@ module Broadside
     end
 
     validates_each(:command, allow_nil: true) do |record, attr, val|
-      record.errors.add(attr, 'is not an array') unless val.is_a?(Array)
+      record.errors.add(attr, 'is not an array of strings') unless val.is_a?(Array) && val.all? { |v| v.is_a?(String) }
     end
 
     def initialize(name, options = {})
