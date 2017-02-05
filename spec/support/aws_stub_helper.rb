@@ -1,7 +1,7 @@
 module AwsStubHelper
   def build_stub_aws_client(klass, api_request_log = [])
     client = klass.new(
-      region: Broadside.config.aws.region,
+      region: Broadside.config.ecs.region,
       credentials: Aws::Credentials.new('access', 'secret'),
       stub_responses: true
     )

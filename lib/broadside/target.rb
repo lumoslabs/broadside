@@ -39,9 +39,9 @@ module Broadside
       @name = name
       config = options.deep_dup
       @bootstrap_commands = config.delete(:bootstrap_commands)
-      @cluster = config.delete(:cluster) || Broadside.config.ecs.cluster
+      @cluster = config.delete(:cluster) || Broadside.config.ecs.default_cluster
       @command = config.delete(:command)
-      @docker_image = config.delete(:docker_image) || Broadside.config.docker_image
+      @docker_image = config.delete(:docker_image) || Broadside.config.default_docker_image
       @predeploy_commands = config.delete(:predeploy_commands)
       @scale = config.delete(:scale)
       @service_config = config.delete(:service_config)
@@ -83,7 +83,7 @@ module Broadside
       }
     end
 
-    
+
     def check_service_and_task_definition!
       check_task_definition!
       check_service!

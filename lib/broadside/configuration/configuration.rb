@@ -5,14 +5,11 @@ module Broadside
     include ActiveModel::Model
     include LoggingUtils
 
-    attr_reader(
-      :targets,
-      :type
-    )
+    attr_reader :targets
     attr_accessor(
       :application,
       :config_file,
-      :docker_image,
+      :default_docker_image,
       :logger,
       :prehook,
       :posthook,
@@ -23,13 +20,11 @@ module Broadside
     validates :application, :targets, :logger, presence: true
 
     validates_each(:ecs) do |record, attr, val|
-      record.errors.add(attr, 'invalid poll_frequency') unless val && val.poll_frequency.is_a?(Integer)
-    end
-    validates_each(:aws) do |record, attr, val|
-      [:region, :credentials].each do |property|
+      [:credentials, :poll_frequency, :region].each do |property|
         record.errors.add(attr, "invalid #{property}") unless val && val.public_send(property)
       end
     end
+
     validates_each(:ssh) do |record, attr, val|
       record.errors.add(attr, 'is not a hash') unless val.is_a?(Hash)
 
@@ -44,15 +39,10 @@ module Broadside
       @logger.datetime_format = '%Y-%m-%d_%H:%M:%S'
       @ssh = {}
       @timeout = 600
-      @type = 'ecs'
-    end
-
-    def aws
-      @aws ||= AwsConfig.new
     end
 
     def ecs
-      @ecs ||= EcsConfig.new
+      @ecs ||= EcsConfiguration.new
     end
 
     def ssh_cmd(ip, options = {})

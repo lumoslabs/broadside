@@ -11,11 +11,8 @@ describe Broadside::Configuration do
     expect { Broadside.config.get_target_by_name!('barf') }.to raise_error(ArgumentError)
   end
 
-  it 'should raise an error when missing aws variables' do
-    expect { Broadside.configure { |config| config.aws.region = nil } }.to raise_error(ArgumentError)
-  end
-
-  it 'should raise an error when ecs.poll_frequency is invalid' do
+  it 'should raise an error when ecs is misconfigured' do
+    expect { Broadside.configure { |config| config.ecs.region = nil } }.to raise_error(ArgumentError)
     expect { Broadside.configure { |config| config.ecs.poll_frequency = nil } }.to raise_error(ArgumentError)
   end
 
