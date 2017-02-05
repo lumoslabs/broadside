@@ -20,7 +20,7 @@ module Broadside
 
   def self.configure
     yield config
-    raise ConfigurationError, config.errors.full_messages unless @loading_user_config_file || config.valid?
+    raise ConfigurationError, config.errors.full_messages unless config.valid?
   end
 
   def self.load_config(config_file)
@@ -30,10 +30,12 @@ module Broadside
     begin
       if File.exist?(USER_CONFIG_FILE)
         debug "Loading user configuration from #{USER_CONFIG_FILE}"
-        # Because the user/system config file can be incomplete, we turn validation off.
-        @loading_user_config_file = true
-        load(USER_CONFIG_FILE)
-        @loading_user_config_file = false
+
+        begin
+          load(USER_CONFIG_FILE)
+        rescue ConfigurationError
+          # Rescue because the user/system config file can be incomplete and validation failure is ok.
+        end
       end
 
       debug "Loading application configuration from #{config_file}"
