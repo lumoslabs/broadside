@@ -7,7 +7,7 @@ module Broadside
     extend LoggingUtils
 
     class << self
-      def targets(options)
+      def targets
         table_header = nil
         table_rows = []
 
