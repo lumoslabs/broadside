@@ -10,7 +10,7 @@ module Broadside
     attr_accessor(
       :application,
       :config_file,
-      :docker_image,
+      :default_docker_image,
       :logger,
       :prehook,
       :posthook,

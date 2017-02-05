@@ -23,8 +23,8 @@ Applications using broadside employ a configuration file that looks something li
 ```ruby
 Broadside.configure do |config|
   config.application = 'hello_world'
-  config.docker_image = 'lumoslabs/hello_world'
-  config.ecs.cluster = 'production-cluster'
+  config.default_docker_image = 'lumoslabs/hello_world'
+  config.ecs.default_cluster = 'production-cluster'
   config.targets = {
     production_web: {
       scale: 7,

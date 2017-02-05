@@ -1,8 +1,8 @@
 module Broadside
   class EcsConfig
     attr_accessor(
-      :cluster,
       :credentials,
+      :default_cluster,
       :poll_frequency,
       :region
     )
