@@ -98,7 +98,7 @@ module Broadside
       end
 
       def run_task(cluster, name, command, options = {})
-        raise ArgumentError, "#{command} must be an array" unless command.is_a?(Array)
+        raise ArgumentError, "command: '#{command}' must be an array" unless command.is_a?(Array)
 
         response = ecs.run_task(
           cluster: cluster,

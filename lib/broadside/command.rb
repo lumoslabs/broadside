@@ -65,7 +65,6 @@ module Broadside
         end
 
         task_arns = EcsManager.get_task_arns(cluster, family)
-
         if task_arns.empty?
           output << ["No running tasks found.\n"]
         else

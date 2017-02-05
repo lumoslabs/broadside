@@ -11,6 +11,8 @@ module Broadside
       @tag = options[:tag] || @target.tag
     end
 
+    private
+
     def image_tag
       raise ArgumentError, "Missing tag!" if @tag.nil?
       "#{@target.docker_image}:#{@tag}"
