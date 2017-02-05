@@ -46,7 +46,7 @@ module Broadside
 
       run_commands(@target.bootstrap_commands, started_by: 'bootstrap')
 
-      if EcsManager.service_exists?(@target.cluster, family)
+      if EcsManager.service_exists?(cluster, family)
         info("Service for #{family} already exists.")
       else
         unless @target.service_config
@@ -54,7 +54,7 @@ module Broadside
         end
 
         info "Service '#{family}' doesn't exist, creating..."
-        EcsManager.create_service(@target.cluster, family, @target.service_config)
+        EcsManager.create_service(cluster, family, @target.service_config)
       end
     end
 
@@ -122,7 +122,7 @@ module Broadside
     end
 
     def check_service!
-      unless EcsManager.service_exists?(@target.cluster, family)
+      unless EcsManager.service_exists?(cluster, family)
         raise Error, "No service for '#{family}'! Please bootstrap or manually configure one."
       end
     end
@@ -134,7 +134,7 @@ module Broadside
 
     def get_running_instance_ip!
       check_service_and_task_definition!
-      EcsManager.get_running_instance_ips!(@target.cluster, family).fetch(@instance)
+      EcsManager.get_running_instance_ips!(cluster, family).fetch(@instance)
     end
 
     # Creates a new task revision using current directory's env vars, provided tag, and @target.task_definition_config
@@ -164,7 +164,7 @@ module Broadside
       debug "Updating #{family} with scale=#{@scale} using task_definition #{task_definition_arn}..."
 
       update_service_response = EcsManager.ecs.update_service({
-        cluster: @target.cluster,
+        cluster: cluster,
         desired_count: @scale,
         service: family,
         task_definition: task_definition_arn
@@ -174,7 +174,7 @@ module Broadside
         raise Error, "Failed to update service:\n#{update_service_response.pretty_inspect}"
       end
 
-      EcsManager.ecs.wait_until(:services_stable, cluster: @target.cluster, services: [family]) do |w|
+      EcsManager.ecs.wait_until(:services_stable, cluster: cluster, services: [family]) do |w|
         timeout = Broadside.config.timeout
         w.delay = Broadside.config.ecs.poll_frequency
         w.max_attempts = timeout ? timeout / w.delay : Float::INFINITY
@@ -198,10 +198,10 @@ module Broadside
       begin
         commands.each do |command|
           command_name = "'#{command.join(' ')}'"
-          task_arn = EcsManager.run_task(@target.cluster, family, command, options).tasks[0].task_arn
+          task_arn = EcsManager.run_task(cluster, family, command, options).tasks[0].task_arn
           info "Launched #{command_name} task #{task_arn}, waiting for completion..."
 
-          EcsManager.ecs.wait_until(:tasks_stopped, { cluster: @target.cluster, tasks: [task_arn] }) do |w|
+          EcsManager.ecs.wait_until(:tasks_stopped, cluster: cluster, tasks: [task_arn]) do |w|
             w.max_attempts = nil
             w.delay = Broadside.config.ecs.poll_frequency
             w.before_attempt do |attempt|
@@ -209,11 +209,11 @@ module Broadside
             end
           end
 
+          exit_status = EcsManager.get_task_exit_status(cluster, task_arn, family)
+          raise Error, "#{command_name} task #{task_arn} failed to start:\n'#{exit_status[:reason]}'" if exit_status[:exit_code].nil?
+          raise Error, "#{command_name} task #{task_arn} failed with non-zero exit code: #{exit_status[:exit_code]}!" unless exit_status[:exit_code].zero?
+
           info "#{command_name} task container logs:\n#{get_container_logs(task_arn)}"
-
-          exit_code = EcsManager.get_task_exit_code(@target.cluster, task_arn, family)
-          raise Error, "#{command_name} task #{task_arn} exit code: #{exit_code}!" unless exit_code.zero?
-
           info "#{command_name} task #{task_arn} complete"
         end
       ensure
@@ -222,7 +222,7 @@ module Broadside
     end
 
     def get_container_logs(task_arn)
-      ip = EcsManager.get_running_instance_ips!(@target.cluster, family, task_arn).first
+      ip = EcsManager.get_running_instance_ips!(cluster, family, task_arn).first
       debug "Found IP of container instance: #{ip}"
 
       find_container_id_cmd = "#{Broadside.config.ssh_cmd(ip)} \"docker ps -aqf 'label=com.amazonaws.ecs.task-arn=#{task_arn}'\""
