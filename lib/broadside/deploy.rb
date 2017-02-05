@@ -47,12 +47,8 @@ module Broadside
     end
 
     def image_tag
-      verify(:tag)
+      raise ArgumentError, "Missing tag!" if @tag.nil?
       "#{@target.docker_image}:#{@tag}"
-    end
-
-    def verify(var)
-      raise ConfigurationError, "Missing #{self.class.to_s.split('::').last} variable '#{var}'!" if send(var).nil?
     end
   end
 end
