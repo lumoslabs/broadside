@@ -24,13 +24,13 @@ module Broadside
       if EcsManager.get_latest_task_definition_arn(family)
         info "Task definition for #{family} already exists."
       else
-        raise ConfigurationError, "No :task_definition_config in target" unless @target.task_definition_config
+        raise ConfigurationError, "No :task_definition_config for #{family}" unless @target.task_definition_config
         info "Creating an initial task definition for '#{family}' from the config..."
 
         EcsManager.ecs.register_task_definition(
           @target.task_definition_config.merge(
             family: family,
-            container_definitions: [DEFAULT_CONTAINER_DEFINITION.merge(container_definition)]
+            container_definitions: [DEFAULT_CONTAINER_DEFINITION.merge(configured_container_definition)]
           )
         )
       end
@@ -40,7 +40,7 @@ module Broadside
       if EcsManager.service_exists?(cluster, family)
         info("Service for #{family} already exists.")
       else
-        raise ConfigurationError, "No :service_config in target" unless @target.service_config
+        raise ConfigurationError, "No :service_config for #{family}" unless @target.service_config
         info "Service '#{family}' doesn't exist, creating..."
         EcsManager.create_service(cluster, family, @target.service_config)
       end
@@ -86,12 +86,8 @@ module Broadside
           end
 
           exit_status = EcsManager.get_task_exit_status(cluster, task_arn, family)
-          if exit_status[:exit_code].nil?
-            raise EcsError, "#{command_name} task #{task_arn} failed:\n'#{exit_status[:reason]}'"
-          end
-          unless exit_status[:exit_code].zero?
-            raise EcsError, "#{command_name} task #{task_arn} nonzero exit code: #{exit_status[:exit_code]}!"
-          end
+          raise EcsError, "#{command_name} failed to start:\n'#{exit_status[:reason]}'" if exit_status[:exit_code].nil?
+          raise EcsError, "#{command_name} nonzero exit code: #{exit_status[:exit_code]}!" unless exit_status[:exit_code].zero?
 
           info "#{command_name} task container logs:\n#{get_container_logs(task_arn)}"
           info "#{command_name} task #{task_arn} complete"
@@ -102,6 +98,21 @@ module Broadside
     end
 
     private
+
+    def deploy
+      @target.check_service!
+      update_task_revision
+
+      begin
+        update_service
+      rescue SignalException::Interrupt, StandardError => e
+        msg = e.is_a?(SignalException::Interrupt) ? 'Caught interrupt signal' : "#{e.class}: #{e.message}"
+        error "#{msg}, rolling back..."
+        rollback
+        error 'Deployment did not finish successfully.'
+        raise e
+      end
+    end
 
     # Creates a new task revision using current directory's env vars, provided tag, and @target.task_definition_config
     def update_task_revision
@@ -116,7 +127,7 @@ module Broadside
       raise Error, 'Can only update one container definition!' if updatable_container_definitions.size != 1
 
       # Deep merge doesn't work well with arrays (e.g. container_definitions), so build the container first.
-      updatable_container_definitions.first.merge!(container_definition)
+      updatable_container_definitions.first.merge!(configured_container_definition)
       revision.deep_merge!((@target.task_definition_config || {}).except(:container_definitions))
 
       task_definition = EcsManager.ecs.register_task_definition(revision).task_definition
@@ -180,7 +191,7 @@ module Broadside
       logs
     end
 
-    def container_definition
+    def configured_container_definition
       configured_containers = (@target.task_definition_config || {})[:container_definitions]
 
       if configured_containers && configured_containers.size > 1
@@ -193,21 +204,6 @@ module Broadside
         environment: @target.ecs_env_vars,
         image: image_tag
       )
-    end
-
-    def deploy
-      @target.check_service!
-      update_task_revision
-
-      begin
-        update_service
-      rescue SignalException::Interrupt, StandardError => e
-        msg = e.is_a?(SignalException::Interrupt) ? 'Caught interrupt signal' : "#{e.class}: #{e.message}"
-        error "#{msg}, rolling back..."
-        rollback
-        error 'Deployment did not finish successfully.'
-        raise e
-      end
     end
   end
 end
