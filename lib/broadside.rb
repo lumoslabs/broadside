@@ -24,7 +24,7 @@ module Broadside
   end
 
   def self.load_config(config_file)
-    raise ConfigurationError, "#{config_file} does not exist" unless File.exist?(config_file)
+    raise ArgumentError, "#{config_file} does not exist" unless File.exist?(config_file)
     config.config_file = config_file
 
     begin
