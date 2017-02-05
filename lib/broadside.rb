@@ -21,6 +21,7 @@ module Broadside
 
   def self.configure
     yield config
+    raise ArgumentError, config.errors.full_messages unless @loading_user_config_file || config.valid?
   end
 
   def self.load_config(config_file)
@@ -28,17 +29,20 @@ module Broadside
 
     config.config_file = config_file
     begin
-      [USER_CONFIG_FILE, config_file].each do |file|
-        next unless File.exist?(file)
-        debug "Loading config from #{file}"
-        load file
+      if File.exist?(USER_CONFIG_FILE)
+        debug "Loading user configuration from #{USER_CONFIG_FILE}"
+        # Because the user/system config file can be incomplete, we turn validation off.
+        @loading_user_config_file = true
+        load(USER_CONFIG_FILE)
+        @loading_user_config_file = false
       end
+
+      debug "Loading application configuration from #{config_file}"
+      load(config_file)
     rescue LoadError
       error 'Encountered an error loading broadside configuration'
       raise
     end
-
-    raise ArgumentError, config.errors.full_messages unless config.valid?
   end
 
   def self.config
