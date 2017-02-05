@@ -54,13 +54,13 @@ module Broadside
       @service_config = config.delete(:service_config)
       @task_definition_config = config.delete(:task_definition_config)
 
-      raise ArgumentError, errors.full_messages unless valid?
-      raise ArgumentError, "Target #{@name} was configured with invalid options: #{config}" unless config.empty?
+      raise ConfigurationError, errors.full_messages unless valid?
+      raise ConfigurationError, "Target #{@name} was configured with invalid options: #{config}" unless config.empty?
     end
 
     def ecs_env_vars
       @env_vars ||= @env_files.inject({}) do |memo, env_file|
-        raise ArgumentError, "#{env_file} does not exist!" unless env_file.exist?
+        raise ConfigurationError, "#{env_file} does not exist!" unless env_file.exist?
 
         begin
           memo.merge(Dotenv.load(env_file))

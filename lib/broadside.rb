@@ -21,11 +21,11 @@ module Broadside
 
   def self.configure
     yield config
-    raise ArgumentError, config.errors.full_messages unless @loading_user_config_file || config.valid?
+    raise ConfigurationError, config.errors.full_messages unless @loading_user_config_file || config.valid?
   end
 
   def self.load_config(config_file)
-    raise ArgumentError, "#{config_file} does not exist" unless File.exist?(config_file)
+    raise ConfigurationError, "#{config_file} does not exist" unless File.exist?(config_file)
 
     config.config_file = config_file
     begin

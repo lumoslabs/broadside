@@ -60,7 +60,7 @@ end
 
 on_error do |exception|
   case exception
-  when Broadside::MissingVariableError
+  when Broadside::ConfigurationError
     error exception.message, "Run your last command with --help for more information."
     false # false skips default error handling
   else

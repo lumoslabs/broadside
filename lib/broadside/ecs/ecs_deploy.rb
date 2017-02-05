@@ -30,7 +30,7 @@ module Broadside
         info "Task definition for #{family} already exists."
       else
         unless @target.task_definition_config
-          raise ArgumentError, "No first task definition and no :task_definition_config in '#{family}' configuration"
+          raise ConfigurationError, "No task definition and no :task_definition_config in '#{family}' configuration"
         end
 
         info "Creating an initial task definition for '#{family}' from the config..."
@@ -49,7 +49,7 @@ module Broadside
         info("Service for #{family} already exists.")
       else
         unless @target.service_config
-          raise ArgumentError, "Service doesn't exist and no :service_config in '#{family}' configuration"
+          raise ConfigurationError, "Service doesn't exist and no :service_config in '#{family}' configuration"
         end
 
         info "Service '#{family}' doesn't exist, creating..."
