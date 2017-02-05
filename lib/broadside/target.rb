@@ -42,6 +42,11 @@ module Broadside
       @cluster = config.delete(:cluster) || Broadside.config.ecs.cluster
       @command = config.delete(:command)
       @docker_image = config.delete(:docker_image) || Broadside.config.docker_image
+      @predeploy_commands = config.delete(:predeploy_commands)
+      @scale = config.delete(:scale)
+      @service_config = config.delete(:service_config)
+      @task_definition_config = config.delete(:task_definition_config)
+
       @env_files = Array.wrap(config.delete(:env_files) || config.delete(:env_file)).map do |env_path|
         env_file = Pathname.new(env_path)
         next env_file if env_file.absolute?
@@ -49,21 +54,17 @@ module Broadside
         dir = Broadside.config.config_file ? Pathname.new(Broadside.config.config_file).dirname : Dir.pwd
         env_file.expand_path(dir)
       end
-      @predeploy_commands = config.delete(:predeploy_commands)
-      @scale = config.delete(:scale)
-      @service_config = config.delete(:service_config)
-      @task_definition_config = config.delete(:task_definition_config)
 
       raise ConfigurationError, errors.full_messages unless valid?
       raise ConfigurationError, "Target #{@name} was configured with invalid options: #{config}" unless config.empty?
     end
 
     def ecs_env_vars
-      @env_vars ||= @env_files.inject({}) do |memo, env_file|
+      @env_vars ||= @env_files.inject({}) do |env_variables, env_file|
         raise ConfigurationError, "#{env_file} does not exist!" unless env_file.exist?
 
         begin
-          memo.merge(Dotenv.load(env_file))
+          env_variables.merge(Dotenv.load(env_file))
         rescue Dotenv::FormatError => e
           raise e.class, "Error parsing #{env_file}: #{e.message}", e.backtrace
         end

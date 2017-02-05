@@ -22,7 +22,7 @@ describe Broadside::EcsDeploy do
 
   describe '#bootstrap' do
     it 'fails without task_definition_config' do
-      expect { deploy.bootstrap }.to raise_error(/No first task definition and no :task_definition_config/)
+      expect { deploy.bootstrap }.to raise_error(Broadside::ConfigurationError, /No task definition/)
     end
 
     context 'with an existing task definition' do
