@@ -4,7 +4,7 @@ require 'aws-sdk'
 
 require 'broadside/error'
 require 'broadside/logging_utils'
-require 'broadside/configuration'
+require 'broadside/configuration/configuration'
 require 'broadside/configuration/aws_config'
 require 'broadside/configuration/ecs_config'
 require 'broadside/command'
@@ -37,6 +37,7 @@ module Broadside
       error 'Encountered an error loading broadside configuration'
       raise
     end
+
     raise ArgumentError, config.errors.full_messages unless config.valid?
   end
 

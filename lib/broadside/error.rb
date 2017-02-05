@@ -1,4 +1,5 @@
 module Broadside
+  class EcsError < StandardError; end
   class MissingVariableError < StandardError; end
 
   class Error < StandardError

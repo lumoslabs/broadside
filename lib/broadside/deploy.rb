@@ -2,18 +2,13 @@ module Broadside
   class Deploy
     include LoggingUtils
 
-    attr_reader :command, :tag, :target
+    attr_reader :tag, :target
     delegate :family, to: :target
     delegate :cluster, to: :target
 
     def initialize(target_name, options = {})
-      @target   = Broadside.config.get_target_by_name!(target_name)
-      @command  = options[:command]  || @target.command
-      @instance = options[:instance] || 0
-      @lines    = options[:lines]    || 10
-      @rollback = options[:rollback] || 1
-      @scale    = options[:scale]    || @target.scale
-      @tag      = options[:tag]      || @target.tag
+      @target = Broadside.config.get_target_by_name!(target_name)
+      @tag = options[:tag] || @target.tag
     end
 
     def short
@@ -31,34 +26,16 @@ module Broadside
     # The `yield` calls are a little weird but this was designed with an eye towards supporting other docker
     # based systems beyond ECS.  That day hasn't come yet, but we didn't think it was worth undoing the structure.
 
-    def rollback(count = @rollback)
+    def rollback(count)
       info "Rolling back #{count} release for #{family}..."
       yield
       info 'Rollback complete.'
     end
 
-    def scale
+    def scale(options = {})
       info "Rescaling #{family} with scale=#{@scale}..."
       yield
       info 'Rescaling complete.'
-    end
-
-    def run
-      verify(:command)
-      info "Running #{command}..."
-      yield
-    end
-
-    def logtail
-      yield
-    end
-
-    def ssh
-      yield
-    end
-
-    def bash
-      yield
     end
 
     private

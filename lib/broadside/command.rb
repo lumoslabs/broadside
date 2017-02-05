@@ -1,34 +1,39 @@
 require 'pp'
+require 'shellwords'
 require 'tty-table'
 
 module Broadside
   module Command
-    class << self
-      def bootstrap(options)
-        EcsDeploy.new(options[:target], options).bootstrap
-      end
+    extend LoggingUtils
 
+    class << self
       def targets(options)
         table_header = nil
         table_rows = []
 
         Broadside.config.targets.each do |_, target|
-          service_tasks_running = Broadside::EcsManager.get_task_arns(target.cluster, target.family, service_name: target.family, desired_status: 'RUNNING').size
-          task_def = Broadside::EcsManager.get_latest_task_definition(target.family)
+          task_definition = Broadside::EcsManager.get_latest_task_definition(target.family)
+          service_tasks_running = Broadside::EcsManager.get_task_arns(
+            target.cluster,
+            target.family,
+            service_name: target.family,
+            desired_status: 'RUNNING'
+          ).size
 
-          if task_def.nil?
+          if task_definition.nil?
             warn "Skipping deploy target '#{target.name}' as it does not have a configured task_definition."
             next
           end
 
-          revision = task_def[:revision]
-          container_def = task_def[:container_definitions].select { |c| c[:name] == target.family }.first
+          container_definitions = task_definition[:container_definitions].select { |c| c[:name] == target.family }
+          warn "Only displaying 1/#{container_definitions.size} containers" if container_definitions.size > 1
+          container_definition = container_definitions.first
 
-          row_data = target.to_h.merge(
-            Image: container_def[:image],
-            CPU: container_def[:cpu],
-            Memory: container_def[:memory],
-            Revision: revision,
+          row_data = target.to_hash.merge(
+            Image: container_definition[:image],
+            CPU: container_definition[:cpu],
+            Memory: container_definition[:memory],
+            Revision: task_definition[:revision],
             Tasks: "#{service_tasks_running}/#{target.scale}"
           )
 
@@ -38,22 +43,6 @@ module Broadside
 
         table = TTY::Table.new(header: table_header, rows: table_rows)
         puts table.render(:ascii, padding: [0, 1])
-      end
-
-      def deploy_short(options)
-        EcsDeploy.new(options[:target], options).short
-      end
-
-      def deploy_full(options)
-        EcsDeploy.new(options[:target], options).full
-      end
-
-      def deploy_scale(options)
-        EcsDeploy.new(options[:target], options).scale
-      end
-
-      def deploy_rollback(options)
-        EcsDeploy.new(options[:target], options).rollback
       end
 
       def status(options)
@@ -76,6 +65,7 @@ module Broadside
         end
 
         task_arns = Broadside::EcsManager.get_task_arns(cluster, family)
+
         if task_arns.empty?
           output << ["No running tasks found.\n"]
         else
@@ -98,19 +88,45 @@ module Broadside
       end
 
       def run(options)
-        EcsDeploy.new(options[:target], options).run
+        EcsDeploy.new(options[:target], options).run_commands([options[:command]], started_by: 'run')
       end
 
       def logtail(options)
-        EcsDeploy.new(options[:target], options).logtail
+        lines = options[:lines] || 10
+        target = Broadside.config.get_target_by_name!(options[:target])
+        ip = get_running_instance_ip!(target.name, *options[:instance])
+        info "Tailing logs for running container at #{ip}..."
+
+        cmd = "docker logs -f --tail=#{lines} `#{docker_ps_cmd(target.family)}`"
+        exec(Broadside.config.ssh_cmd(ip) + " '#{cmd}'")
       end
 
       def ssh(options)
-        EcsDeploy.new(options[:target], options).ssh
+        ip = get_running_instance_ip!(options[:target], *options[:instance])
+        info "Establishing SSH connection to #{ip}..."
+
+        exec(Broadside.config.ssh_cmd(ip))
       end
 
       def bash(options)
-        EcsDeploy.new(options[:target], options).bash
+        target = Broadside.config.get_target_by_name!(options[:target])
+        ip = get_running_instance_ip!(target.name, *options[:instance])
+        info "Running bash for running container at #{ip}..."
+
+        cmd = "docker exec -i -t `#{docker_ps_cmd(target.family)}` bash"
+        exec(Broadside.config.ssh_cmd(ip, tty: true) + " '#{cmd}'")
+      end
+
+      private
+
+      def get_running_instance_ip!(target_name, instance_index = 0)
+        deploy = EcsDeploy.new(target_name)
+        deploy.check_service_and_task_definition!
+        EcsManager.get_running_instance_ips!(deploy.target.cluster, deploy.target.family).fetch(instance_index)
+      end
+
+      def docker_ps_cmd(family)
+        "docker ps -n 1 --quiet --filter name=#{Shellwords.shellescape(family)}"
       end
     end
   end

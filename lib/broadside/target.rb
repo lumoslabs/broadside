@@ -23,15 +23,15 @@ module Broadside
     validates :cluster, :docker_image, :name, presence: true
     validates :scale, numericality: { only_integer: true }
 
-    validates_each :bootstrap_commands, :predeploy_commands, allow_nil: true do |record, attr, val|
+    validates_each(:bootstrap_commands, :predeploy_commands, allow_nil: true) do |record, attr, val|
       record.errors.add(attr, 'is not array of arrays') unless val.is_a?(Array) && val.all? { |v| v.is_a?(Array) }
     end
 
-    validates_each :service_config, :task_definition_config, allow_nil: true do |record, attr, val|
+    validates_each(:service_config, :task_definition_config, allow_nil: true) do |record, attr, val|
       record.errors.add(attr, 'is not a hash') unless val.is_a?(Hash)
     end
 
-    validates_each :command, allow_nil: true do |record, attr, val|
+    validates_each(:command, allow_nil: true) do |record, attr, val|
       record.errors.add(attr, 'is not an array') unless val.is_a?(Array)
     end
 
@@ -74,13 +74,11 @@ module Broadside
       "#{Broadside.config.application}_#{@name}"
     end
 
-    def to_h
+    def to_hash
       {
         Target: @name,
-        Image: "#{@docker_image}:#{@tag}",
-        Cluster: @cluster,
-        CPU: @cpu,
-        Memory: @memory
+        Image: "#{@docker_image}:#{@tag || 'no_tag_configured'}",
+        Cluster: @cluster
       }
     end
   end

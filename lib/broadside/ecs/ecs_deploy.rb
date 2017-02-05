@@ -1,5 +1,4 @@
 require 'open3'
-require 'shellwords'
 
 module Broadside
   class EcsDeploy < Deploy
@@ -58,7 +57,7 @@ module Broadside
       end
     end
 
-    def rollback(count = @rollback)
+    def rollback(count = 1)
       super do
         check_service_and_task_definition!
         begin
@@ -71,123 +70,9 @@ module Broadside
       end
     end
 
-    def scale
+    def scale(options = {})
       super do
-        update_service
-      end
-    end
-
-    def run
-      super do
-        run_commands([@command], started_by: 'run')
-      end
-    end
-
-    def logtail
-      super do
-        ip = get_running_instance_ip!
-        info "Tailing logs for running container at #{ip}..."
-
-        search_pattern = Shellwords.shellescape(family)
-        cmd = "docker logs -f --tail=#{@lines} `docker ps -n 1 --quiet --filter name=#{search_pattern}`"
-        tail_cmd = Broadside.config.ssh_cmd(ip) + " '#{cmd}'"
-        exec(tail_cmd)
-      end
-    end
-
-    def ssh
-      super do
-        ip = get_running_instance_ip!
-        info "Establishing SSH connection to #{ip}..."
-        exec(Broadside.config.ssh_cmd(ip))
-      end
-    end
-
-    def bash
-      super do
-        ip = get_running_instance_ip!
-        info "Running bash for running container at #{ip}..."
-        search_pattern = Shellwords.shellescape(family)
-        cmd = "docker exec -i -t `docker ps -n 1 --quiet --filter name=#{search_pattern}` bash"
-        exec(Broadside.config.ssh_cmd(ip, tty: true) + " '#{cmd}'")
-      end
-    end
-
-    private
-
-    def check_task_definition!
-      unless EcsManager.get_latest_task_definition_arn(family)
-        raise Error, "No task definition for '#{family}'! Please bootstrap or manually configure one."
-      end
-    end
-
-    def check_service!
-      unless EcsManager.service_exists?(cluster, family)
-        raise Error, "No service for '#{family}'! Please bootstrap or manually configure one."
-      end
-    end
-
-    def check_service_and_task_definition!
-      check_task_definition!
-      check_service!
-    end
-
-    def get_running_instance_ip!
-      check_service_and_task_definition!
-      EcsManager.get_running_instance_ips!(cluster, family).fetch(@instance)
-    end
-
-    # Creates a new task revision using current directory's env vars, provided tag, and @target.task_definition_config
-    def update_task_revision
-      check_task_definition!
-      revision = EcsManager.get_latest_task_definition(family).except(
-        :requires_attributes,
-        :revision,
-        :status,
-        :task_definition_arn
-      )
-      updatable_container_definitions = revision[:container_definitions].select { |c| c[:name] == family }
-      raise Error, 'Can only update one container definition!' if updatable_container_definitions.size != 1
-
-      # Deep merge doesn't work well with arrays (e.g. container_definitions), so build the container first.
-      updatable_container_definitions.first.merge!(container_definition)
-      revision.deep_merge!((@target.task_definition_config || {}).except(:container_definitions))
-
-      task_definition = EcsManager.ecs.register_task_definition(revision).task_definition
-      debug "Successfully created #{task_definition.task_definition_arn}"
-    end
-
-    # Reloads the service using the latest task definition and @target.service_config
-    def update_service
-      check_service_and_task_definition!
-      task_definition_arn = EcsManager.get_latest_task_definition_arn(family)
-      debug "Updating #{family} with scale=#{@scale} using task_definition #{task_definition_arn}..."
-
-      update_service_response = EcsManager.ecs.update_service({
-        cluster: cluster,
-        desired_count: @scale,
-        service: family,
-        task_definition: task_definition_arn
-      }.deep_merge(@target.service_config || {}))
-
-      unless update_service_response.successful?
-        raise Error, "Failed to update service:\n#{update_service_response.pretty_inspect}"
-      end
-
-      EcsManager.ecs.wait_until(:services_stable, cluster: cluster, services: [family]) do |w|
-        timeout = Broadside.config.timeout
-        w.delay = Broadside.config.ecs.poll_frequency
-        w.max_attempts = timeout ? timeout / w.delay : Float::INFINITY
-        seen_event_id = nil
-
-        w.before_wait do |attempt, response|
-          info "(#{attempt}/#{w.max_attempts}) Polling ECS for events..."
-          # skip first event since it doesn't apply to current request
-          if response.services[0].events.first && response.services[0].events.first.id != seen_event_id && attempt > 1
-            seen_event_id = response.services[0].events.first.id
-            info response.services[0].events.first.message
-          end
-        end
+        update_service(options)
       end
     end
 
@@ -210,14 +95,93 @@ module Broadside
           end
 
           exit_status = EcsManager.get_task_exit_status(cluster, task_arn, family)
-          raise Error, "#{command_name} task #{task_arn} failed to start:\n'#{exit_status[:reason]}'" if exit_status[:exit_code].nil?
-          raise Error, "#{command_name} task #{task_arn} failed with non-zero exit code: #{exit_status[:exit_code]}!" unless exit_status[:exit_code].zero?
+          if exit_status[:exit_code].nil?
+            raise EcsError, "#{command_name} task #{task_arn} failed to start:\n'#{exit_status[:reason]}'"
+          end
+          unless exit_status[:exit_code].zero?
+            raise EcsError, "#{command_name} task #{task_arn} failed. Non-zero exit code: #{exit_status[:exit_code]}!"
+          end
 
           info "#{command_name} task container logs:\n#{get_container_logs(task_arn)}"
           info "#{command_name} task #{task_arn} complete"
         end
       ensure
         EcsManager.deregister_last_n_tasks_definitions(family, 1)
+      end
+    end
+
+    def check_service_and_task_definition!
+      check_task_definition!
+      check_service!
+    end
+
+    private
+
+    def check_task_definition!
+      unless EcsManager.get_latest_task_definition_arn(family)
+        raise Error, "No task definition for '#{family}'! Please bootstrap or manually configure one."
+      end
+    end
+
+    def check_service!
+      unless EcsManager.service_exists?(cluster, family)
+        raise Error, "No service for '#{family}'! Please bootstrap or manually configure one."
+      end
+    end
+
+    # Creates a new task revision using current directory's env vars, provided tag, and @target.task_definition_config
+    def update_task_revision
+      check_task_definition!
+      revision = EcsManager.get_latest_task_definition(family).except(
+        :requires_attributes,
+        :revision,
+        :status,
+        :task_definition_arn
+      )
+      updatable_container_definitions = revision[:container_definitions].select { |c| c[:name] == family }
+      raise Error, 'Can only update one container definition!' if updatable_container_definitions.size != 1
+
+      # Deep merge doesn't work well with arrays (e.g. container_definitions), so build the container first.
+      updatable_container_definitions.first.merge!(container_definition)
+      revision.deep_merge!((@target.task_definition_config || {}).except(:container_definitions))
+
+      task_definition = EcsManager.ecs.register_task_definition(revision).task_definition
+      debug "Successfully created #{task_definition.task_definition_arn}"
+    end
+
+    def update_service(options = {})
+      scale = options[:scale] || @target.scale
+      raise ArgumentError, ':scale not provided' unless scale
+
+      check_service_and_task_definition!
+      task_definition_arn = EcsManager.get_latest_task_definition_arn(family)
+      debug "Updating #{family} with scale=#{scale} using task_definition #{task_definition_arn}..."
+
+      update_service_response = EcsManager.ecs.update_service({
+        cluster: cluster,
+        desired_count: scale,
+        service: family,
+        task_definition: task_definition_arn
+      }.deep_merge(@target.service_config || {}))
+
+      unless update_service_response.successful?
+        raise EcsError, "Failed to update service:\n#{update_service_response.pretty_inspect}"
+      end
+
+      EcsManager.ecs.wait_until(:services_stable, cluster: cluster, services: [family]) do |w|
+        timeout = Broadside.config.timeout
+        w.delay = Broadside.config.ecs.poll_frequency
+        w.max_attempts = timeout ? timeout / w.delay : nil
+        seen_event_id = nil
+
+        w.before_wait do |attempt, response|
+          info "(#{attempt}/#{w.max_attempts || Float::INFINITY}) Polling ECS for events..."
+          # skip first event since it doesn't apply to current request
+          if response.services[0].events.first && response.services[0].events.first.id != seen_event_id && attempt > 1
+            seen_event_id = response.services[0].events.first.id
+            info response.services[0].events.first.message
+          end
+        end
       end
     end
 
@@ -251,7 +215,7 @@ module Broadside
 
       (configured_containers.try(:first) || {}).merge(
         name: family,
-        command: @command,
+        command: @target.command,
         environment: @target.ecs_env_vars,
         image: image_tag
       )
