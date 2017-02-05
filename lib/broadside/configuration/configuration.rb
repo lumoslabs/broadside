@@ -32,7 +32,7 @@ module Broadside
     end
 
     def initialize
-      @ecs ||= EcsConfiguration.new
+      @ecs = EcsConfiguration.new
       @logger = ::Logger.new(STDOUT)
       @logger.level = ::Logger::INFO
       @logger.datetime_format = '%Y-%m-%d_%H:%M:%S'

@@ -3,8 +3,7 @@ module Broadside
     include LoggingUtils
 
     attr_reader :target
-    delegate :cluster, to: :target
-    delegate :family, to: :target
+    delegate :cluster, :family, to: :target
 
     def initialize(target_name, options = {})
       @target = Broadside.config.get_target_by_name!(target_name)
@@ -14,7 +13,7 @@ module Broadside
     private
 
     def image_tag
-      raise ArgumentError, "Missing tag!" if @tag.nil?
+      raise ArgumentError, "Missing tag!" unless @tag
       "#{@target.docker_image}:#{@tag}"
     end
   end
