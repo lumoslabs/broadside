@@ -2,7 +2,7 @@ module Broadside
   class Deploy
     include LoggingUtils
 
-    attr_reader :tag, :target
+    attr_reader :target
     delegate :cluster, to: :target
     delegate :family, to: :target
 
