@@ -18,12 +18,7 @@ module Broadside
     )
 
     validates :application, :targets, :logger, presence: true
-
-    validates_each(:ecs) do |record, attr, val|
-      [:credentials, :poll_frequency, :region].each do |property|
-        record.errors.add(attr, "invalid #{property}") unless val && val.public_send(property)
-      end
-    end
+    validates_each(:ecs) { |_, _, val| val.validate }
 
     validates_each(:ssh) do |record, attr, val|
       record.errors.add(attr, 'is not a hash') unless val.is_a?(Hash)
