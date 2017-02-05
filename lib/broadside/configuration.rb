@@ -6,7 +6,6 @@ module Broadside
     include LoggingUtils
 
     attr_reader :targets
-
     attr_accessor(
       :application,
       :config_file,
@@ -38,12 +37,8 @@ module Broadside
       @timeout = 600
     end
 
-    def aws
-      @aws ||= AwsConfig.new
-    end
-
     def ecs
-      @ecs ||= EcsConfig.new
+      @ecs ||= EcsConfiguration.new
     end
 
     def ssh_cmd(ip, options = {})

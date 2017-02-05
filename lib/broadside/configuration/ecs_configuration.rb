@@ -1,5 +1,5 @@
 module Broadside
-  class EcsConfig
+  class EcsConfiguration
     attr_accessor(
       :credentials,
       :default_cluster,
