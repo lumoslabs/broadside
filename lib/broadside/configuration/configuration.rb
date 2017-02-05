@@ -40,6 +40,19 @@ module Broadside
       @ecs ||= EcsConfiguration.new
     end
 
+    # Transform deploy target configs to Target objects
+    def targets=(_targets)
+      raise ConfigurationError, ":targets must be a hash" unless _targets.is_a?(Hash)
+
+      @targets = _targets.inject({}) do |h, (target_name, config)|
+        h.merge(target_name => Target.new(target_name, config))
+      end
+    end
+
+    def get_target_by_name!(name)
+      @targets.fetch(name) { raise ArgumentError, "Deploy target '#{name}' does not exist!" }
+    end
+
     def ssh_cmd(ip, options = {})
       cmd = 'ssh -o StrictHostKeyChecking=no'
       cmd << ' -t -t' if options[:tty]
@@ -55,19 +68,6 @@ module Broadside
       cmd << "#{@ssh[:user]}@" if @ssh[:user]
       cmd << ip.to_s
       cmd
-    end
-
-    # Transform deploy target configs to Target objects
-    def targets=(_targets)
-      raise ConfigurationError, ":targets must be a hash" unless _targets.is_a?(Hash)
-
-      @targets = _targets.inject({}) do |h, (target_name, config)|
-        h.merge(target_name => Target.new(target_name, config))
-      end
-    end
-
-    def get_target_by_name!(name)
-      @targets.fetch(name) { raise ArgumentError, "Deploy target '#{name}' does not exist!" }
     end
   end
 end

@@ -47,7 +47,7 @@ module Broadside
     end
 
     def rollback(count = 1)
-      info "Rolling back #{count} release for #{family}..."
+      info "Rolling back #{count} release(s) for #{family}..."
       @target.check_service_and_task_definition!
 
       begin
