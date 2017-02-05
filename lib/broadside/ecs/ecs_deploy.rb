@@ -95,8 +95,12 @@ module Broadside
           end
 
           exit_status = EcsManager.get_task_exit_status(cluster, task_arn, family)
-          raise Error, "#{command_name} task #{task_arn} failed to start:\n'#{exit_status[:reason]}'" if exit_status[:exit_code].nil?
-          raise Error, "#{command_name} task #{task_arn} failed with non-zero exit code: #{exit_status[:exit_code]}!" unless exit_status[:exit_code].zero?
+          if exit_status[:exit_code].nil?
+            raise EcsError, "#{command_name} task #{task_arn} failed to start:\n'#{exit_status[:reason]}'"
+          end
+          unless exit_status[:exit_code].zero?
+            raise EcsError, "#{command_name} task #{task_arn} failed. Non-zero exit code: #{exit_status[:exit_code]}!"
+          end
 
           info "#{command_name} task container logs:\n#{get_container_logs(task_arn)}"
           info "#{command_name} task #{task_arn} complete"
@@ -161,7 +165,7 @@ module Broadside
       }.deep_merge(@target.service_config || {}))
 
       unless update_service_response.successful?
-        raise Error, "Failed to update service:\n#{update_service_response.pretty_inspect}"
+        raise EcsError, "Failed to update service:\n#{update_service_response.pretty_inspect}"
       end
 
       EcsManager.ecs.wait_until(:services_stable, cluster: cluster, services: [family]) do |w|

@@ -116,7 +116,7 @@ module Broadside
         )
 
         unless response.successful? && response.tasks.try(:[], 0)
-          raise Error, "Failed to run '#{command.join(' ')}' task:\n#{response.pretty_inspect}"
+          raise EcsError, "Failed to run task '#{command.join(' ')}' task:\n#{response.pretty_inspect}"
         end
 
         response

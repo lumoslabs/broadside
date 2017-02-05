@@ -171,7 +171,7 @@ describe Broadside::EcsDeploy do
 
         it 'raises an error displaying the failure reason' do
           expect(ecs_stub).to receive(:wait_until)
-          expect { deploy.run_commands(commands) }.to raise_error(Broadside::Error, /#{reason}/)
+          expect { deploy.run_commands(commands) }.to raise_error(Broadside::EcsError, /#{reason}/)
         end
       end
 
@@ -180,7 +180,7 @@ describe Broadside::EcsDeploy do
 
         it 'raises an error and displays the exit code' do
           expect(ecs_stub).to receive(:wait_until)
-          expect { deploy.run_commands(commands) }.to raise_error(Broadside::Error, /#{exit_code}/)
+          expect { deploy.run_commands(commands) }.to raise_error(Broadside::EcsError, /#{exit_code}/)
         end
       end
     end
