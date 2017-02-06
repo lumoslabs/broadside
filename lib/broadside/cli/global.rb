@@ -40,7 +40,7 @@ def call_hook(type, command)
 end
 
 pre do |global, command, options, args|
-  Broadside.load_config(global[:config])
+  Broadside.load_config_file(global[:config])
 
   if global[:debug]
     Broadside.config.logger.level = ::Logger::DEBUG
