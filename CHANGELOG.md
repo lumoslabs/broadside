@@ -27,6 +27,7 @@
 - Default loglevel changed to INFO
 - [#21](https://github.com/lumoslabs/broadside/issues/21) Print more useful messages when tasks die without exit codes.
 - `Command` class to encapsulate the running of various commands
+- Failed deploys will rollback to the last previously deployed scale
 
 # 2.0.0
 #### Breaking Changes

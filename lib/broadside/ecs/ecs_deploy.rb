@@ -49,13 +49,14 @@ module Broadside
       end
     end
 
-    def rollback(count = 1)
+    def rollback(options = {})
+      count = options[:rollback] || 1
       info "Rolling back #{count} release(s) for #{family}..."
       @target.check_ecs_service_and_task_definition_state!
 
       begin
         EcsManager.deregister_last_n_tasks_definitions(family, count)
-        update_service
+        update_service(options)
       rescue StandardError
         error 'Rollback failed to complete!'
         raise
@@ -105,13 +106,14 @@ module Broadside
     def deploy
       @target.check_ecs_service_state!
       update_task_revision
+      rollback_scale = EcsManager.ecs.describe_services(cluster: cluster, services: [family]).services.first[:desired_count]
 
       begin
         update_service
-      rescue SignalException::Interrupt, StandardError => e
-        msg = e.is_a?(SignalException::Interrupt) ? 'Caught interrupt signal' : "#{e.class}: #{e.message}"
+      rescue Interrupt, StandardError => e
+        msg = e.is_a?(Interrupt) ? 'Caught interrupt signal' : "#{e.class}: #{e.message}"
         error "#{msg}, rolling back..."
-        rollback
+        rollback(scale: rollback_scale)
         error 'Deployment did not finish successfully.'
         raise e
       end
