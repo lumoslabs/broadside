@@ -32,9 +32,12 @@ module Broadside
     end
 
     validates_each(:task_definition_config, allow_nil: true) do |record, attr, val|
-      record.errors.add(attr, 'is not a hash') unless val.is_a?(Hash)
-      if val[:container_definitions] && val[:container_definitions].size > 1
-        record.errors.add(attr, 'specifies > 1 container definition but this is not supported yet')
+      if val.is_a?(Hash)
+        if val[:container_definitions] && val[:container_definitions].size > 1
+          record.errors.add(attr, 'specifies > 1 container definition but this is not supported yet')
+        end
+      else
+        record.errors.add(attr, 'is not a hash')
       end
     end
 

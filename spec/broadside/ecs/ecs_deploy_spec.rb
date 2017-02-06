@@ -4,10 +4,9 @@ describe Broadside::EcsDeploy do
   include_context 'deploy configuration'
   include_context 'ecs stubs'
 
-  let(:family) { deploy.target.family }
   let(:target) { Broadside::Target.new(test_target_name, test_target_config) }
-  let(:local_deploy_config) { { target: test_target_name } }
-  let(:deploy) { described_class.new(local_deploy_config.merge(tag: 'tag_the_bag')) }
+  let(:deploy) { described_class.new(target: test_target_name, tag: 'tag_the_bag') }
+  let(:family) { deploy.family }
   let(:desired_count) { 2 }
   let(:cpu) { 1 }
   let(:memory) { 2000 }
@@ -36,7 +35,7 @@ describe Broadside::EcsDeploy do
         let(:local_target_config) { { service_config: service_config } }
 
         it 'sets up the service' do
-          expect(Broadside::EcsManager).to receive(:create_service).with(cluster, family, service_config)
+          expect(Broadside::EcsManager).to receive(:create_service).with(cluster, deploy.family, service_config)
           expect { deploy.bootstrap }.to_not raise_error
         end
       end
@@ -63,7 +62,7 @@ describe Broadside::EcsDeploy do
 
   describe '#deploy' do
     it 'fails without an existing service' do
-      expect { deploy.short }.to raise_error(/No service for '#{deploy.target.family}'!/)
+      expect { deploy.short }.to raise_error(/No service for '#{deploy.family}'!/)
     end
 
     context 'with an existing service' do
