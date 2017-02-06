@@ -104,9 +104,8 @@ module Broadside
     private
 
     def deploy
-      @target.check_ecs_service_state!
+      current_scale = @target.current_ecs_scale
       update_task_revision
-      current_service = EcsManager.ecs.describe_services(cluster: cluster, services: [family]).services.first
 
       begin
         update_service
@@ -114,7 +113,7 @@ module Broadside
         msg = e.is_a?(Interrupt) ? 'Caught interrupt signal' : "#{e.class}: #{e.message}"
         error "#{msg}, rolling back..."
         # In case of failure during deploy, rollback to the previously configured scale
-        rollback(scale: current_service[:desired_count])
+        rollback(scale: current_scale)
         error 'Deployment did not finish successfully.'
         raise e
       end

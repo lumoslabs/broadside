@@ -110,5 +110,10 @@ module Broadside
         raise Error, "No service for '#{family}'! Please bootstrap or manually configure one."
       end
     end
+
+    def current_ecs_scale
+      check_ecs_service_state!
+      EcsManager.ecs.describe_services(cluster: cluster, services: [family]).services.first[:desired_count]
+    end
   end
 end
