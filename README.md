@@ -1,11 +1,11 @@
 # Broadside [![Build Status](https://travis-ci.org/lumoslabs/broadside.svg?branch=master)](https://travis-ci.org/lumoslabs/broadside)
 
-A [GLI](https://github.com/davetron5000/gli) based command-line tool for deploying applications on AWS EC2 Container Service (ECS)
+A [GLI](https://github.com/davetron5000/gli) based command-line tool for deploying applications on [AWS EC2 Container Service (ECS)](https://aws.amazon.com/ecs/)
 
 ## Overview
-Amazon ECS presents a low barrier to entry for production-level docker applications. Combined with ECS's built-in blue-green deployment, Elastic Load Balancers, Autoscale Groups, and CloudWatch, one can set up a robust cluster that can scale to serve any number of applications in a short amount of time. Broadside seeks to leverage these benefits and improve the deployment process for developers.
+Amazon ECS presents a low barrier to entry for production-level docker applications. Combined with ECS's built-in blue-green deployment, Elastic Load Balancers, Autoscale Groups, and CloudWatch, one can theoretically set up a robust cluster that can scale to serve any number of applications in a short amount of time. The ECS GUI, CLI, overall architecture are not the easiest to work with, however, so Broadside seeks to leverage the [ECS ruby API](http://docs.aws.amazon.com/sdkforruby/api/Aws/ECS.html) to dramatically simplify and improve the configuration and deployment process for developers, offering a simple command line interface and configuration format that should meet most needs.
 
-Broadside offers a simple command-line interface to perform deployments on ECS. It does not attempt to handle operational tasks like infrastructure setup and configuration, which are better suited for tools like [terraform](https://www.terraform.io/).
+Broadside does _not_ attempt to handle operational tasks like infrastructure setup and configuration, which are better suited to tools like [terraform](https://www.terraform.io/).
 
 ### Things You Can Do With Broadside
 
@@ -13,7 +13,7 @@ Broadside offers a simple command-line interface to perform deployments on ECS. 
 - **Launch a bash shell directly in the remote docker image** - no messing around with tracking down the server, running `docker ps`, and all the other headaches.
 - **SSH directly onto the server running your image**
 - **Run arbitrary commands in a container that is spun up and spun down as you need it**
-- **Get a lot of status information about your running image**
+- **Get a lot of status information about your running image(s)**
 - **Tail the logs of a running container**
 - **Horizontally scale an existing deployment to as many instances as your AWS account can handle**
 
@@ -25,6 +25,7 @@ Broadside.configure do |config|
   config.application = 'hello_world'
   config.default_docker_image = 'lumoslabs/hello_world'
   config.ecs.default_cluster = 'production-cluster'
+  config.ecs.cluster = 'us-east-1'                  # 'us-east-1 is the default
   config.targets = {
     production_web: {
       scale: 7,
@@ -101,7 +102,7 @@ gem install broadside
 For full application setup including tips about setting up your Amazon Web Services, see the [detailed instructions in the wiki](https://github.com/lumoslabs/broadside/wiki).
 
 ## Debugging
-Broadside is pretty terse with its error output; you can get a full stacktrace with `export GLI_DEBUG=true`
+Broadside is pretty terse with its error output; you can get a full stacktrace by running command with `--debug` flag.
 
 ## Contributing
 Pull requests, bug reports, and feature suggestions are welcome! Before starting on a contribution, we recommend opening an issue or replying to an existing one to give others some initial context on the work needing to be done.
