@@ -3,8 +3,6 @@ module Broadside
     include LoggingUtils
 
     attr_reader :target
-    delegate :cluster, to: :target
-    delegate :family, to: :target
 
     def initialize(options = {})
       @target = Broadside.config.get_target_by_name!(options[:target])

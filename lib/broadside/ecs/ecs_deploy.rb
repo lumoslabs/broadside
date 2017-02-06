@@ -2,6 +2,9 @@ require 'open3'
 
 module Broadside
   class EcsDeploy < Deploy
+    delegate :cluster, to: :target
+    delegate :family, to: :target
+
     DEFAULT_CONTAINER_DEFINITION = {
       cpu: 1,
       essential: true,
