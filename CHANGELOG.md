@@ -17,6 +17,7 @@
 - `broadside status` has an added `--verbose` switch that displays service and task information
 - [#11](https://github.com/lumoslabs/broadside/issues/11): Add option for ssh proxy user and proxy keyfile
 - [#2](https://github.com/lumoslabs/broadside/issues/2): Add flag for changing loglevel, and add `--debug` switch that enables GLI debug output
+- Failed deploys will rollback the service to the last successfully running scale
 
 #### General Improvements
 - Only load `env_files` for the selected target (rather than preloading from unrelated targets)
@@ -27,7 +28,6 @@
 - Default loglevel changed to INFO
 - [#21](https://github.com/lumoslabs/broadside/issues/21) Print more useful messages when tasks die without exit codes.
 - `Command` class to encapsulate the running of various commands
-- Failed deploys will rollback to the last previously deployed scale
 
 # 2.0.0
 #### Breaking Changes
