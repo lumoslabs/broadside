@@ -13,7 +13,7 @@ describe Broadside::Configuration do
 
   it 'should raise an error when ecs is misconfigured' do
     expect { Broadside.configure { |config| config.ecs.region = nil } }.to raise_error(ArgumentError)
-    expect { Broadside.configure { |config| config.ecs.poll_frequency = nil } }.to raise_error(ArgumentError)
+    expect { Broadside.configure { |config| config.ecs.poll_frequency = 'poll' } }.to raise_error(ArgumentError)
     expect { Broadside.configure { |config| config.ecs.credentials = 'password' } }.to raise_error(ArgumentError)
   end
 

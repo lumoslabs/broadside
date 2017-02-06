@@ -44,14 +44,15 @@ module Broadside
 
     def initialize(name, options = {})
       @name = name
+
       config = options.deep_dup
-      @bootstrap_commands = config.delete(:bootstrap_commands)
-      @cluster = config.delete(:cluster) || Broadside.config.ecs.default_cluster
-      @command = config.delete(:command)
-      @docker_image = config.delete(:docker_image) || Broadside.config.default_docker_image
-      @predeploy_commands = config.delete(:predeploy_commands)
-      @scale = config.delete(:scale)
-      @service_config = config.delete(:service_config)
+      @bootstrap_commands     = config.delete(:bootstrap_commands)
+      @cluster                = config.delete(:cluster) || Broadside.config.ecs.default_cluster
+      @command                = config.delete(:command)
+      @docker_image           = config.delete(:docker_image) || Broadside.config.default_docker_image
+      @predeploy_commands     = config.delete(:predeploy_commands)
+      @scale                  = config.delete(:scale)
+      @service_config         = config.delete(:service_config)
       @task_definition_config = config.delete(:task_definition_config)
 
       @env_files = Array.wrap(config.delete(:env_files) || config.delete(:env_file)).map do |env_path|
