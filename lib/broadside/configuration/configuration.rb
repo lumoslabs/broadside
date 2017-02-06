@@ -41,10 +41,10 @@ module Broadside
     end
 
     # Transform deploy target configs to Target objects
-    def targets=(_targets)
-      raise ConfigurationError, ":targets must be a hash" unless _targets.is_a?(Hash)
+    def targets=(targets_hash)
+      raise ConfigurationError, ':targets must be a hash' unless targets_hash.is_a?(Hash)
 
-      @targets = _targets.inject({}) do |h, (target_name, config)|
+      @targets = targets_hash.inject({}) do |h, (target_name, config)|
         h.merge(target_name => Target.new(target_name, config))
       end
     end

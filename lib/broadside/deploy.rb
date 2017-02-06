@@ -13,7 +13,7 @@ module Broadside
     private
 
     def image_tag
-      raise ArgumentError, "Missing tag!" unless @tag
+      raise ArgumentError, 'Missing tag!' unless @tag
       "#{@target.docker_image}:#{@tag}"
     end
   end

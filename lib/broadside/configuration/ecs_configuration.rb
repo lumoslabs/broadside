@@ -3,8 +3,8 @@ module Broadside
     include ActiveModel::Model
 
     validates :poll_frequency, :region, presence: true, strict: ConfigurationError
-    validates_each(:credentials) do |record, attr, val|
-      raise ConfigurationError, 'credentials is not an Aws::Credentials' unless val.is_a?(Aws::Credentials)
+    validates_each(:credentials) do |_, _, val|
+      raise ConfigurationError, 'credentials is not of type Aws::Credentials' unless val.is_a?(Aws::Credentials)
     end
 
     attr_accessor(
