@@ -28,7 +28,7 @@ command :bootstrap do |bootstrap|
   add_target_flag(bootstrap)
 
   bootstrap.action do |_, options, _|
-    Broadside::EcsDeploy.new(options[:target], options).bootstrap
+    Broadside::EcsDeploy.new(options).bootstrap
   end
 end
 
@@ -105,7 +105,7 @@ command :deploy do |d|
     add_target_flag(short)
 
     short.action do |_, options, _|
-      Broadside::EcsDeploy.new(options[:target], options).short
+      Broadside::EcsDeploy.new(options).short
     end
   end
 
@@ -115,7 +115,7 @@ command :deploy do |d|
     add_target_flag(full)
 
     full.action do |_, options, _|
-      Broadside::EcsDeploy.new(options[:target], options).full
+      Broadside::EcsDeploy.new(options).full
     end
   end
 
@@ -128,7 +128,7 @@ command :deploy do |d|
     add_target_flag(scale)
 
     scale.action do |_, options, _|
-      Broadside::EcsDeploy.new(options[:target], options).scale(options)
+      Broadside::EcsDeploy.new(options).scale(options)
     end
   end
 
@@ -141,7 +141,7 @@ command :deploy do |d|
     add_target_flag(rollback)
 
     rollback.action do |_, options, _|
-      Broadside::EcsDeploy.new(options[:target], options).rollback(*options[:rollback])
+      Broadside::EcsDeploy.new(options).rollback(*options[:rollback])
     end
   end
 end

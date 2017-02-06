@@ -6,8 +6,8 @@ describe Broadside::EcsDeploy do
 
   let(:family) { deploy.target.family }
   let(:target) { Broadside::Target.new(test_target_name, test_target_config) }
-  let(:local_deploy_config) { {} }
-  let(:deploy) { described_class.new(test_target_name, local_deploy_config.merge(tag: 'tag_the_bag')) }
+  let(:local_deploy_config) { { target: test_target_name } }
+  let(:deploy) { described_class.new(local_deploy_config.merge(tag: 'tag_the_bag')) }
   let(:desired_count) { 2 }
   let(:cpu) { 1 }
   let(:memory) { 2000 }

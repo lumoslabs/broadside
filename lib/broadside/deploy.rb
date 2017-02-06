@@ -6,8 +6,8 @@ module Broadside
     delegate :cluster, to: :target
     delegate :family, to: :target
 
-    def initialize(target_name, options = {})
-      @target = Broadside.config.get_target_by_name!(target_name)
+    def initialize(options = {})
+      @target = Broadside.config.get_target_by_name!(options[:target])
       @tag = options[:tag] || @target.tag
     end
 

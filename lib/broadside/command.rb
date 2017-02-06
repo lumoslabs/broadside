@@ -87,7 +87,7 @@ module Broadside
       end
 
       def run(options)
-        EcsDeploy.new(options[:target], options).run_commands([options[:command]], started_by: 'run')
+        EcsDeploy.new(options).run_commands([options[:command]], started_by: 'run')
       end
 
       def logtail(options)

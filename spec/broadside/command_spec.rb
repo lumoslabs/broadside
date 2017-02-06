@@ -7,7 +7,7 @@ describe Broadside::Command do
   let(:tag) { 'tag_tag' }
   let(:context_deploy_config) { {} }
   let(:deploy_config) { { target: test_target_name }.merge(context_deploy_config) }
-  let(:deploy) { Broadside::EcsDeploy.new(deploy_config[:target], deploy_config) }
+  let(:deploy) { Broadside::EcsDeploy.new(deploy_config) }
   let(:family) { Broadside.config.get_target_by_name!(deploy_config[:target]).family }
 
   describe '#bash' do
