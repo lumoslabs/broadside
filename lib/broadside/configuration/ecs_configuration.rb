@@ -2,7 +2,8 @@ module Broadside
   class EcsConfiguration
     include ActiveModel::Model
 
-    validates :poll_frequency, :region, presence: true, strict: ConfigurationError
+    validates :region, presence: true, strict: ConfigurationError
+    validates :poll_frequency, numericality: { only_integer: true, strict: ConfigurationError }
     validates_each(:credentials) do |_, _, val|
       raise ConfigurationError, 'credentials is not of type Aws::Credentials' unless val.is_a?(Aws::Credentials)
     end
