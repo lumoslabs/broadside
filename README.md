@@ -10,8 +10,8 @@ Broadside does _not_ attempt to handle operational tasks like infrastructure set
 ### Things You Can Do With Broadside
 
 - **Deploy a docker image to an ECS cluster and launch a command as an ECS service**
-- **Launch a bash shell directly in the remote docker image** - no messing around with tracking down the server, running `docker ps`, and all the other headaches.
-- **SSH directly onto the server running your image**
+- **Launch a bash shell directly in the remote docker container** - no messing around with tracking down the server, running `docker ps`, and all the other headaches.
+- **SSH directly onto the container running your image**
 - **Run arbitrary commands in a container that is spun up and spun down as you need it**
 - **Get a lot of status information about your running image(s)**
 - **Tail the logs of a running container**
