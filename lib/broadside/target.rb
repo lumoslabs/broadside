@@ -11,7 +11,6 @@ module Broadside
       :cluster,
       :command,
       :docker_image,
-      :env_files,
       :name,
       :predeploy_commands,
       :scale,
