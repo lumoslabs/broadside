@@ -85,7 +85,7 @@ module Broadside
       "#{Broadside.config.application}_#{@name}"
     end
 
-    def to_hash
+    def to_h
       {
         Target: @name,
         Image: "#{@docker_image}:#{@tag || 'no_tag_configured'}",

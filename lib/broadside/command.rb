@@ -29,7 +29,7 @@ module Broadside
           warn "Only displaying 1/#{container_definitions.size} containers" if container_definitions.size > 1
           container_definition = container_definitions.first
 
-          row_data = target.to_hash.merge(
+          row_data = target.to_h.merge(
             Image: container_definition[:image],
             CPU: container_definition[:cpu],
             Memory: container_definition[:memory],
