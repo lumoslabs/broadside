@@ -69,6 +69,9 @@ In the case of an error or timeout during a deploy, broadside will automatically
 ## Installation
 ### Via Gemfile
 First, install broadside by adding it to your application `Gemfile`:
+```ruby
+gem 'broadside'
+```
 
 Then run
 ```bash
