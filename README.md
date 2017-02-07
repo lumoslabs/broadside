@@ -7,15 +7,14 @@ Amazon ECS presents a low barrier to entry for production-level docker applicati
 
 Broadside offers a simple command-line interface to perform deployments on ECS. It does not attempt to handle operational tasks like infrastructure setup and configuration, which are better suited for tools like [terraform](https://www.terraform.io/).
 
-### Things You Can Do With Broadside
+### Capabilities
 
-- **Deploy a docker image to an ECS cluster and launch a command as an ECS service**
-- **Launch a bash shell directly in the remote docker image** - no messing around with tracking down the server, running `docker ps`, and all the other headaches.
-- **SSH directly onto the server running your image**
-- **Run arbitrary commands in a container that is spun up and spun down as you need it**
-- **Get a lot of status information about your running image**
-- **Tail the logs of a running container**
-- **Horizontally scale an existing deployment to as many instances as your AWS account can handle**
+- **Trigger ECS deployments**
+- **Launch a bash shell directly onto a running container in the cluster**
+- **SSH directly onto a host running a container**
+- **Launch an ECS task running an arbitrary command**
+- **Tail logs of a running container**
+- **Scale an existing deployment on the fly**
 
 ### Example Config for Quickstarters
 Applications using broadside employ a configuration file that looks something like:
@@ -64,16 +63,12 @@ bundle exec broadside deploy full --target production_web --tag v.1.1.example.ta
 
 In the case of an error or timeout during a deploy, broadside will automatically rollback to the latest stable version. You can perform manual rollbacks as well through the command-line.
 
-[For more in depth information on `Broadside` commands, see the complete command-line reference in the wiki](https://github.com/lumoslabs/broadside/wiki/CLI-reference).
+[For more information on broadside commands, see the complete command-line reference in the wiki](https://github.com/lumoslabs/broadside/wiki/CLI-reference).
 
 
 ## Installation
 ### Via Gemfile
 First, install broadside by adding it to your application `Gemfile`:
-
-```ruby
-gem 'broadside'
-```
 
 Then run
 ```bash
@@ -85,23 +80,22 @@ You can now run the executable in your app directory:
 bundle exec broadside --help
 ```
 
-`bundler` can also install binstubs for you - small scripts in the `/bin` directory of your application that will mean you can type `bin/broadside do_something` instead of `bundle exec broadside do_something`.  If you want to save the typing, run:
-
+You may also generate binstubs using
 ```bash
 bundle binstubs broadside
 ```
 
 ### System Wide
-If you are unfamiliar with `bundler` and/or just want to install it for the whole system like a real cowboy, you can just do
+Alternatively, you can install broadside using:
 ```
 gem install broadside
 ```
 
 ## Configuration
-For full application setup including tips about setting up your Amazon Web Services, see the [detailed instructions in the wiki](https://github.com/lumoslabs/broadside/wiki).
+For full application setup, see the [detailed instructions in the wiki](https://github.com/lumoslabs/broadside/wiki).
 
 ## Debugging
-Broadside is pretty terse with its error output; you can get a full stacktrace with `export GLI_DEBUG=true`
+Use the `--debug` switch to enable stacktraces and debug output.
 
 ## Contributing
 Pull requests, bug reports, and feature suggestions are welcome! Before starting on a contribution, we recommend opening an issue or replying to an existing one to give others some initial context on the work needing to be done.
