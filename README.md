@@ -23,8 +23,8 @@ Applications using broadside employ a configuration file that looks something li
 Broadside.configure do |config|
   config.application = 'hello_world'
   config.default_docker_image = 'lumoslabs/hello_world'
-  config.ecs.default_cluster = 'production-cluster'
-  config.ecs.cluster = 'us-east-1'                  # 'us-east-1 is the default
+  config.aws.ecs_default_cluster = 'production-cluster'
+  config.aws.region = 'us-east-1'                  # 'us-east-1 is the default
   config.targets = {
     production_web: {
       scale: 7,

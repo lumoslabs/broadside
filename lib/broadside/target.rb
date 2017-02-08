@@ -49,7 +49,7 @@ module Broadside
 
       config = options.deep_dup
       @bootstrap_commands     = config.delete(:bootstrap_commands)
-      @cluster                = config.delete(:cluster) || Broadside.config.ecs.default_cluster
+      @cluster                = config.delete(:cluster) || Broadside.config.aws.ecs_default_cluster
       @command                = config.delete(:command)
       @docker_image           = config.delete(:docker_image) || Broadside.config.default_docker_image
       @predeploy_commands     = config.delete(:predeploy_commands)

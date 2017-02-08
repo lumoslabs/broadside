@@ -1,6 +1,6 @@
 Broadside.configure do |c|
-  c.ecs.credentials = Aws::Credentials.new('access', 'secret')
-  c.ecs.default_cluster = cluster
+  c.aws.credentials = Aws::Credentials.new('access', 'secret')
+  c.aws.ecs_default_cluster = cluster
   c.application = test_app
   c.default_docker_image = 'rails'
   c.logger.level = Logger::ERROR

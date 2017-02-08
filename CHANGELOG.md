@@ -5,9 +5,8 @@
 - Configuration changes:
   - `config.git_repo=` and `config.type=` were removed.
   - `config.base` and `config.deploy` are no longer backwards compatible - any options configured at `config.base.something` or `config.deploy.something` must now be configured at `config.something`
-  - `config.aws.region` and `config.aws.credentials` are now configured at `config.ecs.region` and `config.ecs.credentials`
+  - `config.ecs.cluster` and `config.ecs.poll_frequency` are now configured at `config.aws.ecs_default_cluster` and `config.aws.ecs_poll_frequency`
   - `config.docker_image` is now `config.default_docker_image`
-  - `config.cluster` is now `config.default_cluster`
   - `instance` can no longer be configured on a per `Target` basis
 
 #### Added Features

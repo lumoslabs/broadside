@@ -7,8 +7,8 @@ module Broadside
 
       def ecs
         @ecs_client ||= Aws::ECS::Client.new(
-          region: Broadside.config.ecs.region,
-          credentials: Broadside.config.ecs.credentials
+          region: Broadside.config.aws.region,
+          credentials: Broadside.config.aws.credentials
         )
       end
 
@@ -160,8 +160,8 @@ module Broadside
 
       def ec2_client
         @ec2_client ||= Aws::EC2::Client.new(
-          region: Broadside.config.ecs.region,
-          credentials: Broadside.config.ecs.credentials
+          region: Broadside.config.aws.region,
+          credentials: Broadside.config.aws.credentials
         )
       end
     end
