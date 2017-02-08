@@ -9,12 +9,12 @@ Broadside offers a simple command-line interface to perform deployments on ECS. 
 
 ### Capabilities
 
-- Trigger ECS deployments
-- Launch a bash shell directly onto a running container in the cluster
-- SSH directly onto a host running a container
-- Launch an ECS task running an arbitrary command
-- Tail logs of a running container
-- Scale an existing deployment on the fly
+- **Trigger** ECS deployments
+- **Launch** a bash shell directly onto a running container in the cluster
+- **SSH** directly onto a host running a container
+- **Launch** an ECS task running an arbitrary command
+- **Tail** logs of a running container
+- **Scale** an existing deployment on the fly
 
 ### Example Config for Quickstarters
 Applications using broadside employ a configuration file that looks something like:
