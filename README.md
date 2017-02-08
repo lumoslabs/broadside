@@ -99,11 +99,7 @@ gem install broadside
 For full application setup, see the [detailed instructions in the wiki](https://github.com/lumoslabs/broadside/wiki).
 
 ## Debugging
-<<<<<<< HEAD
-Broadside is pretty terse with its error output; you can get a full stacktrace by running command with `--debug` flag.
-=======
 Use the `--debug` switch to enable stacktraces and debug output.
->>>>>>> master
 
 ## Contributing
 Pull requests, bug reports, and feature suggestions are welcome! Before starting on a contribution, we recommend opening an issue or replying to an existing one to give others some initial context on the work needing to be done.
