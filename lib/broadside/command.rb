@@ -86,10 +86,6 @@ module Broadside
         puts output.join("\n")
       end
 
-      def run(options)
-        EcsDeploy.new(options).run_commands([options[:command]], started_by: 'run')
-      end
-
       def logtail(options)
         lines = options[:lines] || 10
         target = Broadside.config.get_target_by_name!(options[:target])
