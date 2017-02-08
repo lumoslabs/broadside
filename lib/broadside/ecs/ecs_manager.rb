@@ -127,6 +127,23 @@ module Broadside
         services.failures.empty? && services.services.any?
       end
 
+      def check_service_and_task_definition_state!(target)
+        check_task_definition_state!(target)
+        check_service_state!(target)
+      end
+
+      def check_task_definition_state!(target)
+        unless get_latest_task_definition_arn(target.family)
+          raise Error, "No task definition for '#{target.family}'! Please bootstrap or manually configure one."
+        end
+      end
+
+      def check_service_state!(target)
+        unless service_exists?(target.cluster, target.family)
+          raise Error, "No service for '#{target.family}'! Please bootstrap or manually configure one."
+        end
+      end
+
       private
 
       def all_results(method, key, args = {})

@@ -51,7 +51,7 @@ module Broadside
 
     def rollback(count = 1)
       info "Rolling back #{count} release(s) for #{family}..."
-      @target.check_ecs_service_and_task_definition_state!
+      EcsManager.check_service_and_task_definition_state!(@target)
 
       begin
         EcsManager.deregister_last_n_tasks_definitions(family, count)
@@ -103,7 +103,7 @@ module Broadside
     private
 
     def deploy
-      @target.check_ecs_service_state!
+      EcsManager.check_service_state!(target)
       update_task_revision
 
       begin
@@ -119,7 +119,7 @@ module Broadside
 
     # Creates a new task revision using current directory's env vars, provided tag, and @target.task_definition_config
     def update_task_revision
-      @target.check_ecs_task_definition_state!
+      EcsManager.check_task_definition_state!(target)
       revision = EcsManager.get_latest_task_definition(family).except(
         :requires_attributes,
         :revision,
@@ -141,7 +141,7 @@ module Broadside
       scale = options[:scale] || @target.scale
       raise ArgumentError, ':scale not provided' unless scale
 
-      @target.check_ecs_service_and_task_definition_state!
+      EcsManager.check_service_and_task_definition_state!(target)
       task_definition_arn = EcsManager.get_latest_task_definition_arn(family)
       debug "Updating #{family} with scale=#{scale} using task_definition #{task_definition_arn}..."
 

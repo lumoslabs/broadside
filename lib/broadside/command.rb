@@ -116,7 +116,7 @@ module Broadside
       private
 
       def get_running_instance_ip!(target, instance_index = 0)
-        target.check_ecs_service_and_task_definition_state!
+        EcsManager.check_service_and_task_definition_state!(target)
         EcsManager.get_running_instance_ips!(target.cluster, target.family).fetch(instance_index)
       end
 
