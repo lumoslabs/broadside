@@ -71,7 +71,7 @@ module Broadside
 
     def ecs_env_vars
       @env_vars ||= @env_files.inject({}) do |env_variables, env_file|
-        raise ConfigurationError, "Specified env_file: #{env_file} does not exist!" unless env_file.exist?
+        raise ConfigurationError, "Specified env_file: '#{env_file}' does not exist!" unless env_file.exist?
 
         begin
           env_variables.merge(Dotenv.load(env_file))
