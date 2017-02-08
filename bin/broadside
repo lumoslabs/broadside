@@ -13,6 +13,6 @@ subcommand_option_handling :normal
 arguments :strict
 synopsis_format :full
 
-commands_from File.expand_path(File.join(File.dirname(__FILE__), '/../lib/broadside/cli'))
+commands_from File.expand_path(File.join(File.dirname(__FILE__), '/../lib/broadside/gli'))
 
 exit run(ARGV)
