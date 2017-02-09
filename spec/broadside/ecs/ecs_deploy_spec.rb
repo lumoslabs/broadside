@@ -7,7 +7,7 @@ describe Broadside::EcsDeploy do
   let(:target) { Broadside::Target.new(test_target_name, test_target_config) }
   let(:deploy) { described_class.new(target: test_target_name, tag: 'tag_the_bag') }
   let(:family) { deploy.family }
-  let(:desired_count) { 2 }
+  let(:desired_count) { 4 }
   let(:cpu) { 1 }
   let(:memory) { 2000 }
   let(:service_config) do
@@ -121,6 +121,18 @@ describe Broadside::EcsDeploy do
               expect(deploy).to receive(:run_commands).with(predeploy_commands, started_by: 'predeploy')
               deploy.full
             end
+          end
+        end
+
+        context 'rolling back a failed deploy' do
+          before do
+            Broadside.config.logger.level = Logger::FATAL
+          end
+
+          it 'rolls back to the same scale' do
+            expect(deploy).to receive(:update_service).once.with(no_args).and_raise('fail')
+            expect(deploy).to receive(:update_service).once.with(scale: deployed_scale)
+            expect { deploy.short }.to raise_error(/fail/)
           end
         end
 

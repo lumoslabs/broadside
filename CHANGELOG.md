@@ -15,7 +15,8 @@
 - Add `broadside targets` command to display all the targets' deployed images and CPU/memory allocations
 - `broadside status` has an added `--verbose` switch that displays service and task information
 - [#11](https://github.com/lumoslabs/broadside/issues/11): Add option for ssh proxy user and proxy keyfile
-- [#2](https://github.com/lumoslabs/broadside/issues/2): Add flag for changing logging level and add `--debug` switch that enables GLI debug output
+- [#2](https://github.com/lumoslabs/broadside/issues/2): Add flag for changing loglevel, and add `--debug` switch that enables GLI debug output
+- Failed deploys will rollback the service to the last successfully running scale
 
 #### General Improvements
 - Only load `env_files` for the selected target (rather than preloading from unrelated targets)

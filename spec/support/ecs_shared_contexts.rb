@@ -13,13 +13,16 @@ end
 shared_context 'with a running service' do
   include_context 'ecs stubs'
 
+  let(:deployed_scale) { 2 }
   let(:stub_service_response) do
     {
       services: [
         {
+          desired_count: deployed_scale,
+          running_count: deployed_scale,
           service_name: test_target_name.to_s,
           service_arn: "#{arn}:service/#{test_target_name}",
-          deployments: [{ desired_count: 1, running_count: 1 }]
+          deployments: [{ desired_count: deployed_scale, running_count: deployed_scale }]
         }
       ],
       failures: []

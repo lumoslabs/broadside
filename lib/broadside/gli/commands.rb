@@ -141,7 +141,7 @@ command :deploy do |d|
     add_target_flag(rollback)
 
     rollback.action do |_, options, _|
-      Broadside::EcsDeploy.new(options).rollback(*options[:rollback])
+      Broadside::EcsDeploy.new(options).rollback(options)
     end
   end
 end
