@@ -29,7 +29,7 @@ module Broadside
           warn "Only displaying 1/#{container_definitions.size} containers" if container_definitions.size > 1
           container_definition = container_definitions.first
 
-          row_data = target.to_hash.merge(
+          row_data = target.to_h.merge(
             Image: container_definition[:image],
             CPU: container_definition[:cpu],
             Memory: container_definition[:memory],
@@ -86,10 +86,6 @@ module Broadside
         puts output.join("\n")
       end
 
-      def run(options)
-        EcsDeploy.new(options).run_commands([options[:command]], started_by: 'run')
-      end
-
       def logtail(options)
         lines = options[:lines] || 10
         target = Broadside.config.get_target_by_name!(options[:target])
@@ -120,7 +116,7 @@ module Broadside
       private
 
       def get_running_instance_ip!(target, instance_index = 0)
-        target.check_ecs_service_and_task_definition_state!
+        EcsManager.check_service_and_task_definition_state!(target)
         EcsManager.get_running_instance_ips!(target.cluster, target.family).fetch(instance_index)
       end
 

@@ -30,8 +30,6 @@ describe Broadside::Target do
     it_behaves_like 'valid_configuration?', true,  command: %w(do something)
     it_behaves_like 'valid_configuration?', false, command: 'do something'
 
-    it_behaves_like 'valid_configuration?', false, not_a_param: 'foo'
-
     it_behaves_like 'valid_configuration?', true,  predeploy_commands: nil
     it_behaves_like 'valid_configuration?', false, predeploy_commands: %w(do something)
     it_behaves_like 'valid_configuration?', true,  predeploy_commands: [%w(do something)]

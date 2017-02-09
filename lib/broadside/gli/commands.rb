@@ -61,7 +61,7 @@ command :run do |run|
   add_command_flags(run)
 
   run.action do |_, options, _|
-    Broadside::Command.run(options)
+    EcsDeploy.new(options).run_commands([options[:command]], started_by: 'run')
   end
 end
 

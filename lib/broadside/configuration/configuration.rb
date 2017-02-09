@@ -6,7 +6,7 @@ module Broadside
     include LoggingUtils
 
     attr_reader(
-      :ecs,
+      :aws,
       :targets
     )
     attr_accessor(
@@ -21,7 +21,7 @@ module Broadside
     )
 
     validates :application, :targets, :logger, presence: true
-    validates_each(:ecs) { |_, _, val| val.validate }
+    validates_each(:aws) { |_, _, val| val.validate }
 
     validates_each(:ssh) do |record, attr, val|
       record.errors.add(attr, 'is not a hash') unless val.is_a?(Hash)
@@ -32,7 +32,7 @@ module Broadside
     end
 
     def initialize
-      @ecs = EcsConfiguration.new
+      @aws = AwsConfiguration.new
       @logger = ::Logger.new(STDOUT)
       @logger.level = ::Logger::INFO
       @logger.datetime_format = '%Y-%m-%d_%H:%M:%S'

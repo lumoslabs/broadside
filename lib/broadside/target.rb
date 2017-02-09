@@ -11,7 +11,6 @@ module Broadside
       :cluster,
       :command,
       :docker_image,
-      :env_files,
       :name,
       :predeploy_commands,
       :scale,
@@ -50,7 +49,7 @@ module Broadside
 
       config = options.deep_dup
       @bootstrap_commands     = config.delete(:bootstrap_commands)
-      @cluster                = config.delete(:cluster) || Broadside.config.ecs.default_cluster
+      @cluster                = config.delete(:cluster) || Broadside.config.aws.ecs_default_cluster
       @command                = config.delete(:command)
       @docker_image           = config.delete(:docker_image) || Broadside.config.default_docker_image
       @predeploy_commands     = config.delete(:predeploy_commands)
@@ -67,12 +66,12 @@ module Broadside
       end
 
       raise ConfigurationError, errors.full_messages unless valid?
-      raise ConfigurationError, "Target #{@name} was configured with invalid options: #{config}" unless config.empty?
+      warn "Target #{@name} was configured with invalid/unused options: #{config}" unless config.empty?
     end
 
     def ecs_env_vars
       @env_vars ||= @env_files.inject({}) do |env_variables, env_file|
-        raise ConfigurationError, "Specified env_file: #{env_file} does not exist!" unless env_file.exist?
+        raise ConfigurationError, "Specified env_file: '#{env_file}' does not exist!" unless env_file.exist?
 
         begin
           env_variables.merge(Dotenv.load(env_file))
@@ -86,34 +85,12 @@ module Broadside
       "#{Broadside.config.application}_#{@name}"
     end
 
-    def to_hash
+    def to_h
       {
         Target: @name,
         Image: "#{@docker_image}:#{@tag || 'no_tag_configured'}",
         Cluster: @cluster
       }
-    end
-
-    def check_ecs_service_and_task_definition_state!
-      check_ecs_task_definition_state!
-      check_ecs_service_state!
-    end
-
-    def check_ecs_task_definition_state!
-      unless EcsManager.get_latest_task_definition_arn(family)
-        raise Error, "No task definition for '#{family}'! Please bootstrap or manually configure one."
-      end
-    end
-
-    def check_ecs_service_state!
-      unless EcsManager.service_exists?(cluster, family)
-        raise Error, "No service for '#{family}'! Please bootstrap or manually configure one."
-      end
-    end
-
-    def current_ecs_scale
-      check_ecs_service_state!
-      EcsManager.ecs.describe_services(cluster: cluster, services: [family]).services.first[:desired_count]
     end
   end
 end

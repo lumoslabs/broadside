@@ -52,7 +52,7 @@ module Broadside
     def rollback(options = {})
       count = options[:rollback] || 1
       info "Rolling back #{count} release(s) for #{family}..."
-      @target.check_ecs_service_and_task_definition_state!
+      EcsManager.check_service_and_task_definition_state!(@target)
 
       begin
         EcsManager.deregister_last_n_tasks_definitions(family, count)
@@ -83,7 +83,7 @@ module Broadside
 
           EcsManager.ecs.wait_until(:tasks_stopped, cluster: cluster, tasks: [task_arn]) do |w|
             w.max_attempts = nil
-            w.delay = Broadside.config.ecs.poll_frequency
+            w.delay = Broadside.config.aws.ecs_poll_frequency
             w.before_attempt do |attempt|
               info "Attempt #{attempt}: waiting for #{command_name} to complete..."
             end
@@ -104,7 +104,7 @@ module Broadside
     private
 
     def deploy
-      current_scale = @target.current_ecs_scale
+      current_scale = EcsManager.current_scale(@target)
       update_task_revision
 
       begin
@@ -121,7 +121,7 @@ module Broadside
 
     # Creates a new task revision using current directory's env vars, provided tag, and @target.task_definition_config
     def update_task_revision
-      @target.check_ecs_task_definition_state!
+      EcsManager.check_task_definition_state!(target)
       revision = EcsManager.get_latest_task_definition(family).except(
         :requires_attributes,
         :revision,
@@ -143,7 +143,7 @@ module Broadside
       scale = options[:scale] || @target.scale
       raise ArgumentError, ':scale not provided' unless scale
 
-      @target.check_ecs_service_and_task_definition_state!
+      EcsManager.check_service_and_task_definition_state!(target)
       task_definition_arn = EcsManager.get_latest_task_definition_arn(family)
       debug "Updating #{family} with scale=#{scale} using task_definition #{task_definition_arn}..."
 
@@ -160,7 +160,7 @@ module Broadside
 
       EcsManager.ecs.wait_until(:services_stable, cluster: cluster, services: [family]) do |w|
         timeout = Broadside.config.timeout
-        w.delay = Broadside.config.ecs.poll_frequency
+        w.delay = Broadside.config.aws.ecs_poll_frequency
         w.max_attempts = timeout ? timeout / w.delay : nil
         seen_event_id = nil
 

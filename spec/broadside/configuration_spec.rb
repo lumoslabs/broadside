@@ -12,9 +12,9 @@ describe Broadside::Configuration do
   end
 
   it 'should raise an error when ecs is misconfigured' do
-    expect { Broadside.configure { |config| config.ecs.region = nil } }.to raise_error(ArgumentError)
-    expect { Broadside.configure { |config| config.ecs.poll_frequency = 'poll' } }.to raise_error(ArgumentError)
-    expect { Broadside.configure { |config| config.ecs.credentials = 'password' } }.to raise_error(ArgumentError)
+    expect { Broadside.configure { |config| config.aws.region = nil } }.to raise_error(ArgumentError)
+    expect { Broadside.configure { |config| config.aws.ecs_poll_frequency = 'poll' } }.to raise_error(ArgumentError)
+    expect { Broadside.configure { |config| config.aws.credentials = 'password' } }.to raise_error(ArgumentError)
   end
 
   describe '#ssh_cmd' do

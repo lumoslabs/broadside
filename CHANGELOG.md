@@ -4,16 +4,15 @@
 - No more `RAKE_DB_MIGRATE` constant
 - Configuration changes:
   - `config.git_repo=` and `config.type=` were removed.
-  - `config.base` and `config.deploy` are no longer backwards compatible
-  - `config.aws` region and credentials are now configured at `config.ecs.region` and `config.ecs.credentials`
-  - `config.deploy.docker_image` is now `config.default_docker_image`
-  - `config.deploy.cluster` is now `config.default_cluster`
+  - `config.base` and `config.deploy` are no longer backwards compatible - any options configured at `config.base.something` or `config.deploy.something` must now be configured at `config.something`
+  - `config.ecs.cluster` and `config.ecs.poll_frequency` are now configured at `config.aws.ecs_default_cluster` and `config.aws.ecs_poll_frequency`
+  - `config.docker_image` is now `config.default_docker_image`
   - `instance` can no longer be configured on a per `Target` basis
 
 #### Added Features
 - Allow configuration of separate `:docker_image` per target
 - Put back ability to configure a default `:tag` per target
-- Add `targets` command to display all the targets' deployed images and CPU/memory allocations
+- Add `broadside targets` command to display all the targets' deployed images and CPU/memory allocations
 - `broadside status` has an added `--verbose` switch that displays service and task information
 - [#11](https://github.com/lumoslabs/broadside/issues/11): Add option for ssh proxy user and proxy keyfile
 - [#2](https://github.com/lumoslabs/broadside/issues/2): Add flag for changing loglevel, and add `--debug` switch that enables GLI debug output
@@ -25,7 +24,7 @@
 - `Utils` has been replaced in favor of `LoggingUtils`
 - Exceptions will be raised if a target is configured with an invalid hash key
 - Tasks run have a more relevant `started_by` tag
-- Default loglevel changed to INFO
+- Default log level changed to `INFO`
 - [#21](https://github.com/lumoslabs/broadside/issues/21) Print more useful messages when tasks die without exit codes.
 - `Command` class to encapsulate the running of various commands
 
