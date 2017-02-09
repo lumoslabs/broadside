@@ -4,6 +4,7 @@ require 'aws-sdk'
 
 require 'broadside/error'
 require 'broadside/logging_utils'
+require 'broadside/configuration/invalid_configuration'
 require 'broadside/configuration/configuration'
 require 'broadside/configuration/aws_configuration'
 require 'broadside/command'

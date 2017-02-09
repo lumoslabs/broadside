@@ -1,6 +1,7 @@
 module Broadside
   class AwsConfiguration
     include ActiveModel::Model
+    include InvalidConfiguration
 
     validates :region, presence: true, strict: ConfigurationError
     validates :ecs_poll_frequency, numericality: { only_integer: true, strict: ConfigurationError }
