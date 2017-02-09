@@ -6,6 +6,8 @@ module Broadside
   module Command
     extend LoggingUtils
 
+    DEFAULT_TAIL_LINES = 10
+
     class << self
       def targets
         table_header = nil
@@ -87,7 +89,7 @@ module Broadside
       end
 
       def logtail(options)
-        lines = options[:lines] || 10
+        lines = options[:lines] || DEFAULT_TAIL_LINES
         target = Broadside.config.get_target_by_name!(options[:target])
         ip = get_running_instance_ip!(target, *options[:instance])
         info "Tailing logs for running container at #{ip}..."

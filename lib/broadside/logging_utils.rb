@@ -1,19 +1,9 @@
 module Broadside
   module LoggingUtils
-    def debug(*args)
-      Broadside.config.logger.debug(args.join(' '))
-    end
-
-    def info(*args)
-      Broadside.config.logger.info(args.join(' '))
-    end
-
-    def warn(*args)
-      Broadside.config.logger.warn(args.join(' '))
-    end
-
-    def error(*args)
-      Broadside.config.logger.error(args.join(' '))
+    %w(debug info warn error fatal).each do |log_level|
+      define_method(log_level) do |*args|
+        Broadside.config.logger.public_send(log_level.to_sym, args.join(' '))
+      end
     end
   end
 end

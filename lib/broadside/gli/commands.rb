@@ -68,7 +68,7 @@ end
 desc 'Tail the logs inside a running container.'
 command :logtail do |logtail|
   logtail.desc 'Number of lines to tail'
-  logtail.default_value 10
+  logtail.default_value Broadside::Command::DEFAULT_TAIL_LINES
   logtail.arg_name 'TAIL_LINES'
   logtail.flag [:l, :lines], type: Fixnum
 
