@@ -104,7 +104,7 @@ module Broadside
     private
 
     def deploy
-      current_scale = EcsManager.current_scale(@target)
+      current_scale = EcsManager.current_service_scale(@target)
       update_task_revision
 
       begin

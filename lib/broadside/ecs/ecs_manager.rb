@@ -144,7 +144,7 @@ module Broadside
         end
       end
 
-      def current_scale(target)
+      def current_service_scale(target)
         check_service_state!(target)
         EcsManager.ecs.describe_services(cluster: target.cluster, services: [target.family]).services.first[:desired_count]
       end

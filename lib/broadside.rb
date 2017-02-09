@@ -17,7 +17,7 @@ require 'broadside/version'
 module Broadside
   extend LoggingUtils
 
-  USER_CONFIG_FILE = (ENV['BROADSIDE_SYSTEM_CONFIG_FILE'] || File.join(Dir.home, '.broadside', 'config.rb').freeze
+  USER_CONFIG_FILE = (ENV['BROADSIDE_SYSTEM_CONFIG_FILE'] || File.join(Dir.home, '.broadside', 'config.rb')).freeze
 
   def self.configure
     yield config
@@ -35,7 +35,7 @@ module Broadside
         begin
           load(USER_CONFIG_FILE)
         rescue ConfigurationError
-          # Rescue because the user/system config file can be incomplete and validation failure is ok.
+          # Suppress the exception because the system config file can be incomplete and validation failure is expected
         end
       end
 
