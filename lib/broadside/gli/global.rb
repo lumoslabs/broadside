@@ -28,16 +28,14 @@ def call_hook(type, command, options, args)
 
   hook_args = {
     options: options,
-    args: args,
+    args: args
   }
 
   if command.parent.is_a?(GLI::Command)
-    hook_args.merge!({
-      command: command.parent.name,
-      subcommand: command.name
-    })
+    hook_args[:command] = command.parent.name
+    hook_args[:subcommand] = command.name
   else
-    hook_args.merge!(command: command.name)
+    hook_args[:command] = command.name
   end
 
   debug "Calling #{type} with args '#{hook_args}'"
