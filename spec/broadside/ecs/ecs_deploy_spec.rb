@@ -4,11 +4,10 @@ describe Broadside::EcsDeploy do
   include_context 'deploy configuration'
   include_context 'ecs stubs'
 
-  let(:family) { deploy.target.family }
   let(:target) { Broadside::Target.new(test_target_name, test_target_config) }
-  let(:local_deploy_config) { {} }
-  let(:deploy) { described_class.new(test_target_name, local_deploy_config.merge(tag: 'tag_the_bag')) }
-  let(:desired_count) { 2 }
+  let(:deploy) { described_class.new(target: test_target_name, tag: 'tag_the_bag') }
+  let(:family) { deploy.family }
+  let(:desired_count) { 4 }
   let(:cpu) { 1 }
   let(:memory) { 2000 }
   let(:service_config) do
@@ -22,21 +21,21 @@ describe Broadside::EcsDeploy do
 
   describe '#bootstrap' do
     it 'fails without task_definition_config' do
-      expect { deploy.bootstrap }.to raise_error(/No first task definition and no :task_definition_config/)
+      expect { deploy.bootstrap }.to raise_error(Broadside::ConfigurationError, /No :task_definition_config/)
     end
 
     context 'with an existing task definition' do
       include_context 'with a task_definition'
 
       it 'fails without service_config' do
-        expect { deploy.bootstrap }.to raise_error(/Service doesn't exist and no :service_config/)
+        expect { deploy.bootstrap }.to raise_error(/No :service_config/)
       end
 
       context 'with a service_config' do
         let(:local_target_config) { { service_config: service_config } }
 
         it 'sets up the service' do
-          expect(Broadside::EcsManager).to receive(:create_service).with(cluster, family, service_config)
+          expect(Broadside::EcsManager).to receive(:create_service).with(cluster, deploy.family, service_config)
           expect { deploy.bootstrap }.to_not raise_error
         end
       end
@@ -63,7 +62,7 @@ describe Broadside::EcsDeploy do
 
   describe '#deploy' do
     it 'fails without an existing service' do
-      expect { deploy.short }.to raise_error(/No service for '#{deploy.target.family}'!/)
+      expect { deploy.short }.to raise_error(/No service for '#{deploy.family}'!/)
     end
 
     context 'with an existing service' do
@@ -125,6 +124,18 @@ describe Broadside::EcsDeploy do
           end
         end
 
+        context 'rolling back a failed deploy' do
+          before do
+            Broadside.config.logger.level = Logger::FATAL
+          end
+
+          it 'rolls back to the same scale' do
+            expect(deploy).to receive(:update_service).once.with(no_args).and_raise('fail')
+            expect(deploy).to receive(:update_service).once.with(scale: deployed_scale)
+            expect { deploy.short }.to raise_error(/fail/)
+          end
+        end
+
         it 'can rollback' do
           deploy.rollback
           expect(api_request_methods.include?(:deregister_task_definition)).to be true
@@ -134,53 +145,11 @@ describe Broadside::EcsDeploy do
     end
   end
 
-  describe '#bash' do
-    it 'fails without a running service' do
-      expect { deploy.bash }.to raise_error(Broadside::Error, /No task definition for '#{family}'/)
-    end
-
-    context 'with a task definition and service in place' do
-      include_context 'with a running service'
-      include_context 'with a task_definition'
-
-      it 'fails without a running task' do
-        expect { deploy.bash }.to raise_error /No running tasks found for/
-      end
-
-      context 'with a running task' do
-        let(:task_arn) { 'some_task_arn' }
-        let(:container_arn) { 'some_container_arn' }
-        let(:instance_id) { 'i-xxxxxxxx' }
-        let(:ip) { '123.123.123.123' }
-
-        before(:each) do
-          ecs_stub.stub_responses(:list_tasks, task_arns: [task_arn])
-          ecs_stub.stub_responses(:describe_tasks, tasks: [{ container_instance_arn: container_arn }])
-          ecs_stub.stub_responses(:describe_container_instances, container_instances: [{ ec2_instance_id: instance_id }])
-          ec2_stub.stub_responses(:describe_instances, reservations: [ instances: [{ private_ip_address: ip }]])
-        end
-
-        it 'executes correct system command' do
-          expect(deploy).to receive(:exec).with("ssh -o StrictHostKeyChecking=no -t -t #{user}@#{ip} 'docker exec -i -t `docker ps -n 1 --quiet --filter name=#{family}` bash'")
-          expect { deploy.bash }.to_not raise_error
-          expect(api_request_log).to eq([
-            { list_task_definitions: { family_prefix: family } },
-            { describe_services: { cluster: cluster, services: [family] } },
-            { list_tasks: { cluster: cluster, family: family } },
-            { describe_tasks: { cluster: cluster, tasks: [task_arn] } },
-            { describe_container_instances: { cluster: cluster, container_instances: [container_arn] } },
-            { describe_instances: { instance_ids: [instance_id] } }
-          ])
-        end
-      end
-    end
-  end
-
   describe '#run_commands' do
     let(:commands) { [%w(run some command)] }
 
     it 'fails without a task definition' do
-      expect { deploy.send(:run_commands, commands) }.to raise_error(Broadside::Error, /No task definition for/)
+      expect { deploy.run_commands(commands) }.to raise_error(Broadside::Error, /No task definition for/)
     end
 
     context 'with a task_definition' do
@@ -204,7 +173,7 @@ describe Broadside::EcsDeploy do
       it 'runs' do
         expect(ecs_stub).to receive(:wait_until)
         expect(deploy).to receive(:get_container_logs)
-        expect { deploy.send(:run_commands, commands) }.to_not raise_error
+        expect { deploy.run_commands(commands) }.to_not raise_error
       end
 
       context 'tries to start a task that does not produce an exit code' do
@@ -213,7 +182,7 @@ describe Broadside::EcsDeploy do
 
         it 'raises an error displaying the failure reason' do
           expect(ecs_stub).to receive(:wait_until)
-          expect { deploy.send(:run_commands, commands) }.to raise_error(Broadside::Error, /#{reason}/)
+          expect { deploy.run_commands(commands) }.to raise_error(Broadside::EcsError, /#{reason}/)
         end
       end
 
@@ -222,7 +191,7 @@ describe Broadside::EcsDeploy do
 
         it 'raises an error and displays the exit code' do
           expect(ecs_stub).to receive(:wait_until)
-          expect { deploy.send(:run_commands, commands) }.to raise_error(Broadside::Error, /#{exit_code}/)
+          expect { deploy.run_commands(commands) }.to raise_error(Broadside::EcsError, /#{exit_code}/)
         end
       end
     end

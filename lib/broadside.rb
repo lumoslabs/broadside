@@ -4,9 +4,9 @@ require 'aws-sdk'
 
 require 'broadside/error'
 require 'broadside/logging_utils'
-require 'broadside/configuration'
-require 'broadside/configuration/aws_config'
-require 'broadside/configuration/ecs_config'
+require 'broadside/configuration/invalid_configuration'
+require 'broadside/configuration/configuration'
+require 'broadside/configuration/aws_configuration'
 require 'broadside/command'
 require 'broadside/target'
 require 'broadside/deploy'
@@ -21,23 +21,30 @@ module Broadside
 
   def self.configure
     yield config
+    raise ConfigurationError, config.errors.full_messages unless config.valid?
   end
 
-  def self.load_config(config_file)
+  def self.load_config_file(config_file)
     raise ArgumentError, "#{config_file} does not exist" unless File.exist?(config_file)
-
     config.config_file = config_file
+
     begin
-      [USER_CONFIG_FILE, config_file].each do |file|
-        next unless File.exist?(file)
-        debug "Loading config from #{file}"
-        load file
+      if File.exist?(USER_CONFIG_FILE)
+        debug "Loading user configuration from #{USER_CONFIG_FILE}"
+
+        begin
+          load(USER_CONFIG_FILE)
+        rescue ConfigurationError
+          # Rescue because the user/system config file can be incomplete and validation failure is ok.
+        end
       end
+
+      debug "Loading application configuration from #{config_file}"
+      load(config_file)
     rescue LoadError
       error 'Encountered an error loading broadside configuration'
       raise
     end
-    raise ArgumentError, config.errors.full_messages unless config.valid?
   end
 
   def self.config

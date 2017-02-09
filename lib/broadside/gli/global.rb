@@ -40,7 +40,7 @@ def call_hook(type, command)
 end
 
 pre do |global, command, options, args|
-  Broadside.load_config(global[:config])
+  Broadside.load_config_file(global[:config])
 
   if global[:debug]
     Broadside.config.logger.level = ::Logger::DEBUG
@@ -60,7 +60,7 @@ end
 
 on_error do |exception|
   case exception
-  when Broadside::MissingVariableError
+  when Broadside::ConfigurationError
     error exception.message, "Run your last command with --help for more information."
     false # false skips default error handling
   else

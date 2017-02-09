@@ -4,15 +4,16 @@ module Broadside
   class Configuration
     include ActiveModel::Model
     include LoggingUtils
+    include InvalidConfiguration
 
     attr_reader(
-      :targets,
-      :type
+      :aws,
+      :targets
     )
     attr_accessor(
       :application,
       :config_file,
-      :docker_image,
+      :default_docker_image,
       :logger,
       :prehook,
       :posthook,
@@ -21,34 +22,36 @@ module Broadside
     )
 
     validates :application, :targets, :logger, presence: true
+    validates_each(:aws) { |_, _, val| val.validate }
 
-    validates_each(:ecs) do |record, attr, val|
-      record.errors.add(attr, 'invalid poll_frequency') unless val && val.poll_frequency.is_a?(Integer)
-    end
-    validates_each(:aws) do |record, attr, val|
-      [:region, :credentials].each do |property|
-        record.errors.add(attr, "invalid #{property}") unless val && val.public_send(property)
-      end
-    end
     validates_each(:ssh) do |record, attr, val|
       record.errors.add(attr, 'is not a hash') unless val.is_a?(Hash)
+
+      if (proxy = val[:proxy])
+        record.errors.add(attr, 'bad proxy config') unless proxy[:host] && proxy[:port] && proxy[:port].is_a?(Integer)
+      end
     end
 
     def initialize
+      @aws = AwsConfiguration.new
       @logger = ::Logger.new(STDOUT)
       @logger.level = ::Logger::INFO
       @logger.datetime_format = '%Y-%m-%d_%H:%M:%S'
       @ssh = {}
       @timeout = 600
-      @type = 'ecs'
     end
 
-    def aws
-      @aws ||= AwsConfig.new
+    # Transform deploy target configs to Target objects
+    def targets=(targets_hash)
+      raise ConfigurationError, ':targets must be a hash' unless targets_hash.is_a?(Hash)
+
+      @targets = targets_hash.inject({}) do |h, (target_name, config)|
+        h.merge(target_name => Target.new(target_name, config))
+      end
     end
 
-    def ecs
-      @ecs ||= EcsConfig.new
+    def get_target_by_name!(name)
+      @targets.fetch(name) { raise ArgumentError, "Deploy target '#{name}' does not exist!" }
     end
 
     def ssh_cmd(ip, options = {})
@@ -56,7 +59,6 @@ module Broadside
       cmd << ' -t -t' if options[:tty]
       cmd << " -i #{@ssh[:keyfile]}" if @ssh[:keyfile]
       if (proxy = @ssh[:proxy])
-        raise MissingVariableError, 'Bad SSH proxy: requires host and port' unless proxy[:host] && proxy[:port]
         cmd << ' -o ProxyCommand="ssh -q'
         cmd << " -i #{proxy[:keyfile]}" if proxy[:keyfile]
         cmd << ' '
@@ -67,19 +69,6 @@ module Broadside
       cmd << "#{@ssh[:user]}@" if @ssh[:user]
       cmd << ip.to_s
       cmd
-    end
-
-    # Transform deploy target configs to Target objects
-    def targets=(_targets)
-      raise ArgumentError, ":targets must be a hash" unless _targets.is_a?(Hash)
-
-      @targets = _targets.inject({}) do |h, (target_name, config)|
-        h.merge(target_name => Target.new(target_name, config))
-      end
-    end
-
-    def get_target_by_name!(name)
-      @targets.fetch(name) { raise ArgumentError, "Deploy target '#{name}' does not exist!" }
     end
   end
 end

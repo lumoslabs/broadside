@@ -11,18 +11,10 @@ describe Broadside::Configuration do
     expect { Broadside.config.get_target_by_name!('barf') }.to raise_error(ArgumentError)
   end
 
-  it 'should raise an error when missing aws variables' do
-    Broadside.configure do |config|
-      config.aws.region = nil
-    end
-    expect(Broadside.config.valid?).to be false
-  end
-
-  it 'should raise an error when ecs.poll_frequency is invalid' do
-    Broadside.configure do |config|
-      config.ecs.poll_frequency = 'notanumber'
-    end
-    expect(Broadside.config.valid?).to be false
+  it 'should raise an error when ecs is misconfigured' do
+    expect { Broadside.configure { |config| config.aws.region = nil } }.to raise_error(ArgumentError)
+    expect { Broadside.configure { |config| config.aws.ecs_poll_frequency = 'poll' } }.to raise_error(ArgumentError)
+    expect { Broadside.configure { |config| config.aws.credentials = 'password' } }.to raise_error(ArgumentError)
   end
 
   describe '#ssh_cmd' do
@@ -65,14 +57,14 @@ describe Broadside::Configuration do
           }
         end
 
-        it 'raises an error if proxy host or port are missing' do
-          expect { Broadside.config.ssh_cmd(ip) }.to raise_error(Broadside::MissingVariableError)
+        it 'is invalid if proxy is incorrectly configured' do
+          expect(Broadside.config.valid?).to be false
         end
 
         context 'with proxy user, host, and port' do
           let(:proxy_user) { 'proxy-user' }
           let(:proxy_host) { 'proxy-host' }
-          let(:proxy_port) { '22' }
+          let(:proxy_port) { 22 }
           let(:ssh_proxy_config) do
             {
               user: proxy_user,
@@ -97,6 +89,7 @@ describe Broadside::Configuration do
                 keyfile: proxy_keyfile
               }
             end
+
             it 'generates an SSH command string with the configured SSH proxy' do
               expect(Broadside.config.ssh_cmd(ip)).to eq(
                 "ssh -o StrictHostKeyChecking=no -i #{keyfile} -o ProxyCommand=\"ssh -q -i #{proxy_keyfile} #{proxy_user}@#{proxy_host} nc #{ip} #{proxy_port}\" #{user}@#{ip}"

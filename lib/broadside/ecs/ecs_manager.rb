@@ -98,7 +98,7 @@ module Broadside
       end
 
       def run_task(cluster, name, command, options = {})
-        raise ArgumentError, "#{command} must be an array" unless command.is_a?(Array)
+        raise ArgumentError, "command: '#{command}' must be an array" unless command.is_a?(Array)
 
         response = ecs.run_task(
           cluster: cluster,
@@ -116,7 +116,7 @@ module Broadside
         )
 
         unless response.successful? && response.tasks.try(:[], 0)
-          raise Error, "Failed to run '#{command.join(' ')}' task:\n#{response.pretty_inspect}"
+          raise EcsError, "Failed to run task '#{command.join(' ')}'\n#{response.pretty_inspect}"
         end
 
         response
@@ -125,6 +125,28 @@ module Broadside
       def service_exists?(cluster, family)
         services = ecs.describe_services(cluster: cluster, services: [family])
         services.failures.empty? && services.services.any?
+      end
+
+      def check_service_and_task_definition_state!(target)
+        check_task_definition_state!(target)
+        check_service_state!(target)
+      end
+
+      def check_task_definition_state!(target)
+        unless get_latest_task_definition_arn(target.family)
+          raise Error, "No task definition for '#{target.family}'! Please bootstrap or manually configure one."
+        end
+      end
+
+      def check_service_state!(target)
+        unless service_exists?(target.cluster, target.family)
+          raise Error, "No service for '#{target.family}'! Please bootstrap or manually configure one."
+        end
+      end
+
+      def current_scale(target)
+        check_service_state!(target)
+        EcsManager.ecs.describe_services(cluster: target.cluster, services: [target.family]).services.first[:desired_count]
       end
 
       private

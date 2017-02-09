@@ -17,20 +17,25 @@ def add_instance_flag(cmd)
   cmd.flag [:n, :instance], type: Fixnum
 end
 
+def add_command_flags(cmd)
+  add_instance_flag(cmd)
+  add_target_flag(cmd)
+end
+
 desc 'Bootstrap your service and task definition from the configured definition.'
 command :bootstrap do |bootstrap|
   add_tag_flag(bootstrap)
   add_target_flag(bootstrap)
 
   bootstrap.action do |_, options, _|
-    Broadside::Command.bootstrap(options)
+    Broadside::EcsDeploy.new(options).bootstrap
   end
 end
 
 desc 'Gives an overview of all of the deploy targets'
 command :targets do |targets|
   targets.action do |_, options, _|
-    Broadside::Command.targets(options)
+    Broadside::Command.targets
   end
 end
 
@@ -53,11 +58,10 @@ command :run do |run|
   run.flag [:command], type: Array
 
   add_tag_flag(run)
-  add_instance_flag(run)
-  add_target_flag(run)
+  add_command_flags(run)
 
   run.action do |_, options, _|
-    Broadside::Command.run(options)
+    EcsDeploy.new(options).run_commands([options[:command]], started_by: 'run')
   end
 end
 
@@ -68,8 +72,7 @@ command :logtail do |logtail|
   logtail.arg_name 'TAIL_LINES'
   logtail.flag [:l, :lines], type: Fixnum
 
-  add_instance_flag(logtail)
-  add_target_flag(logtail)
+  add_command_flags(logtail)
 
   logtail.action do |_, options, _|
     Broadside::Command.logtail(options)
@@ -78,8 +81,7 @@ end
 
 desc 'Establish a secure shell on an instance running the container.'
 command :ssh do |ssh|
-  add_instance_flag(ssh)
-  add_target_flag(ssh)
+  add_command_flags(ssh)
 
   ssh.action do |_, options, _|
     Broadside::Command.ssh(options)
@@ -88,8 +90,7 @@ end
 
 desc 'Establish a shell inside a running container.'
 command :bash do |bash|
-  add_instance_flag(bash)
-  add_target_flag(bash)
+  add_command_flags(bash)
 
   bash.action do |_, options, _|
     Broadside::Command.bash(options)
@@ -104,7 +105,7 @@ command :deploy do |d|
     add_target_flag(short)
 
     short.action do |_, options, _|
-      Broadside::Command.deploy_short(options)
+      Broadside::EcsDeploy.new(options).short
     end
   end
 
@@ -114,7 +115,7 @@ command :deploy do |d|
     add_target_flag(full)
 
     full.action do |_, options, _|
-      Broadside::Command.deploy_full(options)
+      Broadside::EcsDeploy.new(options).full
     end
   end
 
@@ -127,7 +128,7 @@ command :deploy do |d|
     add_target_flag(scale)
 
     scale.action do |_, options, _|
-      Broadside::Command.deploy_scale(options)
+      Broadside::EcsDeploy.new(options).scale(options)
     end
   end
 
@@ -140,7 +141,7 @@ command :deploy do |d|
     add_target_flag(rollback)
 
     rollback.action do |_, options, _|
-      Broadside::Command.deploy_rollback(options)
+      Broadside::EcsDeploy.new(options).rollback(options)
     end
   end
 end
