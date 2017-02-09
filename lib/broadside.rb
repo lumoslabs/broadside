@@ -17,7 +17,7 @@ require 'broadside/version'
 module Broadside
   extend LoggingUtils
 
-  USER_CONFIG_FILE = (ENV['BROADSIDE_SYSTEM_CONFIG_FILE'] || "#{Dir.home}/.broadside/config.rb").freeze
+  USER_CONFIG_FILE = (ENV['BROADSIDE_SYSTEM_CONFIG_FILE'] || File.join(Dir.home, '.broadside', 'config.rb').freeze
 
   def self.configure
     yield config
