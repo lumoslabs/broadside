@@ -4,7 +4,6 @@ module Broadside
 
     def method_missing(m, *args, &block)
       warn "Unknown configuration '#{m}' provided, ignoring."
-      super
     end
 
     def respond_to_missing?(method, include_private = false)
