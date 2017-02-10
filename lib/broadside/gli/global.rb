@@ -57,7 +57,7 @@ pre do |global, command, options, args|
 end
 
 post do |global, command, options, args|
-  call_hook(:posthook, command)
+  call_hook(:posthook, command, options, args)
   true
 end
 
