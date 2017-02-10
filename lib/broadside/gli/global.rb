@@ -21,20 +21,23 @@ desc 'Log level output'
 arg_name 'LOGLEVEL'
 flag [:l, :loglevel], must_match: %w(debug info warn error fatal)
 
-def call_hook(type, command)
+def call_hook(type, command, options, args)
   hook = Broadside.config.public_send(type)
   return if hook.nil?
   raise "#{type} hook is not a callable proc" unless hook.is_a?(Proc)
 
-  hook_args =
-    if command.parent.is_a?(GLI::Command)
-      {
-        command: command.parent.name,
-        subcommand: command.name
-      }
-    else
-      { command: command.name }
-    end
+  hook_args = {
+    options: options,
+    args: args
+  }
+
+  if command.parent.is_a?(GLI::Command)
+    hook_args[:command] = command.parent.name
+    hook_args[:subcommand] = command.name
+  else
+    hook_args[:command] = command.name
+  end
+
   debug "Calling #{type} with args '#{hook_args}'"
   hook.call(hook_args)
 end
@@ -49,12 +52,12 @@ pre do |global, command, options, args|
     Broadside.config.logger.level = ::Logger.const_get(global[:loglevel].upcase)
   end
 
-  call_hook(:prehook, command)
+  call_hook(:prehook, command, options, args)
   true
 end
 
 post do |global, command, options, args|
-  call_hook(:posthook, command)
+  call_hook(:posthook, command, options, args)
   true
 end
 
