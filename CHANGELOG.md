@@ -18,6 +18,7 @@
 - [#2](https://github.com/lumoslabs/broadside/issues/2): Add flag for changing loglevel, and add `--debug` switch that enables GLI debug output
 - Failed deploys will rollback the service to the last successfully running scale
 - Allow setting an environment variable `BROADSIDE_SYSTEM_CONFIG_FILE` to be used instead of `~/.broadside/config.rb`
+- Pre and Post hooks now have access to command-line options and args
 
 #### General Improvements
 - Only load `env_files` for the selected target (rather than preloading from unrelated targets)
