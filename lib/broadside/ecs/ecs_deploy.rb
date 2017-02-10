@@ -83,7 +83,7 @@ module Broadside
 
           EcsManager.ecs.wait_until(:tasks_stopped, cluster: cluster, tasks: [task_arn]) do |w|
             w.max_attempts = nil
-            w.delay = Broadside.config.aws.ecs_poll_frequency
+            w.delay = Broadside.config.aws.poll_frequency
             w.before_attempt do |attempt|
               info "Attempt #{attempt}: waiting for #{command_name} to complete..."
             end
@@ -160,7 +160,7 @@ module Broadside
 
       EcsManager.ecs.wait_until(:services_stable, cluster: cluster, services: [family]) do |w|
         timeout = Broadside.config.timeout
-        w.delay = Broadside.config.aws.ecs_poll_frequency
+        w.delay = Broadside.config.aws.poll_frequency
         w.max_attempts = timeout ? timeout / w.delay : nil
         seen_event_id = nil
 

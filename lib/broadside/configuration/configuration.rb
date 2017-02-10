@@ -40,6 +40,10 @@ module Broadside
       @timeout = 600
     end
 
+    def ecs
+      @aws
+    end
+
     # Transform deploy target configs to Target objects
     def targets=(targets_hash)
       raise ConfigurationError, ':targets must be a hash' unless targets_hash.is_a?(Hash)
