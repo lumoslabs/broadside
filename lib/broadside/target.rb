@@ -29,14 +29,18 @@ module Broadside
 
     validates_each(:service_config, allow_nil: true) do |record, attr, val|
       record.errors.add(attr, 'is not a hash') unless val.is_a?(Hash)
-      if (elbs = val[:load_balancers].try(:first))
-        record.errors.add(:load_balancer_config) unless elbs[:load_balancer_name]
+      if (elb = val[:load_balancers].try(:first))
+        record.errors.add(:load_balancer_config) unless elb[:load_balancer_name]
       end
     end
 
     validates_each(:load_balancer_config, allow_nil: true) do |record, attr, val|
       record.errors.add(attr, 'is not a hash') unless val.is_a?(Hash)
       record.errors.add(attr, ':load_balancer_name is specified in :service_config') if val[:load_balancer_name]
+      # TODO: validate tag?
+      [:subnets].each do |elb_property|
+        record.errors.add(attr, "#{elb_property} is required in :load_balancer_config") unless val[elb_property]
+      end
     end
 
     validates_each(:task_definition_config, allow_nil: true) do |record, attr, val|
