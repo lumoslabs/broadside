@@ -42,8 +42,14 @@ module Broadside
 
       if EcsManager.service_exists?(cluster, family)
         info("Service for #{family} already exists.")
-        if (elb_arn = EcsManager.get_load_balancer_arn_by_name(family))
-          # Verify ELB definition matches
+
+        # Verify that the requested ELB config matches what is running.
+        if @target.load_balancer_config && (elb_arn = EcsManager.get_load_balancer_arn_by_name(family))
+          elb = elb_client.describe_load_balancers(load_balancer_arns: [elb_arn]).load_balancers.first.to_h
+
+          @target.load_balancer_config.each do |k, v|
+            raise Error, "Running ELB.#{k} is '#{elb[k]}'; config says #{v}. Can't reconfigure." if elb[k] != v
+          end
         end
       else
         raise ConfigurationError, "No :service_config for #{family}" unless @target.service_config

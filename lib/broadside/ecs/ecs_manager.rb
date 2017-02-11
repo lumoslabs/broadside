@@ -149,7 +149,7 @@ module Broadside
         EcsManager.ecs.describe_services(cluster: target.cluster, services: [target.family]).services.first[:desired_count]
       end
 
-      # Returns the load balancer response hash
+      # Returns the load balancer description hash
       def create_load_balancer(load_balancer_config)
         # Docs say tags are required but sandbox accepts ELB definitions without :tags
         tags = [{ key: 'family', value: load_balancer_config[:name] }]
