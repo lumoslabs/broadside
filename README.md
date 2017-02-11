@@ -48,7 +48,7 @@ Broadside.configure do |config|
       scale: 1,
       command: ['java', '-cp', '*:.', 'path.to.MyClass'],
       # This target has a task_definition and service config which you use to bootstrap a new AWS Service
-      # with an elastic load balancer.  (The load balancer is optional.)
+      # along with an ELB configured with :load_balancer_config.  The load balancer is optional.
       load_balancer_config: { subnets: [ 'subnet-xyz', 'subnet-abc'] },
       service_config: { deployment_configuration: { minimum_healthy_percent: 0.5 } },
       task_definition_config: { container_definitions: [ { cpu: 1, memory: 2000, } ] }

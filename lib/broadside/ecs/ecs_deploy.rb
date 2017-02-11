@@ -57,9 +57,12 @@ module Broadside
 
         if @target.load_balancer_config
           # We cautiously default to an internal ELB; the AWS default is `internet-facing`
-          load_balancer_config = { scheme: 'internal', name: family }.merge(@target.load_balancer_config)
-          EcsManager.create_load_balancer(load_balancer_config)
-          EcsManager.create_service(cluster, family, @target.service_config.merge(load_balancers: [load_balancer_name: family]))
+          EcsManager.create_load_balancer({ scheme: 'internal', name: family }.merge(@target.load_balancer_config))
+          EcsManager.create_service(
+            cluster,
+            family,
+            @target.service_config.merge(load_balancers: [load_balancer_name: family])
+          )
         else
           EcsManager.create_service(cluster, family, @target.service_config)
         end
