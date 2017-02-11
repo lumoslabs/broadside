@@ -38,6 +38,19 @@ describe Broadside::EcsDeploy do
           expect(Broadside::EcsManager).to receive(:create_service).with(cluster, deploy.family, service_config)
           expect { deploy.bootstrap }.to_not raise_error
         end
+
+        context 'with a load_balancer_config' do
+          let(:elb_name) { 'my-load-balancer' }
+          let(:elb_config) { { subnets: [ 'subnet-xyz', 'subnet-abc'] } }
+          let(:elb_service_config) { service_config.merge(load_balancers: [{ load_balancer_name: elb_name }]) }
+          let(:local_target_config) { { service_config: elb_service_config, load_balancer_config: elb_config } }
+
+          it 'sets up the ELB' do
+            expect(Broadside::EcsManager).to receive(:create_load_balancer).with(elb_config.merge(load_balancer_name: elb_name), family)
+            expect(Broadside::EcsManager).to receive(:create_service).with(cluster, deploy.family, elb_service_config)
+            expect { deploy.bootstrap}.to_not raise_error
+          end
+        end
       end
 
       context 'with an existing service' do
