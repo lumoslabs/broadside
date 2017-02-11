@@ -1,9 +1,7 @@
 module Broadside
   module InvalidConfiguration
-    extend LoggingUtils
-
-    def method_missing(m, *args, &block)
-      warn "Unknown configuration '#{m}' provided, ignoring."
+    def method_missing(m, _, &block)
+      raise ConfigurationError, "Unknown configuration '#{m}' provided!"
     end
   end
 end
