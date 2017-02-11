@@ -33,11 +33,8 @@ module Broadside
 
     validates_each(:load_balancer_config, allow_nil: true) do |record, attr, val|
       record.errors.add(attr, 'is not a hash') unless val.is_a?(Hash)
-      record.errors.add(attr, ':load_balancer_name is specified in :service_config') if val[:load_balancer_name]
-      # TODO: validate tag?
-      [:subnets].each do |elb_property|
-        record.errors.add(attr, "#{elb_property} is required in :load_balancer_config") unless val[elb_property]
-      end
+      record.errors.add(attr, ':load_balancer_name is set automatically') if val[:load_balancer_name]
+      record.errors.add(attr, ":subnets is required") unless val[:subnets] && val[:subnets].is_a?(Array)
     end
 
     validates_each(:task_definition_config, allow_nil: true) do |record, attr, val|
