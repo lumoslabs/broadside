@@ -76,9 +76,7 @@ describe Broadside::EcsDeploy do
             expect(elb_stub).to receive(:create_load_balancer).with(
               elb_config.merge(name: family, tags: [{ key: 'family', value: family }])
             ).and_call_original
-
             expect(ecs_stub).to receive(:create_service).with(service_config_args).and_call_original
-            #expect(Broadside::EcsManager).to receive(:create_service).with(cluster, deploy.family, service_config)
 
             expect { deploy.bootstrap}.to_not raise_error
           end
