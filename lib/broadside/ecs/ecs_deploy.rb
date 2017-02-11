@@ -63,7 +63,9 @@ module Broadside
           EcsManager.create_service(
             cluster,
             family,
-            @target.service_config.merge(load_balancers: [container_name: family, container_port: container_port, load_balancer_name: family])
+            @target.service_config.merge(
+              load_balancers: [container_name: family, container_port: container_port, load_balancer_name: family]
+            )
           )
         else
           EcsManager.create_service(cluster, family, @target.service_config)
