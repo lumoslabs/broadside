@@ -74,7 +74,7 @@ describe Broadside::EcsDeploy do
           it 'sets up the ELB' do
             elb_stub.stub_responses(:create_load_balancer, load_balancer_response)
             expect(elb_stub).to receive(:create_load_balancer).with(
-              elb_config.merge(name: family, tags: [{ key: 'family', value: family }])
+              elb_config.merge(name: family, scheme: 'internal', tags: [{ key: 'family', value: family }])
             ).and_call_original
             expect(ecs_stub).to receive(:create_service).with(service_config_args).and_call_original
 

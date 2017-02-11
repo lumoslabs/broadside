@@ -56,7 +56,8 @@ module Broadside
         info "Service '#{family}' doesn't exist, creating..."
 
         if @target.load_balancer_config
-          EcsManager.create_load_balancer(@target.load_balancer_config.merge(name: family))
+          load_balancer_config = { scheme: 'internal', name: family }.merge(@target.load_balancer_config)
+          EcsManager.create_load_balancer(load_balancer_config)
           EcsManager.create_service(cluster, family, @target.service_config.merge(load_balancers: [load_balancer_name: family]))
         else
           EcsManager.create_service(cluster, family, @target.service_config)

@@ -29,9 +29,6 @@ module Broadside
 
     validates_each(:service_config, allow_nil: true) do |record, attr, val|
       record.errors.add(attr, 'is not a hash') unless val.is_a?(Hash)
-      if (elb = val[:load_balancers].try(:first))
-        record.errors.add(:load_balancer_config) unless elb[:load_balancer_name]
-      end
     end
 
     validates_each(:load_balancer_config, allow_nil: true) do |record, attr, val|
