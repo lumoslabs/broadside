@@ -150,9 +150,9 @@ module Broadside
       end
 
       # Returns the load balancer response hash
-      def create_load_balancer(load_balancer_config, family = nil)
-        # Docs say tags are required but sandbox says otherwise
-        tags = [{ key: 'family', value: family }] if family
+      def create_load_balancer(load_balancer_config)
+        # Docs say tags are required but sandbox accepts ELB definitions without :tags
+        tags = [{ key: 'family', value: load_balancer_config[:name] }]
         elb_client.create_load_balancer(load_balancer_config.merge(tags: tags)).load_balancers.first.to_h
       end
 

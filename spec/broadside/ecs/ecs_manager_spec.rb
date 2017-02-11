@@ -65,7 +65,7 @@ describe Broadside::EcsManager do
     let(:elb_response) { { load_balancer_arn: elb_arn, load_balancer_name: elb_config[:name] } }
 
     it 'can create an ELB' do
-      described_class.create_load_balancer(elb_config, 'elb_family')
+      described_class.create_load_balancer(elb_config)
     end
 
     describe '#get_load_balancer_arn_by_name' do
