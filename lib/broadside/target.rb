@@ -11,6 +11,7 @@ module Broadside
       :cluster,
       :command,
       :docker_image,
+      :load_balancer_config,
       :name,
       :predeploy_commands,
       :scale,
@@ -26,7 +27,7 @@ module Broadside
       record.errors.add(attr, 'is not array of arrays') unless val.is_a?(Array) && val.all? { |v| v.is_a?(Array) }
     end
 
-    validates_each(:service_config, allow_nil: true) do |record, attr, val|
+    validates_each(:load_balancer_config, :service_config, allow_nil: true) do |record, attr, val|
       record.errors.add(attr, 'is not a hash') unless val.is_a?(Hash)
     end
 
@@ -52,6 +53,7 @@ module Broadside
       @cluster                = config.delete(:cluster) || Broadside.config.aws.ecs_default_cluster
       @command                = config.delete(:command)
       @docker_image           = config.delete(:docker_image) || Broadside.config.default_docker_image
+      @load_balancer_config   = config.delete(:load_balancer_config)
       @predeploy_commands     = config.delete(:predeploy_commands)
       @scale                  = config.delete(:scale)
       @service_config         = config.delete(:service_config)

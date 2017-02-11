@@ -57,4 +57,31 @@ describe Broadside::EcsManager do
       expect(described_class.get_task_definition_arns('task')).to eq(task_definition_arns)
     end
   end
+
+  context 'load balancers' do
+    let(:elb_name) { 'my-load-balancer' }
+    let(:elb_config) { { name: elb_name,  subnets: [ 'subnet-xyz', 'subnet-abc'] } }
+    let(:elb_arn) { 'elb_arn' }
+    let(:elb_response) { { load_balancer_arn: elb_arn, load_balancer_name: elb_config[:name] } }
+
+    describe '#create_load_balancer' do
+      before do
+        elb_stub.stub_responses(:create_load_balancer, load_balancers: [elb_response])
+      end
+
+      it 'can create an ELB' do
+        expect(described_class.create_load_balancer(elb_config)).to eq(elb_response)
+      end
+    end
+
+    describe '#get_load_balancer_arn_by_name' do
+      before do
+        elb_stub.stub_responses(:describe_load_balancers, load_balancers: [elb_response])
+      end
+
+      it 'should find the relevant elb config' do
+        expect(described_class.get_load_balancer_arn_by_name(elb_name)).to eq(elb_arn)
+      end
+    end
+  end
 end

@@ -44,6 +44,18 @@ module Broadside
         info("Service for #{family} already exists.")
       else
         raise ConfigurationError, "No :service_config for #{family}" unless @target.service_config
+
+        if @target.service_config[:load_balancers]
+          elb_name = @target.service_config[:load_balancers].first[:load_balancer_name]
+
+          if (elb_arn = EcsManager.get_load_balancer_arn_by_name(elb_name))
+            # Verify ELB definition matches
+          else
+            raise ConfigurationError, "No ELB #{elb_name}/no :load_balancer_config" unless @target.load_balancer_config
+            EcsManager.create_load_balancer(@target.load_balancer_config)
+          end
+        end
+
         info "Service '#{family}' doesn't exist, creating..."
         EcsManager.create_service(cluster, family, @target.service_config)
       end
