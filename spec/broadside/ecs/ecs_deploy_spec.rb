@@ -62,20 +62,29 @@ describe Broadside::EcsDeploy do
             }
           end
 
+          let(:container_port) { 80 }
           let(:service_config_args) do
             service_config.merge(
               cluster: cluster,
-              load_balancers: [{ load_balancer_name: family }],
+              load_balancers: [{ container_name: family, container_port: container_port, load_balancer_name: family }],
               service_name: family,
               task_definition: family
             )
           end
 
-          it 'sets up the ELB' do
+          before do
             elb_stub.stub_responses(:create_load_balancer, load_balancer_response)
+          end
+
+          it 'sets up the ELB' do
+            expect(Broadside::EcsManager).to receive(:get_latest_task_definition).and_return(
+              container_definitions: [port_mappings: [container_port: container_port]]
+            )
+
             expect(elb_stub).to receive(:create_load_balancer).with(
               elb_config.merge(name: family, scheme: 'internal', tags: [{ key: 'family', value: family }])
             ).and_call_original
+
             expect(ecs_stub).to receive(:create_service).with(service_config_args).and_call_original
 
             expect { deploy.bootstrap}.to_not raise_error

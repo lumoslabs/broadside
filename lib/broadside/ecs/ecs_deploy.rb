@@ -56,12 +56,14 @@ module Broadside
         info "Service '#{family}' doesn't exist, creating..."
 
         if @target.load_balancer_config
+          container_port = EcsManager.get_latest_task_definition(family)[:container_definitions].first[:port_mappings].first[:container_port]
+
           # We cautiously default to an internal ELB; the AWS default is `internet-facing`
           EcsManager.create_load_balancer({ scheme: 'internal', name: family }.merge(@target.load_balancer_config))
           EcsManager.create_service(
             cluster,
             family,
-            @target.service_config.merge(load_balancers: [load_balancer_name: family])
+            @target.service_config.merge(load_balancers: [container_name: family, container_port: container_port, load_balancer_name: family])
           )
         else
           EcsManager.create_service(cluster, family, @target.service_config)
