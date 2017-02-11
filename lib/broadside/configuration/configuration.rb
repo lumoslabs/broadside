@@ -3,7 +3,6 @@ require 'logger'
 module Broadside
   class Configuration
     include ActiveModel::Model
-    include LoggingUtils
     include InvalidConfiguration
 
     attr_reader(
@@ -39,6 +38,10 @@ module Broadside
       @logger.datetime_format = '%Y-%m-%d_%H:%M:%S'
       @ssh = {}
       @timeout = 600
+    end
+
+    def ecs
+      @aws
     end
 
     # Transform deploy target configs to Target objects
