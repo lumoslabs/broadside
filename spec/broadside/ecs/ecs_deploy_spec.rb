@@ -44,9 +44,35 @@ describe Broadside::EcsDeploy do
           let(:elb_config) { { subnets: [ 'subnet-xyz', 'subnet-abc'] } }
           let(:elb_service_config) { service_config.merge(load_balancers: [{ load_balancer_name: elb_name }]) }
           let(:local_target_config) { { service_config: elb_service_config, load_balancer_config: elb_config } }
+          let(:load_balancer_response) do
+            {
+              load_balancers: [
+                {
+                  availability_zones: [{ subnet_id: "notorious-subnet", zone_name: 'zone' }],
+                  canonical_hosted_zone_id: "ZEXAMPLE",
+                  created_time: Time.now,
+                  dns_name: 'dns',
+                  load_balancer_arn: "arn:aws:elasticloadbalancing:arnslength",
+                  load_balancer_name: elb_name,
+                  scheme: "internal",
+                  security_groups: [ 'security' ],
+                  state: { code: "provisioning" },
+                  type: "application",
+                  vpc_id: "vpc",
+                }
+              ]
+            }
+          end
 
           it 'sets up the ELB' do
-            expect(Broadside::EcsManager).to receive(:create_load_balancer).with(elb_config.merge(load_balancer_name: elb_name), family)
+            #expect(Broadside::EcsManager).to receive(:create_load_balancer).with(elb_config.merge(load_balancer_name: elb_name), family)
+    #        expect(elb_stub).to receive(:create_load_balancer).with(
+      #        elb_config.merge(load_balancer_name: elb_name, tags: [{ key: 'family', value: family }])
+        #    ).and_return(
+          #    load_balancer_response
+            #)
+
+            elb_stub.stub_responses(:create_load_balancer, load_balancer_response)
             expect(Broadside::EcsManager).to receive(:create_service).with(cluster, deploy.family, elb_service_config)
             expect { deploy.bootstrap}.to_not raise_error
           end

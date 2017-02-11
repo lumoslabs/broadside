@@ -52,7 +52,7 @@ module Broadside
             # Verify ELB definition matches
           else
             raise ConfigurationError, "No ELB #{elb_name}/no :load_balancer_config" unless @target.load_balancer_config
-            EcsManager.create_load_balancer(@target.load_balancer_config.merge(load_balancer_name: elb_name), family)
+            EcsManager.create_load_balancer(@target.load_balancer_config.merge(name: elb_name), family)
           end
         end
 
