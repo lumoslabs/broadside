@@ -40,23 +40,23 @@ describe Broadside::EcsDeploy do
         end
 
         context 'with a load_balancer_config' do
-          let(:elb_config) { { subnets: [ 'subnet-xyz', 'subnet-abc'] } }
+          let(:elb_config) { { subnets: ['subnet-xyz', 'subnet-abc'] } }
           let(:local_target_config) { { service_config: service_config, load_balancer_config: elb_config } }
           let(:load_balancer_response) do
             {
               load_balancers: [
                 {
-                  availability_zones: [{ subnet_id: "notorious-subnet", zone_name: 'zone' }],
-                  canonical_hosted_zone_id: "ZEXAMPLE",
+                  availability_zones: [{ subnet_id: 'notorious-subnet', zone_name: 'zone' }],
+                  canonical_hosted_zone_id: 'EXAMPLE',
                   created_time: Time.now,
                   dns_name: 'dns',
-                  load_balancer_arn: "arn:aws:elasticloadbalancing:arnslength",
+                  load_balancer_arn: 'arn:aws:elasticloadbalancing:arnslength',
                   load_balancer_name: family,
-                  scheme: "internal",
+                  scheme: 'internal',
                   security_groups: [ 'security' ],
-                  state: { code: "provisioning" },
-                  type: "application",
-                  vpc_id: "vpc",
+                  state: { code: 'provisioning' },
+                  type: 'application',
+                  vpc_id: 'vpc',
                 }
               ]
             }
@@ -87,7 +87,7 @@ describe Broadside::EcsDeploy do
 
             expect(ecs_stub).to receive(:create_service).with(service_config_args).and_call_original
 
-            expect { deploy.bootstrap}.to_not raise_error
+            expect { deploy.bootstrap }.to_not raise_error
           end
         end
       end

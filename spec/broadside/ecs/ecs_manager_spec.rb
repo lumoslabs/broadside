@@ -60,7 +60,7 @@ describe Broadside::EcsManager do
 
   context 'load balancers' do
     let(:elb_name) { 'my-load-balancer' }
-    let(:elb_config) { { name: elb_name,  subnets: [ 'subnet-xyz', 'subnet-abc'] } }
+    let(:elb_config) { { name: elb_name,  subnets: ['subnet-xyz', 'subnet-abc'] } }
     let(:elb_arn) { 'elb_arn' }
     let(:elb_response) { { load_balancer_arn: elb_arn, load_balancer_name: elb_config[:name] } }
 

@@ -37,13 +37,13 @@ describe Broadside::Target do
 
     it_behaves_like 'valid_configuration?', false, task_definition_config: { container_definitions: %w(a b) }
 
-    it_behaves_like 'valid_configuration?', true,  { service_config: { load_balancers: [{ load_balancer_name: 'x' }] } }
+    it_behaves_like 'valid_configuration?', true,  { service_config: { load_balancers: [load_balancer_name: 'x'] } }
     it_behaves_like 'valid_configuration?', true,  {
       service_config: {
-        load_balancers: [{ load_balancer_name: 'x' }]
+        load_balancers: [load_balancer_name: 'x']
       },
       load_balancer_config: {
-        subnets: ['abc', 'xyz']
+        subnets: %w(abc xyz)
       }
     }
   end

@@ -157,7 +157,7 @@ module Broadside
       end
 
       def get_load_balancer_arn_by_name(name)
-        load_balancers = elb_client.describe_load_balancers().load_balancers
+        load_balancers = elb_client.describe_load_balancers.load_balancers
         load_balancers.detect { |lb| lb.load_balancer_name == name }.try(:[], :load_balancer_arn)
       end
 
