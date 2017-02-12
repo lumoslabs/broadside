@@ -184,8 +184,8 @@ module Broadside
 
       def elb_client
         @elb_client ||= Aws::ElasticLoadBalancingV2::Client.new(
-          region: region_name,
-          credentials: credentials
+          region: Broadside.config.aws.region,
+          credentials: Broadside.config.aws.credentials
         )
       end
     end
