@@ -22,7 +22,7 @@ module Broadside
     )
 
     validates :application, :targets, :logger, presence: true
-    validates_each(:aws) { |_, _, val| val.validate }
+    validates_each(:aws) { |_, _, val| raise ConfigurationError, val.errors.full_messages unless val.valid? }
 
     validates_each(:ssh) do |record, attr, val|
       record.errors.add(attr, 'is not a hash') unless val.is_a?(Hash)
