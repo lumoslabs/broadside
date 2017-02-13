@@ -17,6 +17,11 @@ describe Broadside::Configuration do
     expect { Broadside.configure { |config| config.aws.credentials = 'password' } }.to raise_error(ArgumentError)
   end
 
+  it 'should raise a relevant method missing error when misconfigured' do
+    expect { Broadside.configure { |config| config.aws.bad = 5 } }.to raise_error(ArgumentError, "Unknown 'bad=' provided for configuration.aws!")
+    expect { Broadside.configure { |config| config.bad = 5 } }.to raise_error(ArgumentError, "Unknown 'bad=' provided for configuration!")
+  end
+
   describe '#ssh_cmd' do
     let(:ip) { '123.123.123.123' }
     let(:ssh_config) { {} }
