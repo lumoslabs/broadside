@@ -149,6 +149,18 @@ module Broadside
         EcsManager.ecs.describe_services(cluster: target.cluster, services: [target.family]).services.first[:desired_count]
       end
 
+      # Returns the load balancer description hash
+      def create_load_balancer(load_balancer_config)
+        # Docs say tags are required but sandbox accepts ELB definitions without :tags
+        tags = [{ key: 'family', value: load_balancer_config[:name] }]
+        elb_client.create_load_balancer(load_balancer_config.merge(tags: tags)).load_balancers.first.to_h
+      end
+
+      def get_load_balancer_arn_by_name(name)
+        load_balancers = elb_client.describe_load_balancers.load_balancers
+        load_balancers.detect { |lb| lb.load_balancer_name == name }.try(:[], :load_balancer_arn)
+      end
+
       private
 
       def all_results(method, key, args = {})
@@ -165,6 +177,13 @@ module Broadside
 
       def ec2_client
         @ec2_client ||= Aws::EC2::Client.new(
+          region: Broadside.config.aws.region,
+          credentials: Broadside.config.aws.credentials
+        )
+      end
+
+      def elb_client
+        @elb_client ||= Aws::ElasticLoadBalancingV2::Client.new(
           region: Broadside.config.aws.region,
           credentials: Broadside.config.aws.credentials
         )

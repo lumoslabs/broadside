@@ -11,6 +11,7 @@ module Broadside
       :cluster,
       :command,
       :docker_image,
+      :load_balancer_config,
       :name,
       :predeploy_commands,
       :scale,
@@ -28,6 +29,12 @@ module Broadside
 
     validates_each(:service_config, allow_nil: true) do |record, attr, val|
       record.errors.add(attr, 'is not a hash') unless val.is_a?(Hash)
+    end
+
+    validates_each(:load_balancer_config, allow_nil: true) do |record, attr, val|
+      record.errors.add(attr, 'is not a hash') unless val.is_a?(Hash)
+      record.errors.add(attr, ':load_balancer_name is set automatically') if val[:load_balancer_name]
+      record.errors.add(attr, ':subnets is required') unless val[:subnets] && val[:subnets].is_a?(Array)
     end
 
     validates_each(:task_definition_config, allow_nil: true) do |record, attr, val|
@@ -52,6 +59,7 @@ module Broadside
       @cluster                = config.delete(:cluster) || Broadside.config.aws.ecs_default_cluster
       @command                = config.delete(:command)
       @docker_image           = config.delete(:docker_image) || Broadside.config.default_docker_image
+      @load_balancer_config   = config.delete(:load_balancer_config)
       @predeploy_commands     = config.delete(:predeploy_commands)
       @scale                  = config.delete(:scale)
       @service_config         = config.delete(:service_config)

@@ -42,10 +42,35 @@ module Broadside
 
       if EcsManager.service_exists?(cluster, family)
         info("Service for #{family} already exists.")
+
+        # Verify that the requested ELB config matches what is running.
+        if @target.load_balancer_config && (elb_arn = EcsManager.get_load_balancer_arn_by_name(family))
+          elb = elb_client.describe_load_balancers(load_balancer_arns: [elb_arn]).load_balancers.first.to_h
+
+          @target.load_balancer_config.each do |k, v|
+            raise Error, "Running ELB.#{k} is '#{elb[k]}'; config says #{v}. Can't reconfigure." if elb[k] != v
+          end
+        end
       else
         raise ConfigurationError, "No :service_config for #{family}" unless @target.service_config
         info "Service '#{family}' doesn't exist, creating..."
-        EcsManager.create_service(cluster, family, @target.service_config)
+
+        if @target.load_balancer_config
+          container_port = EcsManager.get_latest_task_definition(family)[:container_definitions].first[:port_mappings].first[:container_port]
+
+          # We cautiously default to an internal ELB; the AWS default is `internet-facing`
+          EcsManager.create_load_balancer({ scheme: 'internal', name: family }.merge(@target.load_balancer_config))
+
+          EcsManager.create_service(
+            cluster,
+            family,
+            @target.service_config.merge(
+              load_balancers: [container_name: family, container_port: container_port, load_balancer_name: family]
+            )
+          )
+        else
+          EcsManager.create_service(cluster, family, @target.service_config)
+        end
       end
     end
 
