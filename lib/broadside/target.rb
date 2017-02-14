@@ -66,7 +66,7 @@ module Broadside
       end
 
       raise ConfigurationError, errors.full_messages unless valid?
-      warn "Target #{@name} was configured with invalid/unused options: #{config}" unless config.empty?
+      raise ConfigurationError, "Target #{@name} was configured with invalid options: #{config}" unless config.empty?
     end
 
     def ecs_env_vars

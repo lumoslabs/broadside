@@ -1,9 +1,8 @@
 module Broadside
   module InvalidConfiguration
-    extend LoggingUtils
-
     def method_missing(m, *args, &block)
-      warn "Unknown configuration '#{m}' provided, ignoring."
+      message = "Unknown '#{m}' provided for #{is_a?(AwsConfiguration) ? 'configuration.aws' : 'configuration'}!"
+      raise ArgumentError, message
     end
   end
 end

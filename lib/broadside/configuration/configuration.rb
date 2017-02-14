@@ -3,7 +3,6 @@ require 'logger'
 module Broadside
   class Configuration
     include ActiveModel::Model
-    include LoggingUtils
     include InvalidConfiguration
 
     attr_reader(

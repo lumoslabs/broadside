@@ -41,8 +41,8 @@ Broadside.configure do |config|
       command: ['bundle', 'exec', 'puma'],
       env_file: '.env.staging',
       tag: 'latest',                                # Set a default tag for this target
-      cluster: 'staging-cluster',                   # Overrides config.ecs.cluster
-      docker_image: 'lumoslabs/staging_hello_world' # Overrides config.docker_image
+      cluster: 'staging-cluster',                   # Overrides config.aws.ecs_default_cluster
+      docker_image: 'lumoslabs/staging_hello_world' # Overrides config.default_docker_image
     },
     json_stream: {
       scale: 1,
