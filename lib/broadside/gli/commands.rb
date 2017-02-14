@@ -58,7 +58,7 @@ command :run do |run|
   run.flag [:command], type: Array
 
   add_tag_flag(run)
-  add_command_flags(run)
+  add_target_flag(run)
 
   run.action do |_, options, _|
     EcsDeploy.new(options).run_commands([options[:command]], started_by: 'run')
