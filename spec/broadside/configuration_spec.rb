@@ -18,8 +18,8 @@ describe Broadside::Configuration do
   end
 
   it 'should raise a relevant method missing error when misconfigured' do
-    expect { Broadside.configure { |config| config.aws.bad = 5 } }.to raise_error(ArgumentError, "config.aws.bad= is an invalid config option")
-    expect { Broadside.configure { |config| config.bad = 5 } }.to raise_error(ArgumentError, "config.bad= is an invalid config option")
+    expect { Broadside.configure { |config| config.aws.bad = 5 } }.to raise_error(ArgumentError, 'config.aws.bad= is an invalid config option')
+    expect { Broadside.configure { |config| config.bad = 5 } }.to raise_error(ArgumentError, 'config.bad= is an invalid config option')
   end
 
   describe '#ssh_cmd' do
