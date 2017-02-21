@@ -1,5 +1,6 @@
 # 3.0.1
-- `bootstrap` does not require a --tag option
+- `bootstrap` does not require a `--tag` option
+- `run` does not need require a `--instance`
 
 # 3.0.0
 ### Breaking Changes
