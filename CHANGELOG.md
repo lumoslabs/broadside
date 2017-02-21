@@ -1,3 +1,6 @@
+# 3.0.1
+- `bootstrap` does not require a --tag option
+
 # 3.0.0
 ### Breaking Changes
 - `ssh`, `bash`, `logtail`, `status`, and `run` are now top level commands, not subcommands of `deploy`
