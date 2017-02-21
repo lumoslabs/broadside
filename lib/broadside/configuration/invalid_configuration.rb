@@ -1,8 +1,7 @@
 module Broadside
   module InvalidConfiguration
     def method_missing(m, *args, &block)
-      message = "Unknown '#{m}' provided for #{is_a?(AwsConfiguration) ? 'configuration.aws' : 'configuration'}!"
-      raise ArgumentError, message
+      raise ArgumentError, 'config.' + (is_a?(AwsConfiguration) ? 'aws.' : '') + m.to_s + ' is an invalid config option'
     end
   end
 end

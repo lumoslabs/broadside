@@ -17,8 +17,8 @@ Gem::Specification.new do |spec|
   spec.executables   = ['broadside']
   spec.require_paths = ['lib']
 
-  spec.add_dependency 'activesupport', '>= 3', '< 5'
-  spec.add_dependency 'activemodel', '>= 3', '< 5'
+  spec.add_dependency 'activesupport', '>= 3', '< 6'
+  spec.add_dependency 'activemodel', '>= 3', '< 6'
   spec.add_dependency 'aws-sdk', '~> 2.3'
   spec.add_dependency 'dotenv', '>= 0.9.0', '< 3.0'
   spec.add_dependency 'gli', '~> 2.13'
