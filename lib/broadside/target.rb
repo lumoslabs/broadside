@@ -101,7 +101,7 @@ module Broadside
       )
 
       service_config.delete_if do |k, _|
-        attributes_disallowed_for_updates.contains?(k)
+        attributes_disallowed_for_updates.include?(k)
       end
     end
   end
