@@ -93,5 +93,16 @@ module Broadside
         Cluster: @cluster
       }
     end
+
+    def update_safe_service_config
+      attributes_disallowed_for_updates = %i(
+        role
+        load_balancers
+      )
+
+      service_config.delete_if do |k, _|
+        attributes_disallowed_for_updates.contains?(k)
+      end
+    end
   end
 end
