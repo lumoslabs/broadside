@@ -3,6 +3,28 @@ require 'spec_helper'
 describe Broadside::Target do
   include_context 'deploy configuration'
 
+  describe '#initialize' do
+    let(:all_possible_options) do
+      {
+        bootstrap_commands: [],
+        cluster: 'some-cluster',
+        command: %w(some command),
+        docker_image: 'lumoslabs/hello',
+        env_file: '.env.test',
+        predeploy_commands: [],
+        scale: 9000,
+        service_config: {},
+        tag: 'latest',
+        task_definition_config: {}
+      }
+    end
+    let(:target) { described_class.new(test_target_name, all_possible_options) }
+
+    it 'should initialize without erroring using all possible options' do
+      expect { target }.to_not raise_error
+    end
+  end
+
   shared_examples 'valid_configuration?' do |succeeds, config_hash|
     let(:valid_options) { { scale: 100 } }
     let(:target) { described_class.new(test_target_name, valid_options.merge(config_hash)) }

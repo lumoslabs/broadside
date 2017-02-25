@@ -55,6 +55,7 @@ module Broadside
       @predeploy_commands     = config.delete(:predeploy_commands)
       @scale                  = config.delete(:scale)
       @service_config         = config.delete(:service_config)
+      @tag                    = config.delete(:tag)
       @task_definition_config = config.delete(:task_definition_config)
 
       @env_files = Array.wrap(config.delete(:env_files) || config.delete(:env_file)).map do |env_path|
