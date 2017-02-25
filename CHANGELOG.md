@@ -1,3 +1,6 @@
+# 3.0.2
+- fix absence of tag raising an error in certain cases
+
 # 3.0.1
 - `bootstrap` does not require a `--tag` option
 - `run` does not need require a `--instance`
