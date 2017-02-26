@@ -104,4 +104,15 @@ For full application setup, see the [detailed instructions in the wiki](https://
 Use the `--debug` switch to enable stacktraces and debug output.
 
 ## Contributing
-Pull requests, bug reports, and feature suggestions are welcome! Before starting on a contribution, we recommend opening an issue or replying to an existing one to give others some initial context on the work needing to be done.
+Pull requests, bug reports, and feature suggestions are welcome!
+
+Before starting on a contribution, we recommend opening an issue or replying to an existing one to give others some initial context on the work needing to be done.
+
+**Specs must pass on pull requests for them to be considered.**
+
+### Running Specs
+Broadside has a lot of tests for most of its behaviors - just run
+```
+bundle exec rspec
+```
+in the broadside directory.  Don't open pull requests without passing specs.
