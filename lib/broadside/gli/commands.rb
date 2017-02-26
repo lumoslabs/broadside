@@ -24,8 +24,8 @@ end
 
 desc 'Bootstrap your service and task definition from the configured definition.'
 command :bootstrap do |bootstrap|
-  add_target_flag(bootstrap)
   bootstrap.arg 'tag' :optional
+  add_target_flag(bootstrap)
 
   bootstrap.action do |_, options, _|
     Broadside::EcsDeploy.new(options).bootstrap
