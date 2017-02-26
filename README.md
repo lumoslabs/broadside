@@ -64,7 +64,7 @@ bundle exec broadside deploy full --target production_web --tag v.1.1.example.ta
 
 In the case of an error or timeout during a deploy, broadside will automatically rollback to the latest stable version. You can perform manual rollbacks as well through the command-line.
 
-[For more information on broadside commands, see the complete command-line reference in the wiki](https://github.com/lumoslabs/broadside/wiki/CLI-reference).
+## [For more information on broadside commands, see the complete command-line reference in the wiki](https://github.com/lumoslabs/broadside/wiki/CLI-reference).
 
 
 ## Installation
