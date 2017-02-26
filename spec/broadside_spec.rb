@@ -3,6 +3,13 @@ require 'spec_helper'
 describe Broadside do
   include_context 'deploy configuration'
 
+  it 'should be able to display the help menu' do
+    silence_warnings do
+      exit_value = system('bundle exec broadside --help >/dev/null')
+      expect(exit_value).to be_truthy
+    end
+  end
+
   describe '#load_config_file' do
     it 'calls load for both the system and app config files' do
       expect(Broadside).to receive(:load).with(system_config_path).ordered
