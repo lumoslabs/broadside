@@ -1,3 +1,6 @@
+# 3.0.3
+- update of GLI specifications, adding on to 3.0.2
+
 # 3.0.2
 - fix absence of tag raising an error in certain cases
 
