@@ -103,7 +103,7 @@ module Broadside
     end
 
     def service_config_for_update
-      service_config.except(CREATE_ONLY_SERVICE_ATTRIBUTES)
+      service_config.try(:except, CREATE_ONLY_SERVICE_ATTRIBUTES)
     end
   end
 end
