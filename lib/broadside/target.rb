@@ -44,6 +44,14 @@ module Broadside
       record.errors.add(attr, 'is not an array of strings') unless val.is_a?(Array) && val.all? { |v| v.is_a?(String) }
     end
 
+    CREATE_ONLY_SERVICE_ATTRIBUTES = %i(
+      client_token
+      load_balancers
+      placement_constraints
+      placement_strategy
+      role
+    ).freeze
+
     def initialize(name, options = {})
       @name = name
 
@@ -94,15 +102,8 @@ module Broadside
       }
     end
 
-    def update_safe_service_config
-      attributes_disallowed_for_updates = %i(
-        role
-        load_balancers
-      )
-
-      service_config.delete_if do |k, _|
-        attributes_disallowed_for_updates.include?(k)
-      end
+    def service_config_for_update
+      service_config.except(CREATE_ONLY_SERVICE_ATTRIBUTES)
     end
   end
 end
