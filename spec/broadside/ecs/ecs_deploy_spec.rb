@@ -10,7 +10,7 @@ describe Broadside::EcsDeploy do
   let(:desired_count) { 4 }
   let(:cpu) { 1 }
   let(:memory) { 2000 }
-  let(:service_config) do
+  let(:base_service_config) do
     {
       desired_count: desired_count,
       deployment_configuration: {
@@ -18,6 +18,19 @@ describe Broadside::EcsDeploy do
       }
     }
   end
+  let(:service_config_with_load_balancers) do
+    base_service_config.merge(
+      role: 'ecsServiceRole',
+      load_balancers: [
+        {
+          container_name: 'test-container',
+          container_port: 8080,
+          load_balancer_name: 'test-container-elb'
+        }
+      ]
+    )
+  end
+  let(:service_config) { base_service_config }
 
   describe '#bootstrap' do
     it 'fails without task_definition_config' do
@@ -40,7 +53,7 @@ describe Broadside::EcsDeploy do
         end
       end
 
-      context 'with an existing service' do
+      shared_examples 'correctly-behaving bootstrap' do
         include_context 'with a running service'
 
         it 'succeeds' do
@@ -57,6 +70,16 @@ describe Broadside::EcsDeploy do
           end
         end
       end
+
+      context 'with an existing service' do
+        it_behaves_like 'correctly-behaving bootstrap'
+      end
+
+      context 'with an existing task definition that has create-only parameters' do
+        let(:service_config) { service_config_with_load_balancers }
+
+        it_behaves_like 'correctly-behaving bootstrap'
+      end
     end
   end
 
@@ -72,7 +95,7 @@ describe Broadside::EcsDeploy do
         expect { deploy.short }.to raise_error(/No task definition for/)
       end
 
-      context 'with an existing task definition' do
+      shared_examples 'correctly-behaving deploy' do
         include_context 'with a task_definition'
 
         it 'short deploy does not fail' do
@@ -141,6 +164,16 @@ describe Broadside::EcsDeploy do
           expect(api_request_methods.include?(:deregister_task_definition)).to be true
           expect(api_request_methods.include?(:update_service)).to be true
         end
+      end
+
+      context 'with an existing task definition' do
+        it_behaves_like 'correctly-behaving deploy'
+      end
+
+      context 'with an existing task definition that has create-only parameters' do
+        let(:service_config) { service_config_with_load_balancers }
+
+        it_behaves_like 'correctly-behaving deploy'
       end
     end
   end
