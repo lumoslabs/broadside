@@ -24,6 +24,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'gli', '~> 2.13'
   spec.add_dependency 'tty', '~> 0.5'
 
-  spec.add_development_dependency 'rspec', '~> 3.4.0'
+  spec.add_development_dependency 'rspec', '~> 3.4'
   spec.add_development_dependency 'bundler', '~> 1.9'
 end
