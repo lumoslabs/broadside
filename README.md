@@ -2,6 +2,8 @@
 
 A [GLI](https://github.com/davetron5000/gli) based command-line tool for deploying applications on [AWS EC2 Container Service (ECS)](https://aws.amazon.com/ecs/)
 
+### [The wiki](https://github.com/lumoslabs/broadside/wiki) has all kinds of useful information on it so don't just rely on this README.
+
 ## Overview
 Amazon ECS presents a low barrier to entry for production-level docker applications. Combined with ECS's built-in blue-green deployment, Elastic Load Balancers, Autoscale Groups, and CloudWatch, one can theoretically set up a robust cluster that can scale to serve any number of applications in a short amount of time. The ECS GUI, CLI, overall architecture are not the easiest to work with, however, so Broadside seeks to leverage the [ECS ruby API](http://docs.aws.amazon.com/sdkforruby/api/Aws/ECS.html) to dramatically simplify and improve the configuration and deployment process for developers, offering a simple command line interface and configuration format that should meet most needs.
 
@@ -64,7 +66,7 @@ bundle exec broadside deploy full --target production_web --tag v.1.1.example.ta
 
 In the case of an error or timeout during a deploy, broadside will automatically rollback to the latest stable version. You can perform manual rollbacks as well through the command-line.
 
-[For more information on broadside commands, see the complete command-line reference in the wiki](https://github.com/lumoslabs/broadside/wiki/CLI-reference).
+## [For more information on broadside commands, see the complete command-line reference in the wiki](https://github.com/lumoslabs/broadside/wiki/CLI-reference).
 
 
 ## Installation
@@ -102,4 +104,15 @@ For full application setup, see the [detailed instructions in the wiki](https://
 Use the `--debug` switch to enable stacktraces and debug output.
 
 ## Contributing
-Pull requests, bug reports, and feature suggestions are welcome! Before starting on a contribution, we recommend opening an issue or replying to an existing one to give others some initial context on the work needing to be done.
+Pull requests, bug reports, and feature suggestions are welcome!
+
+Before starting on a contribution, we recommend opening an issue or replying to an existing one to give others some initial context on the work needing to be done.
+
+**Specs must pass on pull requests for them to be considered.**
+
+### Running Specs
+Broadside has a lot of tests for most of its behaviors - just run
+```
+bundle exec rspec
+```
+in the broadside directory.  Don't open pull requests without passing specs.
