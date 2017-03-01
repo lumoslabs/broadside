@@ -44,6 +44,14 @@ module Broadside
       record.errors.add(attr, 'is not an array of strings') unless val.is_a?(Array) && val.all? { |v| v.is_a?(String) }
     end
 
+    CREATE_ONLY_SERVICE_ATTRIBUTES = %i(
+      client_token
+      load_balancers
+      placement_constraints
+      placement_strategy
+      role
+    ).freeze
+
     def initialize(name, options = {})
       @name = name
 
@@ -92,6 +100,10 @@ module Broadside
         Image: "#{@docker_image}:#{@tag || 'no_tag_configured'}",
         Cluster: @cluster
       }
+    end
+
+    def service_config_for_update
+      service_config.try(:except, *CREATE_ONLY_SERVICE_ATTRIBUTES)
     end
   end
 end
