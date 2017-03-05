@@ -27,7 +27,7 @@ module Broadside
       if EcsManager.get_latest_task_definition_arn(family)
         info "Task definition for #{family} already exists."
       elsif @target.bootstrap_commands && !@target.tag
-        raise ConfigurationError, 'Bootstraping a task_definition requires a --tag option'
+        raise ConfigurationError, 'Bootstrapping a task_definition requires a --tag option'
       else
         raise ConfigurationError, "No :task_definition_config for #{family}" unless @target.task_definition_config
         info "Creating an initial task definition for '#{family}' from the config..."
