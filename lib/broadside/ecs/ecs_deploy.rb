@@ -154,7 +154,7 @@ module Broadside
         desired_count: scale,
         service: family,
         task_definition: task_definition_arn
-      }.deep_merge(@target.service_config || {}))
+      }.deep_merge(@target.service_config_for_update || {}))
 
       unless update_service_response.successful?
         raise EcsError, "Failed to update service:\n#{update_service_response.pretty_inspect}"
