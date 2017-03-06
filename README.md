@@ -12,10 +12,11 @@ Broadside does _not_ attempt to handle operational tasks like infrastructure set
 ### Capabilities
 
 - **Trigger** ECS deployments
-- **Launch** a bash shell directly onto a running container in the cluster
+- **Inject** environment variables into ECS containers from local configuration files
+- **Launch a bash shell** on container in the cluster
 - **SSH** directly onto a host running a container
-- **Launch** an ECS task running an arbitrary command
-- **Tail** logs of a running container
+- **Execute** an arbitrary shell command on a container
+- **Tail logs** of a running container
 - **Scale** an existing deployment on the fly
 
 ### Example Config for Quickstarters
