@@ -5,17 +5,18 @@ A [GLI](https://github.com/davetron5000/gli) based command-line tool for deployi
 ### [The wiki](https://github.com/lumoslabs/broadside/wiki) has all kinds of useful information on it so don't just rely on this README.
 
 ## Overview
-Amazon ECS presents a low barrier to entry for production-level docker applications. Combined with ECS's built-in blue-green deployment, Elastic Load Balancers, Autoscale Groups, and CloudWatch, one can theoretically set up a robust cluster that can scale to serve any number of applications in a short amount of time. The ECS GUI, CLI, overall architecture are not the easiest to work with, however, so Broadside seeks to leverage the [ECS ruby API](http://docs.aws.amazon.com/sdkforruby/api/Aws/ECS.html) to dramatically simplify and improve the configuration and deployment process for developers, offering a simple command line interface and configuration format that should meet most needs.
+Amazon ECS presents a low barrier to entry for production-level docker applications. Combined with ECS's built-in blue-green deployment, Elastic Load Balancers, Autoscale Groups, and CloudWatch, one can theoretically set up a robust cluster that can scale to serve any number of applications in a short amount of time. The ECS GUI, CLI, and overall architecture are not the easiest to work with, however, so Broadside seeks to leverage the [ECS ruby API](http://docs.aws.amazon.com/sdkforruby/api/Aws/ECS.html) to dramatically simplify and improve the configuration and deployment process for developers, offering a simple command line interface and configuration format that should meet most needs.
 
 Broadside does _not_ attempt to handle operational tasks like infrastructure setup and configuration, which are better suited to tools like [terraform](https://www.terraform.io/).
 
 ### Capabilities
 
 - **Trigger** ECS deployments
-- **Launch** a bash shell directly onto a running container in the cluster
+- **Inject** environment variables into ECS containers from local configuration files
+- **Launch a bash shell** on container in the cluster
 - **SSH** directly onto a host running a container
-- **Launch** an ECS task running an arbitrary command
-- **Tail** logs of a running container
+- **Execute** an arbitrary shell command on a container
+- **Tail logs** of a running container
 - **Scale** an existing deployment on the fly
 
 ### Example Config for Quickstarters
