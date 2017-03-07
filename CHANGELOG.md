@@ -1,3 +1,6 @@
+# 3.0.7
+- `--tag` option for `bootstrap` also was named `--optional` (whoops)
+
 # 3.0.6
 - `--tag` option is optional while bootstrapping if you already have a configured `task_definition`
 
