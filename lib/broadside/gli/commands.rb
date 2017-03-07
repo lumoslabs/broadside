@@ -22,10 +22,14 @@ def add_command_flags(cmd)
   add_target_flag(cmd)
 end
 
+def add_deploy_flags(cmd)
+  add_tag_flag(cmd)
+  add_target_flag(cmd)
+end
+
 desc 'Bootstrap your service and task definition from the configured definition.'
 command :bootstrap do |bootstrap|
-  add_tag_flag(bootstrap)
-  add_target_flag(bootstrap)
+  add_deploy_flags(bootstrap)
 
   bootstrap.action do |_, options, _|
     Broadside::EcsDeploy.new(options).bootstrap
@@ -57,8 +61,7 @@ command :run do |run|
   run.arg_name 'COMMAND'
   run.flag [:command], type: Array
 
-  add_tag_flag(run)
-  add_target_flag(run)
+  add_deploy_flags(run)
 
   run.action do |_, options, _|
     EcsDeploy.new(options).run_commands([options[:command]], started_by: 'run')
@@ -101,8 +104,7 @@ desc 'Deploy your application.'
 command :deploy do |d|
   d.desc 'Deploys WITHOUT running predeploy commands'
   d.command :short do |short|
-    add_tag_flag(short)
-    add_target_flag(short)
+    add_deploy_flags(short)
 
     short.action do |_, options, _|
       Broadside::EcsDeploy.new(options).short
@@ -111,8 +113,7 @@ command :deploy do |d|
 
   d.desc 'Deploys WITH running predeploy commands'
   d.command :full do |full|
-    add_tag_flag(full)
-    add_target_flag(full)
+    add_deploy_flags(full)
 
     full.action do |_, options, _|
       Broadside::EcsDeploy.new(options).full
