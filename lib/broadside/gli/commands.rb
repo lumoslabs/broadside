@@ -24,7 +24,10 @@ end
 
 desc 'Bootstrap your service and task definition from the configured definition.'
 command :bootstrap do |bootstrap|
-  add_tag_flag(bootstrap)
+  bootstrap.desc 'Optionally configured tag - without it you cannot bootstrap a task_definition'
+  bootstrap.arg_name 'TAG'
+  bootstrap.flag 'tag', :optional
+
   add_target_flag(bootstrap)
 
   bootstrap.action do |_, options, _|

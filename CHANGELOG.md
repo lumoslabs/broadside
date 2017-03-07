@@ -1,3 +1,12 @@
+# 3.0.6
+- `--tag` option is optional while bootstrapping if you already have a configured `task_definition`
+
+# 3.0.5
+- Make `update_service` work correctly for services configured with load balancers
+
+# 3.0.4
+- `--tag` option required during bootstrapping
+
 # 3.0.3
 - update of GLI specifications, adding on to 3.0.2
 
