@@ -13,7 +13,7 @@ module Broadside
         table_header = nil
         table_rows = []
 
-        Broadside.config.targets.each do |_, target|
+        Broadside.config.targets.sort.each do |_, target|
           task_definition = EcsManager.get_latest_task_definition(target.family)
           service_tasks_running = EcsManager.get_task_arns(
             target.cluster,

@@ -1,3 +1,6 @@
+# 3.0.8
+-- Sort the output of `broadside targets` alphabetically
+
 # 3.0.7
 - `--tag` option for `bootstrap` also was named `--optional` (whoops)
 
