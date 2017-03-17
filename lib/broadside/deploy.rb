@@ -4,9 +4,11 @@ module Broadside
 
     attr_reader :target
 
+    delegate :tag, to: :target
+
     def initialize(options = {})
       @target = Broadside.config.get_target_by_name!(options[:target])
-      @tag = options[:tag] || @target.tag
+      @target.tag ||= options[:tag]
     end
 
     private
