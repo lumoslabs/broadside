@@ -28,7 +28,7 @@ module Broadside
         info "Task definition for #{family} already exists."
       else
         raise ConfigurationError, "No :task_definition_config for #{family}" unless @target.task_definition_config
-        raise ConfigurationError, 'Bootstrapping a task_definition requires a :tag for the image' unless @target.tag
+        raise ConfigurationError, 'Bootstrapping a task_definition requires a :tag for the image' unless @tag
         info "Creating an initial task definition for '#{family}' from the config..."
 
         EcsManager.ecs.register_task_definition(

@@ -8,7 +8,7 @@ module Broadside
 
     def initialize(options = {})
       @target = Broadside.config.get_target_by_name!(options[:target])
-      @target.tag = options[:tag] if options[:tag]
+      @tag = options[:tag] || @target.tag
     end
 
     private
