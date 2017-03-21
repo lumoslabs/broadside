@@ -14,7 +14,7 @@ def add_instance_flag(cmd)
   cmd.desc '0-based index into the array of running instances'
   cmd.default_value 0
   cmd.arg_name 'INSTANCE'
-  cmd.flag [:n, :instance], type: Fixnum
+  cmd.flag [:n, :instance], type: Integer
 end
 
 def add_command_flags(cmd)
@@ -38,7 +38,7 @@ end
 
 desc 'Gives an overview of all of the deploy targets'
 command :targets do |targets|
-  targets.action do |_, options, _|
+  targets.action do |_, _, _|
     Broadside::Command.targets
   end
 end
@@ -73,7 +73,7 @@ command :logtail do |logtail|
   logtail.desc 'Number of lines to tail'
   logtail.default_value Broadside::Command::DEFAULT_TAIL_LINES
   logtail.arg_name 'TAIL_LINES'
-  logtail.flag [:l, :lines], type: Fixnum
+  logtail.flag [:l, :lines], type: Integer
 
   add_command_flags(logtail)
 
@@ -124,7 +124,7 @@ command :deploy do |d|
   d.command :scale do |scale|
     scale.desc 'Specify a new scale for application'
     scale.arg_name 'NUM'
-    scale.flag [:s, :scale], type: Fixnum
+    scale.flag [:s, :scale], type: Integer
 
     add_target_flag(scale)
 
@@ -137,7 +137,7 @@ command :deploy do |d|
   d.command :rollback do |rollback|
     rollback.desc 'Number of releases to rollback'
     rollback.arg_name 'COUNT'
-    rollback.flag [:r, :rollback], type: Fixnum
+    rollback.flag [:r, :rollback], type: Integer
 
     add_target_flag(rollback)
 
