@@ -1,3 +1,6 @@
+# 3.0.9
+-- Fixing `--tag` handling on `bootstrap` to correctly pass assertion
+
 # 3.0.8
 -- Sort the output of `broadside targets` alphabetically
 
