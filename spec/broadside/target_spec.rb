@@ -59,7 +59,17 @@ describe Broadside::Target do
     it_behaves_like 'valid_configuration?', true,  predeploy_commands: [%w(do something)]
     it_behaves_like 'valid_configuration?', true,  predeploy_commands: [%w(do something), %w(other command)]
 
-    it_behaves_like 'valid_configuration?', false,  task_definition_config: { container_definitions: %w(a b) }
+    it_behaves_like 'valid_configuration?', false, task_definition_config: { container_definitions: %w(a b) }
+
+    it_behaves_like 'valid_configuration?', true,  { service_config: { load_balancers: [{ load_balancer_name: 'x' }] } }
+    it_behaves_like 'valid_configuration?', true,  {
+      service_config: {
+        load_balancers: [{ load_balancer_name: 'x' }]
+      },
+      load_balancer_config: {
+        subnets: ['abc', 'xyz']
+      }
+    }
   end
 
   describe '#ecs_env_vars' do
