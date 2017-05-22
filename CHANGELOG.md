@@ -1,3 +1,6 @@
+# 3.0.10
+-- Fix log output when using `scale` command
+
 # 3.0.9
 -- Fixing `--tag` handling on `bootstrap` to correctly pass assertion
 
