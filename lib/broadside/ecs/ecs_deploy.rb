@@ -67,7 +67,7 @@ module Broadside
     end
 
     def scale(options = {})
-      info "Rescaling #{family} with scale=#{options[:scale]}..."
+      info "Rescaling #{family} with scale=#{options[:scale] || @target.scale}..."
       update_service(options)
       info 'Rescaling complete.'
     end
