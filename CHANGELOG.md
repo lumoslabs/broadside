@@ -1,3 +1,6 @@
+# 3.0.11
+-- Handle Fixnum deprecation warning
+
 # 3.0.10
 -- Fix log output when using `scale` command
 

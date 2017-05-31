@@ -5,7 +5,7 @@ end
 accept Array do |val|
   val.split(' ')
 end
-accept Fixnum do |val|
+accept Integer do |val|
   val.to_i
 end
 
