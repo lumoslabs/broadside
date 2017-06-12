@@ -1,3 +1,6 @@
+# 3.0.11
+-- Try using AWS instance profile credentials if AWS shared credentials don't exist
+
 # 3.0.10
 -- Fix log output when using `scale` command
 
