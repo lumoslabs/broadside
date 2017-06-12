@@ -17,7 +17,7 @@ module Broadside
     )
 
     def initialize
-      @credentials = Aws::SharedCredentials.new.credentials
+      @credentials = Aws::SharedCredentials.new.credentials || Aws::InstanceProfileCredentials.new.credentials
       @ecs_poll_frequency = 2
       @region = 'us-east-1'
     end
