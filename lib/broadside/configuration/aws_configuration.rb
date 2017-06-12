@@ -17,13 +17,7 @@ module Broadside
     )
 
     def initialize
-      @credentials = Aws::SharedCredentials.new.credentials
-
-      # Try instance profile credentials if shared credentials don't exist
-      if @credentials.nil?
-        @credentials = Aws::InstanceProfileCredentials.new.credentials
-      end
-
+      @credentials = Aws::SharedCredentials.new.credentials || Aws::InstanceProfileCredentials.new.credentials
       @ecs_poll_frequency = 2
       @region = 'us-east-1'
     end
