@@ -1,3 +1,6 @@
+# 3.1.2
+-- Don't instantiate AWS Credentials until necessary
+
 # 3.1.1
 -- Handle Fixnum deprecation warning
 
