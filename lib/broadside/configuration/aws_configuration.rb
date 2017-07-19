@@ -9,19 +9,20 @@ module Broadside
       raise ConfigurationError, 'credentials is not of type Aws::Credentials' unless val.is_a?(Aws::Credentials)
     end
 
+    attr_writer :credentials
     attr_accessor(
-      :credentials,
       :ecs_default_cluster,
       :ecs_poll_frequency,
       :region
     )
 
     def initialize
-      @credentials = Aws::SharedCredentials.new.credentials
-      @credentials ||= Aws::InstanceProfileCredentials.new(retries: ENV['AWS_CREDENTIAL_RETRIES'] || 5).credentials
-
       @ecs_poll_frequency = 2
       @region = 'us-east-1'
+    end
+
+    def credentials
+      @credentials ||= Aws::SharedCredentials.new.credentials || Aws::InstanceProfileCredentials.new.credentials
     end
   end
 end
