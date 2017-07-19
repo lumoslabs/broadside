@@ -9,7 +9,7 @@ cache: bundler
 script:
   - bundle exec rspec --format documentation
 env:
-  - AWS_RETRIES=0
+  - AWS_CREDENTIAL_RETRIES=0
 notifications:
   email: false
 git:
