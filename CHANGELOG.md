@@ -1,3 +1,6 @@
+# 3.1.1
+-- Handle Fixnum deprecation warning
+
 # 3.1.0
 -- Simplified syntax for AWS credentials
 
