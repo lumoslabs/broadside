@@ -9,10 +9,7 @@ cache: bundler
 script:
   - bundle exec rspec --format documentation
 env:
-  - AWS_CREDENTIAL_RETRIES=0
-  - AWS_ACCESS_KEY_ID=test
-  - AWS_SECRET_ACCESS_KEY=test
-  - AWS_REGION=us-east-1
+  - AWS_CREDENTIAL_RETRIES=0 AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_REGION=us-east-1
 notifications:
   email: false
 git:
