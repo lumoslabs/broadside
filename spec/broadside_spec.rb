@@ -20,10 +20,10 @@ describe Broadside do
 
   describe '#reset!' do
     it 'discards the existing configuration' do
-      cfg = Broadside.config
-      expect(cfg).to eq(Broadside.config)
+      current_config = Broadside.config
+      expect(current_config).to eq(Broadside.config)
       Broadside.reset!
-      expect(cfg).not_to eq(Broadside.config)
+      expect(current_config).not_to eq(Broadside.config)
     end
   end
 end
