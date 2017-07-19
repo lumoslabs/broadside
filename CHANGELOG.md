@@ -1,5 +1,8 @@
-# 3.0.11
+# 3.1.1
 -- Handle Fixnum deprecation warning
+
+# 3.1.0
+-- Simplified syntax for AWS credentials
 
 # 3.0.10
 -- Fix log output when using `scale` command
