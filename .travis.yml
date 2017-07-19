@@ -8,6 +8,8 @@ rvm:
 cache: bundler
 script:
   - bundle exec rspec --format documentation
+env:
+  - AWS_RETRIES=0
 notifications:
   email: false
 git:

@@ -17,7 +17,9 @@ module Broadside
     )
 
     def initialize
-      @credentials = Aws::SharedCredentials.new.credentials || Aws::InstanceProfileCredentials.new(retries: 0).credentials
+      @credentials = Aws::SharedCredentials.new.credentials
+      @credentials ||= Aws::InstanceProfileCredentials.new(retries: ENV['AWS_CREDENTIAL_RETRIES'] || 5).credentials
+
       @ecs_poll_frequency = 2
       @region = 'us-east-1'
     end
