@@ -39,7 +39,7 @@ describe Broadside::Command do
         it 'raises an exception if the requested server index does not exist' do
           expect do
             described_class.bash(deploy_config.merge(instance: 2))
-          end.to raise_error(Broadside::Error, /Supplied instance index \d does not exist/)
+          end.to raise_error(Broadside::Error, /There are only 1 running instances; index 2 does not exist!/)
         end
 
         it 'executes correct system command' do

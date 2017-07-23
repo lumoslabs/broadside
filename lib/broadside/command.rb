@@ -119,10 +119,12 @@ module Broadside
 
       def get_running_instance_ip!(target, instance_index = 0)
         EcsManager.check_service_and_task_definition_state!(target)
+        running_instances = EcsManager.get_running_instance_ips!(target.cluster, target.family)
+
         begin
-          EcsManager.get_running_instance_ips!(target.cluster, target.family).fetch(instance_index)
+          running_instances.fetch(instance_index)
         rescue IndexError
-          raise Broadside::Error, "Supplied instance index #{instance_index} does not exist!"
+          raise Broadside::Error, "There are only #{running_instances.size} running instances; index #{instance_index} does not exist!"
         end
       end
 
