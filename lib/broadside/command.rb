@@ -124,7 +124,7 @@ module Broadside
         begin
           running_instances.fetch(instance_index)
         rescue IndexError
-          raise Error, "There are only #{running_instances.size} running instances; -n #{instance_index} does not exist"
+          raise Error, "There are only #{running_instances.size} instances; index #{instance_index} does not exist"
         end
       end
 
