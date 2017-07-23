@@ -1,3 +1,6 @@
+# 3.1.3
+-- Better error messaging when trying to bash/ssh/etc to an instance_index that doesn't exist
+
 # 3.1.2
 -- Don't instantiate AWS Credentials until necessary
 
