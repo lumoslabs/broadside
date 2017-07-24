@@ -36,6 +36,12 @@ describe Broadside::Command do
           ec2_stub.stub_responses(:describe_instances, reservations: [{ instances: [{ private_ip_address: ip }] }])
         end
 
+        it 'raises an exception if the requested server index does not exist' do
+          expect do
+            described_class.bash(deploy_config.merge(instance: 2))
+          end.to raise_error(Broadside::Error, /There are only 1 instances; index 2 does not exist/)
+        end
+
         it 'executes correct system command' do
           expect(described_class).to receive(:exec).with("ssh -o StrictHostKeyChecking=no -t -t #{user}@#{ip} 'docker exec -i -t `docker ps -n 1 --quiet --filter name=#{family}` bash'")
           expect { described_class.bash(deploy_config) }.to_not raise_error

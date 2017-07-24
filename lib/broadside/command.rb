@@ -119,7 +119,13 @@ module Broadside
 
       def get_running_instance_ip!(target, instance_index = 0)
         EcsManager.check_service_and_task_definition_state!(target)
-        EcsManager.get_running_instance_ips!(target.cluster, target.family).fetch(instance_index)
+        running_instances = EcsManager.get_running_instance_ips!(target.cluster, target.family)
+
+        begin
+          running_instances.fetch(instance_index)
+        rescue IndexError
+          raise Error, "There are only #{running_instances.size} instances; index #{instance_index} does not exist"
+        end
       end
 
       def docker_ps_cmd(family)
