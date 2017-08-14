@@ -99,6 +99,10 @@ command :bash do |bash|
   bash.arg_name 'BASH_COMMAND'
   bash.flag [:c, :command], type: String
 
+  bash.desc 'run on all containers in series'
+  bash.arg_name 'ALL_CONTAINERS'
+  bash.switch :all, negatable: false
+
   bash.action do |_, options, _|
     Broadside::Command.bash(options)
   end

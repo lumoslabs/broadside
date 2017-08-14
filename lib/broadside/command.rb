@@ -112,7 +112,7 @@ module Broadside
         target = Broadside.config.get_target_by_name!(options[:target])
         cmd = "docker exec -i -t `#{docker_ps_cmd(target.family)}` #{command}"
 
-        if options[:instance] == 'ALL'
+        if options[:all]
           ips = running_instances(target)
         else
           ips = [get_running_instance_ip!(target, *options[:instance])]
@@ -131,17 +131,19 @@ module Broadside
         exec(cmd)
       end
 
+      def get_running_instance_ip!(target, instance_index = 0)
+        instances = running_instances(target)
+
+        begin
+          instances.fetch(instance_index)
+        rescue IndexError
+          raise Error, "There are only #{instances.size} instances; index #{instance_index} does not exist"
+        end
+      end
+
       def running_instances(target)
         EcsManager.check_service_and_task_definition_state!(target)
         EcsManager.get_running_instance_ips!(target.cluster, target.family)
-      end
-
-      def get_running_instance_ip!(target, instance_index = 0)
-        begin
-          running_instances.fetch(instance_index)
-        rescue IndexError
-          raise Error, "There are only #{running_instances.size} instances; index #{instance_index} does not exist"
-        end
       end
 
       def docker_ps_cmd(family)
