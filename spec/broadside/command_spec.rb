@@ -28,7 +28,7 @@ describe Broadside::Command do
         let(:container_arn) { 'some_container_arn' }
         let(:instance_id) { 'i-xxxxxxxx' }
         let(:ip) { '123.123.123.123' }
-        let(:docker_cmd) { "#{user}@#{ip} 'docker exec -i -t `docker ps -n 1 --quiet --filter name=#{family}`" }
+        let(:docker_cmd) { "ssh -o StrictHostKeyChecking=no -t -t #{user}@#{ip} 'docker exec -i -t `docker ps -n 1 --quiet --filter name=#{family}`" }
         let(:request_log) do
           [
             { list_task_definitions: { family_prefix: family } },
@@ -54,13 +54,13 @@ describe Broadside::Command do
         end
 
         it 'executes correct bash command' do
-          expect(described_class).to receive(:exec).with("ssh -o StrictHostKeyChecking=no -t -t #{docker_cmd} bash'")
+          expect(described_class).to receive(:exec).with("#{docker_cmd} bash'")
           expect { described_class.bash(deploy_config) }.to_not raise_error
           expect(api_request_log).to eq(request_log)
         end
 
         it 'executes correct bash command' do
-          expect(described_class).to receive(:exec).with("ssh -o StrictHostKeyChecking=no #{docker_cmd} ls'")
+          expect(described_class).to receive(:exec).with("#{docker_cmd} ls'")
           expect { described_class.bash(deploy_config.merge(command: 'ls')) }.to_not raise_error
           expect(api_request_log).to eq(request_log)
         end

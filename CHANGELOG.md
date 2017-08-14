@@ -1,5 +1,5 @@
 # 3.2.1
--- Always turn on TTY interaction when running remote commands; make the bash command a string
+-- Always turn on TTY interaction when running remote commands; fix bug with command being array
 
 # 3.2.0
 -- Add ability to execute a bash command on a container
