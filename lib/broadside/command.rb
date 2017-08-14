@@ -110,11 +110,18 @@ module Broadside
       def bash(options)
         command = options[:command] || BASH
         target = Broadside.config.get_target_by_name!(options[:target])
-        ip = get_running_instance_ip!(target, *options[:instance])
         cmd = "docker exec -i -t `#{docker_ps_cmd(target.family)}` #{command}"
-        info "Executing #{command} on running container at #{ip}..."
 
-        system_exec(Broadside.config.ssh_cmd(ip, tty: true) + " '#{cmd}'")
+        if options[:instance] == 'ALL'
+          ips = running_instances(target)
+        else
+          ips = [get_running_instance_ip!(target, *options[:instance])]
+        end
+
+        ips.each do |ip|
+          info "Executing '#{command}' on running container at #{ip}..."
+          system_exec(Broadside.config.ssh_cmd(ip, tty: true) + " '#{cmd}'")
+        end
       end
 
       private
@@ -124,10 +131,12 @@ module Broadside
         exec(cmd)
       end
 
-      def get_running_instance_ip!(target, instance_index = 0)
+      def running_instances(target)
         EcsManager.check_service_and_task_definition_state!(target)
-        running_instances = EcsManager.get_running_instance_ips!(target.cluster, target.family)
+        EcsManager.get_running_instance_ips!(target.cluster, target.family)
+      end
 
+      def get_running_instance_ip!(target, instance_index = 0)
         begin
           running_instances.fetch(instance_index)
         rescue IndexError
