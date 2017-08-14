@@ -6,6 +6,7 @@ module Broadside
   module Command
     extend LoggingUtils
 
+    BASH = 'bash'.freeze
     DEFAULT_TAIL_LINES = 10
 
     class << self
@@ -107,19 +108,13 @@ module Broadside
       end
 
       def bash(options)
+        command = options[:command] || BASH
         target = Broadside.config.get_target_by_name!(options[:target])
         ip = get_running_instance_ip!(target, *options[:instance])
-        cmd = "docker exec -i -t `#{docker_ps_cmd(target.family)}` "
+        cmd = "docker exec -i -t `#{docker_ps_cmd(target.family)}` #{command}"
+        info "Executing #{command} on running container at #{ip}..."
 
-        if options[:command]
-          info "Executing #{options[:command]} on running container at #{ip}..."
-          cmd += options[:command]
-        else
-          info "Running bash for running container at #{ip}..."
-          cmd += 'bash'
-        end
-
-        system_exec(Broadside.config.ssh_cmd(ip, tty: !options[:command]) + " '#{cmd}'")
+        system_exec(Broadside.config.ssh_cmd(ip, tty: command == BASH) + " '#{cmd}'")
       end
 
       private
