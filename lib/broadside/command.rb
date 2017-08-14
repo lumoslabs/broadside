@@ -118,8 +118,6 @@ module Broadside
           ips = [get_running_instance_ip!(target, *options[:instance])]
         end
 
-        debug "Running IPs: #{ips}"
-
         ips.each do |ip|
           info "Executing '#{command}' on running container at #{ip}..."
           puts %x[#{Broadside.config.ssh_cmd(ip, tty: true) + " '#{cmd}'"}]
