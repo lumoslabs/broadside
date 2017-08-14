@@ -95,7 +95,7 @@ module Broadside
         info "Tailing logs for running container at #{ip}..."
 
         cmd = "docker logs -f --tail=#{lines} `#{docker_ps_cmd(target.family)}`"
-        exec(Broadside.config.ssh_cmd(ip) + " '#{cmd}'")
+        system_exec(Broadside.config.ssh_cmd(ip) + " '#{cmd}'")
       end
 
       def ssh(options)
@@ -103,7 +103,7 @@ module Broadside
         ip = get_running_instance_ip!(target, *options[:instance])
         info "Establishing SSH connection to #{ip}..."
 
-        exec(Broadside.config.ssh_cmd(ip))
+        system_exec(Broadside.config.ssh_cmd(ip))
       end
 
       def bash(options)
@@ -112,10 +112,15 @@ module Broadside
         info "Running bash for running container at #{ip}..."
 
         cmd = "docker exec -i -t `#{docker_ps_cmd(target.family)}` bash"
-        exec(Broadside.config.ssh_cmd(ip, tty: true) + " '#{cmd}'")
+        system_exec(Broadside.config.ssh_cmd(ip, tty: true) + " '#{cmd}'")
       end
 
       private
+
+      def system_exec(cmd)
+        debug "Executing: #{cmd}"
+        exec(cmd)
+      end
 
       def get_running_instance_ip!(target, instance_index = 0)
         EcsManager.check_service_and_task_definition_state!(target)

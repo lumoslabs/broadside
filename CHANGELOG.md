@@ -1,3 +1,6 @@
+# 3.1.4
+-- Output actual bash command being run when log level is debug.
+
 # 3.1.3
 -- Better error messaging when trying to bash/ssh/etc to an instance_index that doesn't exist
 
