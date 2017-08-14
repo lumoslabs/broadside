@@ -1,4 +1,5 @@
-# 3.1.4
+# 3.2.0
+-- Add ability to execute a bash command on a container
 -- Output actual bash command being run when log level is debug.
 
 # 3.1.3

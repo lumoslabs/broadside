@@ -109,10 +109,18 @@ module Broadside
       def bash(options)
         target = Broadside.config.get_target_by_name!(options[:target])
         ip = get_running_instance_ip!(target, *options[:instance])
-        info "Running bash for running container at #{ip}..."
+        cmd = "docker exec -i -t `#{docker_ps_cmd(target.family)}`"
+        tty = !options[:command]
 
-        cmd = "docker exec -i -t `#{docker_ps_cmd(target.family)}` bash"
-        system_exec(Broadside.config.ssh_cmd(ip, tty: true) + " '#{cmd}'")
+        if options[:command]
+          info "Executing #{options[:command]} on running container at #{ip}..."
+          cmd = "#{cmd} #{options[:command]}"
+        else
+          info "Running bash for running container at #{ip}..."
+          cmd = "#{cmd} bash"
+        end
+
+        system_exec(Broadside.config.ssh_cmd(ip, tty: tty) + " '#{cmd}'")
       end
 
       private

@@ -28,6 +28,17 @@ describe Broadside::Command do
         let(:container_arn) { 'some_container_arn' }
         let(:instance_id) { 'i-xxxxxxxx' }
         let(:ip) { '123.123.123.123' }
+        let(:docker_cmd) { "#{user}@#{ip} 'docker exec -i -t `docker ps -n 1 --quiet --filter name=#{family}`" }
+        let(:request_log) do
+          [
+            { list_task_definitions: { family_prefix: family } },
+            { describe_services: { cluster: cluster, services: [family] } },
+            { list_tasks: { cluster: cluster, family: family } },
+            { describe_tasks: { cluster: cluster, tasks: [task_arn] } },
+            { describe_container_instances: { cluster: cluster, container_instances: [container_arn] } },
+            { describe_instances: { instance_ids: [instance_id] } }
+          ]
+        end
 
         before(:each) do
           ecs_stub.stub_responses(:list_tasks, task_arns: [task_arn])
@@ -42,19 +53,16 @@ describe Broadside::Command do
           end.to raise_error(Broadside::Error, /There are only 1 instances; index 2 does not exist/)
         end
 
-        it 'executes correct system command' do
-          expect(described_class).to receive(:exec).with("ssh -o StrictHostKeyChecking=no -t -t #{user}@#{ip} 'docker exec -i -t `docker ps -n 1 --quiet --filter name=#{family}` bash'")
+        it 'executes correct bash command' do
+          expect(described_class).to receive(:exec).with("ssh -o StrictHostKeyChecking=no -t -t #{docker_cmd} bash'")
           expect { described_class.bash(deploy_config) }.to_not raise_error
-          expect(api_request_log).to eq(
-            [
-              { list_task_definitions: { family_prefix: family } },
-              { describe_services: { cluster: cluster, services: [family] } },
-              { list_tasks: { cluster: cluster, family: family } },
-              { describe_tasks: { cluster: cluster, tasks: [task_arn] } },
-              { describe_container_instances: { cluster: cluster, container_instances: [container_arn] } },
-              { describe_instances: { instance_ids: [instance_id] } }
-            ]
-          )
+          expect(api_request_log).to eq(request_log)
+        end
+
+        it 'executes correct bash command' do
+          expect(described_class).to receive(:exec).with("ssh -o StrictHostKeyChecking=no #{docker_cmd} ls'")
+          expect { described_class.bash(deploy_config.merge(command: 'ls')) }.to_not raise_error
+          expect(api_request_log).to eq(request_log)
         end
       end
     end

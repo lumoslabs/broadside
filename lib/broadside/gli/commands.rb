@@ -91,9 +91,13 @@ command :ssh do |ssh|
   end
 end
 
-desc 'Establish a shell inside a running container.'
+desc 'Establish a shell or run a bash command inside a running container.'
 command :bash do |bash|
   add_command_flags(bash)
+
+  bash.desc 'bash command to run (wrap argument in quotes)'
+  bash.arg_name 'BASH_COMMAND'
+  bash.flag [:c, :command], type: Array
 
   bash.action do |_, options, _|
     Broadside::Command.bash(options)
