@@ -97,7 +97,7 @@ command :bash do |bash|
 
   bash.desc 'bash command to run (wrap argument in quotes)'
   bash.arg_name 'BASH_COMMAND'
-  bash.flag [:c, :command], type: Array
+  bash.flag [:c, :command], type: String
 
   bash.action do |_, options, _|
     Broadside::Command.bash(options)

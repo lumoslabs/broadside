@@ -114,7 +114,7 @@ module Broadside
         cmd = "docker exec -i -t `#{docker_ps_cmd(target.family)}` #{command}"
         info "Executing #{command} on running container at #{ip}..."
 
-        system_exec(Broadside.config.ssh_cmd(ip, tty: command == BASH) + " '#{cmd}'")
+        system_exec(Broadside.config.ssh_cmd(ip, tty: true) + " '#{cmd}'")
       end
 
       private
