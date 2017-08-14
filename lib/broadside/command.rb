@@ -122,7 +122,9 @@ module Broadside
 
         ips.each do |ip|
           info "Executing '#{command}' on running container at #{ip}..."
-          system_exec(Broadside.config.ssh_cmd(ip, tty: true) + " '#{cmd}'")
+          output = %x[#{Broadside.config.ssh_cmd(ip, tty: true) + " '#{cmd}'"}]
+          puts "OUTPUT:\n #{output}"
+          #system_exec(Broadside.config.ssh_cmd(ip, tty: true) + " '#{cmd}'")
         end
       end
 
