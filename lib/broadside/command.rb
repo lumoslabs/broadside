@@ -112,12 +112,7 @@ module Broadside
         command = options[:command] || BASH
         target = Broadside.config.get_target_by_name!(options[:target])
         cmd = "docker exec -i -t `#{docker_ps_cmd(target.family)}` #{command}"
-
-        if options[:all]
-          ips = running_instances(target)
-        else
-          ips = [get_running_instance_ip!(target, *options[:instance])]
-        end
+        ips = options[:all] ? running_instances(target) : [get_running_instance_ip!(target, *options[:instance])]
 
         ips.each do |ip|
           info "Executing '#{command}' on running container at #{ip}..."
