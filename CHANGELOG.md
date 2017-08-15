@@ -1,6 +1,7 @@
 # 3.3.0
+-- Add `execute` command to execute arbitrary bash inside a running container
+-- Add `--all` flag to `execute` to run a command on all containers
 -- Always turn on TTY interaction when running remote commands.
--- Add `bash --all` to execute a command on all containers
 -- Fix bug with command being an array instead of string
 
 # 3.2.0
