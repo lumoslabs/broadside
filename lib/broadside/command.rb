@@ -114,7 +114,6 @@ module Broadside
         cmd = "docker exec -i -t `#{docker_ps_cmd(target.family)}` #{command}"
 
         if options[:all]
-          raise Error, "You can't specify an instance and --all at the same time."
           ips = running_instances(target)
         else
           ips = [get_running_instance_ip!(target, *options[:instance])]
