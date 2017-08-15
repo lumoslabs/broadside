@@ -53,16 +53,26 @@ describe Broadside::Command do
           end.to raise_error(Broadside::Error, /There are only 1 instances; index 2 does not exist/)
         end
 
-        it 'executes correct bash command' do
-          expect(Open3).to receive(:popen3).with("#{docker_cmd} bash'")
+        it 'executes bash' do
+          expect(described_class).to receive(:exec).with("#{docker_cmd} bash'")
           expect { described_class.bash(deploy_config) }.to_not raise_error
           expect(api_request_log).to eq(request_log)
         end
 
-        it 'executes correct bash command' do
-          expect(Open3).to receive(:popen3).with("#{docker_cmd} ls'")
-          expect { described_class.bash(deploy_config.merge(command: 'ls')) }.to_not raise_error
-          expect(api_request_log).to eq(request_log)
+        context '#execute' do
+          let(:command) { 'ls' }
+
+          it 'executes correct bash command' do
+            expect(Open3).to receive(:popen3).with("#{docker_cmd} #{command}'")
+            expect { described_class.execute(deploy_config.merge(command: 'ls')) }.to_not raise_error
+            expect(api_request_log).to eq(request_log)
+          end
+
+          it 'executes correct bash with the :all switch' do
+            expect(Open3).to receive(:popen3).with("#{docker_cmd} #{command}'")
+            expect { described_class.execute(deploy_config.merge(command: 'ls', all: true)) }.to_not raise_error
+            expect(api_request_log).to eq(request_log)
+          end
         end
       end
     end

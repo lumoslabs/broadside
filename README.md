@@ -15,7 +15,7 @@ Broadside does _not_ attempt to handle operational tasks like infrastructure set
 - **Inject** environment variables into ECS containers from local configuration files
 - **Launch a bash shell** on container in the cluster
 - **SSH** directly onto a host running a container
-- **Execute** an arbitrary shell command on a container
+- **Execute** an arbitrary shell command on a container (or all containers)
 - **Tail logs** of a running container
 - **Scale** an existing deployment on the fly
 
@@ -31,17 +31,17 @@ Broadside.configure do |config|
   config.targets = {
     production_web: {
       scale: 7,
-      command: ['bundle', 'exec', 'unicorn', '-c', 'config/unicorn.conf.rb'],
+      command: %w(bundle exec unicorn -c config/unicorn.conf.rb),
       env_file: '.env.production'
       predeploy_commands: [
-        ['bundle', 'exec', 'rake', 'db:migrate'],
-        ['bundle', 'exec', 'rake', 'data:migrate']
+        %w(bundle exec rake db:migrate),
+        %w(bundle exec rake data:migrate)
       ]
     },
     # If you have multiple images or clusters, you can configure them per target
     staging_web: {
       scale: 1,
-      command: ['bundle', 'exec', 'puma'],
+      command: %w(bundle exec puma),
       env_file: '.env.staging',
       tag: 'latest',                                # Set a default tag for this target
       cluster: 'staging-cluster',                   # Overrides config.aws.ecs_default_cluster
@@ -49,7 +49,7 @@ Broadside.configure do |config|
     },
     json_stream: {
       scale: 1,
-      command: ['java', '-cp', '*:.', 'path.to.MyClass'],
+      command: %w(java -cp *:. path.to.MyClass),
       # This target has a task_definition and service config which you use to bootstrap a new AWS Service
       service_config: { deployment_configuration: { minimum_healthy_percent: 0.5 } },
       task_definition_config: { container_definitions: [ { cpu: 1, memory: 2000, } ] }
