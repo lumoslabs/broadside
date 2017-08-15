@@ -97,7 +97,11 @@ command :bash do |bash|
 
   bash.desc 'bash command to run (wrap argument in quotes)'
   bash.arg_name 'BASH_COMMAND'
-  bash.flag [:c, :command], type: Array
+  bash.flag [:c, :command], type: String
+
+  bash.desc 'run on all containers in series'
+  bash.arg_name 'ALL_CONTAINERS'
+  bash.switch :all, negatable: false
 
   bash.action do |_, options, _|
     Broadside::Command.bash(options)

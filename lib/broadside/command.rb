@@ -1,3 +1,4 @@
+require 'open3'
 require 'pp'
 require 'shellwords'
 require 'tty-table'
@@ -110,11 +111,13 @@ module Broadside
       def bash(options)
         command = options[:command] || BASH
         target = Broadside.config.get_target_by_name!(options[:target])
-        ip = get_running_instance_ip!(target, *options[:instance])
         cmd = "docker exec -i -t `#{docker_ps_cmd(target.family)}` #{command}"
-        info "Executing #{command} on running container at #{ip}..."
+        ips = options[:all] ? running_instances(target) : [get_running_instance_ip!(target, *options[:instance])]
 
-        system_exec(Broadside.config.ssh_cmd(ip, tty: command == BASH) + " '#{cmd}'")
+        ips.each do |ip|
+          info "Executing '#{command}' on running container at #{ip}..."
+          Open3.popen3(Broadside.config.ssh_cmd(ip, tty: true) + " '#{cmd}'") { |_, stdout, _, _| puts stdout.read }
+        end
       end
 
       private
@@ -125,14 +128,18 @@ module Broadside
       end
 
       def get_running_instance_ip!(target, instance_index = 0)
-        EcsManager.check_service_and_task_definition_state!(target)
-        running_instances = EcsManager.get_running_instance_ips!(target.cluster, target.family)
+        instances = running_instances(target)
 
         begin
-          running_instances.fetch(instance_index)
+          instances.fetch(instance_index)
         rescue IndexError
-          raise Error, "There are only #{running_instances.size} instances; index #{instance_index} does not exist"
+          raise Error, "There are only #{instances.size} instances; index #{instance_index} does not exist"
         end
+      end
+
+      def running_instances(target)
+        EcsManager.check_service_and_task_definition_state!(target)
+        EcsManager.get_running_instance_ips!(target.cluster, target.family)
       end
 
       def docker_ps_cmd(family)

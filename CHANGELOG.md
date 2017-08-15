@@ -1,3 +1,8 @@
+# 3.3.0
+-- Always turn on TTY interaction when running remote commands.
+-- Add `bash --all` to execute a command on all containers
+-- Fix bug with command being an array instead of string
+
 # 3.2.0
 -- Add ability to execute a bash command on a container
 -- Output actual bash command being run when log level is debug.
