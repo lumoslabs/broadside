@@ -1,3 +1,4 @@
+require 'open3'
 require 'pp'
 require 'shellwords'
 require 'tty-table'
@@ -120,7 +121,11 @@ module Broadside
 
         ips.each do |ip|
           info "Executing '#{command}' on running container at #{ip}..."
-          puts %x[#{Broadside.config.ssh_cmd(ip, tty: true) + " '#{cmd}'"}]
+
+          Open3.popen3(Broadside.config.ssh_cmd(ip, tty: true) + " '#{cmd}'") do |_, stdout, stderr, _|
+            puts stdout.read
+            puts stderr.read
+          end
         end
       end
 
