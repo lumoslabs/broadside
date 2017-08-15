@@ -121,11 +121,7 @@ module Broadside
 
         ips.each do |ip|
           info "Executing '#{command}' on running container at #{ip}..."
-
-          Open3.popen3(Broadside.config.ssh_cmd(ip, tty: true) + " '#{cmd}'") do |_, stdout, stderr, _|
-            puts stdout.read
-            puts stderr.read
-          end
+          Open3.popen3(Broadside.config.ssh_cmd(ip, tty: true) + " '#{cmd}'") { |_, stdout, _, _| puts stdout.read }
         end
       end
 
