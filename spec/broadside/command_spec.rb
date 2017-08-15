@@ -54,13 +54,13 @@ describe Broadside::Command do
         end
 
         it 'executes correct bash command' do
-          expect(described_class).to receive(:"%x").with("#{docker_cmd} bash'")
+          expect(Open3).to receive(:popen3).with("#{docker_cmd} bash'")
           expect { described_class.bash(deploy_config) }.to_not raise_error
           expect(api_request_log).to eq(request_log)
         end
 
         it 'executes correct bash command' do
-          expect(described_class).to receive(:"%x").with("#{docker_cmd} ls'")
+          expect(Open3).to receive(:popen3).with("#{docker_cmd} ls'")
           expect { described_class.bash(deploy_config.merge(command: 'ls')) }.to_not raise_error
           expect(api_request_log).to eq(request_log)
         end
