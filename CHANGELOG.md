@@ -1,33 +1,33 @@
 # 3.3.0
--- Add `execute` command to execute arbitrary bash inside a running container
--- Add `--all` flag to `execute` to run a command on all containers
--- Always turn on TTY interaction when running remote commands.
--- Fix bug with command being an array instead of string
+- Add `execute` command to execute arbitrary bash inside a running container
+- Add `--all` flag to `execute` to run a command on all containers
+- Always turn on TTY interaction when running remote commands.
+- Fix bug with command being an array instead of string
 
 # 3.2.0
--- Add ability to execute a bash command on a container
--- Output actual bash command being run when log level is debug.
+- Add ability to execute a bash command on a container
+- Output actual bash command being run when log level is debug.
 
 # 3.1.3
--- Better error messaging when trying to bash/ssh/etc to an instance_index that doesn't exist
+- Better error messaging when trying to bash/ssh/etc to an instance_index that doesn't exist
 
 # 3.1.2
--- Don't instantiate AWS Credentials until necessary
+- Don't instantiate AWS Credentials until necessary
 
 # 3.1.1
--- Handle Fixnum deprecation warning
+- Handle Fixnum deprecation warning
 
 # 3.1.0
--- Simplified syntax for AWS credentials
+- Simplified syntax for AWS credentials
 
 # 3.0.10
--- Fix log output when using `scale` command
+- Fix log output when using `scale` command
 
 # 3.0.9
--- Fixing `--tag` handling on `bootstrap` to correctly pass assertion
+- Fixing `--tag` handling on `bootstrap` to correctly pass assertion
 
 # 3.0.8
--- Sort the output of `broadside targets` alphabetically
+- Sort the output of `broadside targets` alphabetically
 
 # 3.0.7
 - `--tag` option for `bootstrap` also was named `--optional` (whoops)
