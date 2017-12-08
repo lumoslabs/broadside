@@ -1,3 +1,6 @@
+# 3.3.1
+- Use new modularized aws-sdk gems: aws-sdk-ec2 & aws-sdk-ecs
+
 # 3.3.0
 - Add `execute` command to execute arbitrary bash inside a running container
 - Add `--all` flag to `execute` to run a command on all containers
