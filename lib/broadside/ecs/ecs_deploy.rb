@@ -135,7 +135,7 @@ module Broadside
       # Deep merge doesn't work well with arrays (e.g. container_definitions), so build the container first.
       updatable_container_definitions.first.merge!(configured_container_definition)
       revision.deep_merge!((@target.task_definition_config || {}).except(:container_definitions))
-      revision[:requiresCompatabilities] = revision.delete(:compatibilities) if revision.key? :compatibilities
+      revision[:requires_compatibilities] = revision.delete(:compatibilities) if revision.key? :compatibilities
 
       debug "Registering task definition: #{revision}"
       task_definition = EcsManager.ecs.register_task_definition(revision).task_definition
