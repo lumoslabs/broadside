@@ -14,7 +14,8 @@ module Broadside
           if Broadside.config.aws.debug
             options.merge!(
               logger: Broadside.config.logger,
-              log_level: :debug
+              log_level: :debug,
+              log_formatter: Aws::Log::Formatter.colored
             )
           end
           Aws::ECS::Client.new options
@@ -181,7 +182,8 @@ module Broadside
           if Broadside.config.aws.debug
             options.merge!(
               logger: Broadside.config.logger,
-              log_level: :debug
+              log_level: :debug,
+              log_formatter: Aws::Log::Formatter.colored
             )
           end
           Aws::EC2::Client.new options
