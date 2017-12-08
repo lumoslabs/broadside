@@ -19,8 +19,8 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'activesupport', '>= 3', '< 6'
   spec.add_dependency 'activemodel', '>= 3', '< 6'
-  spec.add_dependency 'aws-sdk-ecs', '~> 1'
-  spec.add_dependency 'aws-sdk-ec2', '~> 1'
+  spec.add_dependency 'aws-sdk-ecs', '~> 1.0'
+  spec.add_dependency 'aws-sdk-ec2', '~> 1.0'
   spec.add_dependency 'dotenv', '>= 0.9.0', '< 3.0'
   spec.add_dependency 'gli', '~> 2.13'
   spec.add_dependency 'tty', '~> 0.5'
