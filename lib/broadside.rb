@@ -1,6 +1,7 @@
 require 'active_model'
 require 'active_support/core_ext'
-require 'aws-sdk'
+require 'aws-sdk-ec2'
+require 'aws-sdk-ecs'
 
 require 'broadside/error'
 require 'broadside/logging_utils'
