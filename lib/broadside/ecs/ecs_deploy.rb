@@ -136,6 +136,7 @@ module Broadside
       updatable_container_definitions.first.merge!(configured_container_definition)
       revision.deep_merge!((@target.task_definition_config || {}).except(:container_definitions))
 
+      debug "Registering task definition: #{revision}"
       task_definition = EcsManager.ecs.register_task_definition(revision).task_definition
       debug "Successfully created #{task_definition.task_definition_arn}"
     end
