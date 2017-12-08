@@ -137,7 +137,7 @@ module Broadside
       revision.deep_merge!((@target.task_definition_config || {}).except(:container_definitions))
       revision[:requires_compatibilities] = revision.delete(:compatibilities) if revision.key? :compatibilities
 
-      debug "Registering task definition: #{revision}"
+      debug "Registering task definition updated task definition for #{revision[:family]}"
       task_definition = EcsManager.ecs.register_task_definition(revision).task_definition
       debug "Successfully created #{task_definition.task_definition_arn}"
     end

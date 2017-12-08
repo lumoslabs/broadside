@@ -14,13 +14,13 @@ module Broadside
       :ecs_default_cluster,
       :ecs_poll_frequency,
       :region,
-      :debug
+      :validate_params
     )
 
     def initialize
       @ecs_poll_frequency = 2
       @region = 'us-east-1'
-      @debug = false
+      @validate_params = true
     end
 
     def credentials

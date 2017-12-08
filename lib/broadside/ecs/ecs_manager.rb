@@ -9,6 +9,7 @@ module Broadside
         @ecs_client ||= Aws::ECS::Client.new(
           region: Broadside.config.aws.region,
           credentials: Broadside.config.aws.credentials,
+          validate_params: Broadside.config.aws.validate_params,
           logger: Broadside.config.logger,
           log_formatter: Aws::Log::Formatter.colored
         )
@@ -169,6 +170,7 @@ module Broadside
         @ec2_client ||= Aws::EC2::Client.new(
           region: Broadside.config.aws.region,
           credentials: Broadside.config.aws.credentials,
+          validate_params: Broadside.config.aws.validate_params,
           logger: Broadside.config.logger,
           log_formatter: Aws::Log::Formatter.colored
         )
