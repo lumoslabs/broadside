@@ -15,7 +15,7 @@ module Broadside
             options.merge!(
               logger: Broadside.config.logger,
               log_level: :debug,
-              log_formatter: AWS::Core::LogFormatter.debug
+              log_formatter: Aws::Core::LogFormatter.debug
             )
           end
           Aws::ECS::Client.new options
@@ -183,7 +183,7 @@ module Broadside
             options.merge!(
               logger: Broadside.config.logger,
               log_level: :debug,
-              log_formatter: AWS::Core::LogFormatter.debug
+              log_formatter: Aws::Core::LogFormatter.debug
             )
           end
           Aws::EC2::Client.new options
