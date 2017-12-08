@@ -6,17 +6,20 @@ module Broadside
       include LoggingUtils
 
       def ecs
-        if Broadside.config.aws.debug
-          AWS.config(
-            logger: Broadside.config.logger,
-            log_level: :debug,
-            log_formatter: AWS::Core::LogFormatter.debug
-          )
+        @ecs_client ||= begin
+          options = {
+            region: Broadside.config.aws.region,
+            credentials: Broadside.config.aws.credentials
+          }
+          if Broadside.config.aws.debug
+            options.merge!(
+              logger: Broadside.config.logger,
+              log_level: :debug,
+              log_formatter: AWS::Core::LogFormatter.debug
+            )
+          end
+          Aws::ECS::Client.new options
         end
-        @ecs_client ||= Aws::ECS::Client.new(
-          region: Broadside.config.aws.region,
-          credentials: Broadside.config.aws.credentials
-        )
       end
 
       def create_service(cluster, name, service_config = {})
@@ -171,17 +174,20 @@ module Broadside
       end
 
       def ec2_client
-        if Broadside.config.aws.debug
-          AWS.config(
-            logger: Broadside.config.logger,
-            log_level: :debug,
-            log_formatter: AWS::Core::LogFormatter.debug
-          )
+        @ec2_client ||= begin
+          options = {
+            region: Broadside.config.aws.region,
+            credentials: Broadside.config.aws.credentials
+          }
+          if Broadside.config.aws.debug
+            options.merge!(
+              logger: Broadside.config.logger,
+              log_level: :debug,
+              log_formatter: AWS::Core::LogFormatter.debug
+            )
+          end
+          Aws::EC2::Client.new options
         end
-        @ec2_client ||= Aws::EC2::Client.new(
-          region: Broadside.config.aws.region,
-          credentials: Broadside.config.aws.credentials
-        )
       end
     end
   end
