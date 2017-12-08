@@ -3,7 +3,6 @@ module Broadside
     include ActiveModel::Model
     include InvalidConfiguration
 
-    validates :debug, presence: true
     validates :region, presence: true, strict: ConfigurationError
     validates :ecs_poll_frequency, numericality: { only_integer: true, strict: ConfigurationError }
     validates_each(:credentials) do |_, _, val|
