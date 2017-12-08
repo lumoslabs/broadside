@@ -6,6 +6,13 @@ module Broadside
       include LoggingUtils
 
       def ecs
+        if Broadside.config.aws.debug
+          AWS.config(
+            logger: Broadside.config.logger,
+            log_level: :debug,
+            log_formatter: AWS::Core::LogFormatter.debug
+          )
+        end
         @ecs_client ||= Aws::ECS::Client.new(
           region: Broadside.config.aws.region,
           credentials: Broadside.config.aws.credentials
@@ -164,6 +171,13 @@ module Broadside
       end
 
       def ec2_client
+        if Broadside.config.aws.debug
+          AWS.config(
+            logger: Broadside.config.logger,
+            log_level: :debug,
+            log_formatter: AWS::Core::LogFormatter.debug
+          )
+        end
         @ec2_client ||= Aws::EC2::Client.new(
           region: Broadside.config.aws.region,
           credentials: Broadside.config.aws.credentials
