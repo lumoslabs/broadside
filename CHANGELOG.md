@@ -1,3 +1,8 @@
+# 3.3.2
+- Add debug logging for aws-sdk components
+- Add some other debug logging
+- Fix for aws api changes: ecs task_definition response includes `compatibilities`, but requests want `requires_compatibilities`
+
 # 3.3.1
 - Use new modularized aws-sdk gems: aws-sdk-ec2 & aws-sdk-ecs
 
