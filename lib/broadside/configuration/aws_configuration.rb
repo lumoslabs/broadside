@@ -13,14 +13,12 @@ module Broadside
     attr_accessor(
       :ecs_default_cluster,
       :ecs_poll_frequency,
-      :region,
-      :validate_params
+      :region
     )
 
     def initialize
       @ecs_poll_frequency = 2
       @region = 'us-east-1'
-      @validate_params = true
     end
 
     def credentials
