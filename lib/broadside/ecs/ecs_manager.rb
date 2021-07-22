@@ -35,7 +35,7 @@ module Broadside
 
       def get_latest_task_definition(name)
         return nil unless (arn = get_latest_task_definition_arn(name))
-        ecs.describe_task_definition(task_definition: arn).task_definition.to_h
+        ecs.describe_task_definition(task_definition: arn).task_definition.to_h.reject {|k, _v| k == :registered_at || k == :registered_by }
       end
 
       def get_latest_task_definition_arn(name)
